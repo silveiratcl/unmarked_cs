@@ -43,8 +43,7 @@ spec(df_monit)
 df_monit[2000,]
 
 
-
-df_geo = read_csv2("data/dados_geo_cs_2024-03-18.csv", 
+  df_geo = read_csv2("data/dados_geo_cs_2024-03-18.csv", 
                    col_types = list(localidade = col_character(),
                                     data = col_date(format = "%d/%m/%Y"),
                                     visibilidade = col_double(),
@@ -63,34 +62,44 @@ df_geo = read_csv2("data/dados_geo_cs_2024-03-18.csv",
 spec(df_geo)
 df_geo
 
+
+df_localidade = read_delim("data/localidade_rebio.csv",
+                           col_types = list(id = col_integer(),
+                                            localidade = col_character(),
+                                            comp_m = col_double()))
+print(df_localidade, n = 37)
+
+
 # Agregar por localidade 
 # total de minutos por localidade
 # total de detecções no espaço de um minuto
 
 df_monit_effort <- df_monit %>% 
-  group_by(localidade) %>%
+  group_by(localidade, data) %>%
   filter(obs != "estimado dos dados do ICMBio") %>% 
-  reframe(effort_min = max(n_trans_vis)*n_divers,
-            detection = max(n_trans_pres)) %>%
+  reframe(max_min = max(n_trans_vis),
+          detection = max(n_trans_pres),
+          n_divers = max(n_divers)) %>%
   ungroup()
+df_monit_effort
 
-print(df_monit_effort, n = 27)
-
-
-
-
-
-library(tidyverse)
-eval_list_table <- eval_list %>% 
-  # bind tables by row
-  bind_rows() %>% 
-  # filtering by metric eval and algo
-  filter(metric.eval == "ROC") %>% 
-  group_by(model, algo, metric.eval, preds) %>%
-  summarise(avg_validation = mean(validation),
-            sd_validation = sd(validation)) %>% 
-  arrange(-avg_validation) %>% 
-  
+df_monit_effort <- df_monit_effort %>% 
+  group_by(localidade) %>% 
+  reframe(effort_m = sum(max_min*n_divers),
+          detection_total = sum(detection)) %>% 
   ungroup()
+df_monit_effort
 
-eval_list_table
+print(df_monit_effort, n=37)
+
+
+## Adicionando comprimentos das localidades ao df effort
+
+df_monit_effort <- left_join(df_monit_effort, df_localidade, by = "localidade")
+df_monit_effort
+
+
+
+
+
+
