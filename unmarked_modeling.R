@@ -63,10 +63,11 @@ spec(df_geo)
 df_geo
 
 
-df_localidade = read_delim("data/localidade_rebio.csv",
-                           col_types = list(id = col_integer(),
-                                            localidade = col_character(),
-                                            comp_m = col_double()))
+df_localidade = read_csv("data/localidade_rebio.csv", col_types = list(id = col_guess(),
+                                                                       localidade = col_character(),
+                                                                       comp_m = col_double()))
+
+
 print(df_localidade, n = 37)
 
 
