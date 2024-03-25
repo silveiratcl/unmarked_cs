@@ -1,0 +1,21 @@
+
+model {
+
+    # Especificar priores- Probabilidades dos parametros independente dos dados
+    psi.intercept ~ dunif(0,1) #intercepto do psi
+    beta0 <- logit(psi.intercept) #beta0
+    beta1 ~ dnorm(0, 0.0001) #beta1
+    p ~ dunif(0,1) #deteccao
+
+
+    # Verossimilhanca
+    for (i in 1:S){
+        logit(psi[i]) <- beta0 + beta1*Xamb[i]
+        z[i] ~ dbern(psi[i]) # determinacao do estado ecologico do sitio
+        for (v in 1:V){
+            y[i,v] ~ dbern(z[i]*p) # determinacao do resultado das observacoes
+        }#V
+    }#S
+
+}
+
