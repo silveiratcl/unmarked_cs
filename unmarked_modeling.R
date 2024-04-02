@@ -20,8 +20,10 @@ library(tidyr)
 
 ## loading data
 
+
+
 # monitoring
-df_monit = read_delim("data/dados_monitoramento_cs_2024-03-18.csv",
+df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                       col_types = list(localidade = col_character(),
                                        data = col_date(format = "%d/%m/%Y"),
                                        visib_horiz = col_double(),
@@ -85,7 +87,7 @@ df_localidade$comp_m/1
 df_monit_effort <- df_monit %>% 
   group_by(localidade, data) %>%
   filter(obs != "estimado dos dados do ICMBio") %>% 
-  reframe(max_min = max(n_trans_vis),
+  summarise(max_min = max(n_trans_vis),
           detection = max(n_trans_pres),
           n_divers = max(n_divers)) %>%
   ungroup()
@@ -93,10 +95,20 @@ df_monit_effort
 
 df_monit_effort <- df_monit_effort %>% 
   group_by(localidade) %>% 
-  reframe(effort_m = sum(max_min*n_divers),
+  summarise(effort_m = sum(max_min*n_divers),
           detection_total = sum(detection)) %>% 
   ungroup()
 df_monit_effort
+
+df_monit_effort <- df_monit_effort %>% 
+  group_by(localidade) %>% 
+  summarise(cpue = detection_total/(effort_m/60)) %>% 
+  ungroup()
+df_monit_effort
+
+
+
+
 
 print(df_monit_effort, n=37)
 
