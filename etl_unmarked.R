@@ -33,7 +33,7 @@ df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                                        prof_interface_min = col_double(),
                                        prof_interface_max = col_double(),
                                        metodo = col_character(),
-                                       observadores = col_character(),
+                                       observer = col_character(),
                                        n_divers = col_double(),
                                        tempo_censo = col_double(),
                                        dafor = col_double(),
@@ -76,27 +76,121 @@ df_geo
 df_localidade = read_delim("data/localidade_rebio.csv", delim = ";", 
                            col_types = c("d","c","d"))
 df_localidade
+print(df_localidade, n = 41)
+
+
 df_localidade$comp_m = df_localidade$comp_m/1000
 df_localidade$comp_m/1
 
 
 
 ## Data tranformation
-# Aggregarte by locality 
+# Aggregate by locality 
 # total time
 # total detections 
 # number of observers
 
+
+# Obtaining the detection and effort df
+# detection is presence/absence by locality by each monitoring strata
+# effort is the number of visual transects wheer cs were detected
+
 df_monit_effort <- df_monit %>% 
   group_by(localidade, data, faixa_bat) %>%
   filter(obs != "estimado dos dados do ICMBio") %>% 
-  summarise(max_min = max(n_trans_vis),
-            detection = max(n_trans_pres),
-            n_divers = max(n_divers),
-            eff_entremare = max(faixa_bat == "entremare"),
-            eff_raso = max(faixa_bat == "raso"),
-            eff_fundo = max(faixa_bat == "fundo")) %>%
+  summarise(max_trsct_vis = sum(max(n_trans_vis)),
+            n_detection = max(n_trans_pres),
+            n_divers = max(n_divers)) %>%
   ungroup()
 df_monit_effort
+print(df_monit_effort, n=85)
+
+df_monit_effort <- df_monit_effort %>%
+  group_by(localidade) %>%
+  reframe(max_tv = max(max_trsct_vis),
+          n_divers = sum(n_divers),
+          eff_raso = sum(ifelse(faixa_bat == "raso", n_detection, 0)),
+          eff_entremare = sum(ifelse(faixa_bat == "entremare", n_detection, 0)),
+          eff_fundo = sum(ifelse(faixa_bat == "fundo", n_detection, 0))) %>%
+  ungroup()
+
+df_monit_effort ###
+
+print(df_monit_effort, n=35)
+
+df_monit_detec <- df_monit_effort %>%
+  group_by(localidade) %>%
+  reframe(
+          detec_raso = ifelse(eff_raso >= 1 , 1, 0),
+          detec_entremare = ifelse(eff_entremare >= 1 , 1, 0),
+          detec_fundo = ifelse(eff_fundo >= 1 , 1, 0)) %>%
+  ungroup()
+
+
+df_monit_detec ###
+
+
+
+## Adding length of localities to df effort
+
+df_monit_effort <- left_join(df_monit_effort, df_localidade, by = "localidade")
+df_monit_effort 
+
+
+
+## Processing and Standardization of geomorphology data
+
+glimpse(df_geo)
+df_geo[1:255,]
+tail(df_geo[255,])
+
+
+# mean of scores to each geo category at each locality
+# deep and shallow
+
+df_geo_pd <- df_geo %>% 
+  group_by(localidade, geo_cat) %>%
+  mutate(geo_avg = mean(iar_geo)) %>% 
+  ungroup()
+
+df_geo_pd
+
+## scaling mean scores to categories at each locality
+
+df_geo_pd <- df_geo_pd %>% 
+  select(localidade, geo_cat, geo_avg) %>% 
+  group_by(localidade) %>%
+  mutate(geo_st = scale(geo_avg)) %>%
+  distinct() %>% 
+  ungroup()
+
+df_geo_pd_local  <- df_geo_pd %>%
+  select(localidade, geo_cat, geo_st) %>% 
+  mutate(geo_st = geo_st[,1]) %>% 
+  pivot_wider(names_from = geo_cat, values_from = geo_st) %>% 
+  arrange(localidade)
+
+df_geo_pd_local
+print(df_geo_pd_local, n = 32)
+
+## Checking if columms match
+## shortening names and storing as rdata
+
+
+
+
+df_geo_pd_local
+
+effort = df_monit_effort[, 4:6] 
+detection = df_monit_detec[,2:4]
+
+
+save(effort,predictors, file = "unmarked_data.RData")
+
+
+
+
+
+
 
 
