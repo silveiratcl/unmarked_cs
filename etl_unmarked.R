@@ -1,6 +1,6 @@
 # ETL
 
-### Data ETL
+### Data ETL - Extraction - Transformation - loading
 ## data from monitoring DAFOR
 
 ## covariates
@@ -68,8 +68,8 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      geo_id = col_double())
 )
 spec(df_geo)
+df_geo = df_geo[, 1:13]
 df_geo
-
 
 # localities
 
@@ -100,24 +100,31 @@ df_monit_effort <- df_monit %>%
   filter(obs != "estimado dos dados do ICMBio") %>% 
   summarise(max_trsct_vis = sum(max(n_trans_vis)),
             n_detection = max(n_trans_pres),
-            n_divers = max(n_divers)) %>%
+            n_divers = max(n_divers),
+            visib_m = max(visib_horiz)) %>%
   ungroup()
 df_monit_effort
 print(df_monit_effort, n=85)
 
+# creating one line by locality
+
+# effort data
 df_monit_effort <- df_monit_effort %>%
   group_by(localidade) %>%
   reframe(max_tv = max(max_trsct_vis),
           n_divers = sum(n_divers),
+          visib_m = max(visib_m),
           eff_raso = sum(ifelse(faixa_bat == "raso", n_detection, 0)),
           eff_entremare = sum(ifelse(faixa_bat == "entremare", n_detection, 0)),
           eff_fundo = sum(ifelse(faixa_bat == "fundo", n_detection, 0))) %>%
   ungroup()
 
 df_monit_effort ###
-
 print(df_monit_effort, n=35)
 
+
+
+# detection data
 df_monit_detec <- df_monit_effort %>%
   group_by(localidade) %>%
   reframe(
@@ -125,7 +132,6 @@ df_monit_detec <- df_monit_effort %>%
           detec_entremare = ifelse(eff_entremare >= 1 , 1, 0),
           detec_fundo = ifelse(eff_fundo >= 1 , 1, 0)) %>%
   ungroup()
-
 
 df_monit_detec ###
 
@@ -138,12 +144,9 @@ df_monit_effort
 
 
 
-## Processing and Standardization of geomorphology data
+## Processing and Standardization of geomorphology data by the deviation from average
 
 glimpse(df_geo)
-df_geo[1:255,]
-tail(df_geo[255,])
-
 
 # mean of scores to each geo category at each locality
 # deep and shallow
@@ -155,7 +158,8 @@ df_geo_pd <- df_geo %>%
 
 df_geo_pd
 
-## scaling mean scores to categories at each locality
+## scaling mean scores from geo categories at each locality
+## The value at each locality show the deviance from average
 
 df_geo_pd <- df_geo_pd %>% 
   select(localidade, geo_cat, geo_avg) %>% 
@@ -171,21 +175,50 @@ df_geo_pd_local  <- df_geo_pd %>%
   arrange(localidade)
 
 df_geo_pd_local
-print(df_geo_pd_local, n = 32)
+print(df_geo_pd_local, n = 33)
 
-## Checking if columms match
+## Checking if columns matching by licality and data availability
 ## shortening names and storing as rdata
 
 
+# effort data
+effort = df_monit_effort
+effort = effort %>% 
+  left_join(df_geo_pd_local,effort,  by = "localidade") %>% 
+  drop_na() %>% 
+  select(localidade, eff_raso, eff_entremare, eff_fundo, max_tv, n_divers, visib_m, locality_comp_m = comp_m)
+print(effort,n= 35)
 
 
-df_geo_pd_local
+# detection data
+detection = df_monit_detec
 
-effort = df_monit_effort[, 4:6] 
-detection = df_monit_detec[,2:4]
+detection = df_monit_detec %>% 
+  left_join(df_geo_pd_local,detection,  by = "localidade") %>% 
+  drop_na() %>% 
+  select(localidade, detec_raso, detec_entremare, detec_fundo)
+print(detection,n= 35)
 
 
-save(effort,predictors, file = "unmarked_data.RData")
+
+# predictors
+
+predictors = df_geo_pd_local %>% 
+  left_join(effort, df_geo_pd_local, by = "localidade") %>%
+  select(localidade, tf , mp , gc , rpm , lg )
+
+print(predictors,n= 35)
+
+
+
+
+print(effort, n = 33)
+print(detection, n = 33)
+print(predictors, n = 33)
+
+
+
+save(effort, detection, predictors, file = "unmarked_data.RData")
 
 
 

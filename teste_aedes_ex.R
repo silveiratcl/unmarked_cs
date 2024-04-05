@@ -4,46 +4,126 @@ library("unmarked")
 load("unmarked_data.RData")
 
 effort
+detection
 predictors
 
 
+# Padronização variáveis de esforco
+# minutos positivos por estrato
+# visibilidade por estrato
+# comprimento da localidade
+
+
+effort_df = as.matrix(effort[, 2:8 ])
 
 
 
-
-esforco <- sqrt(aegypti_esf)# transformar
+esforco <- sqrt(effort[, 2:4])
 range(esforco)
-esforco_st <- (esforco - mean(as.matrix(esforco)))/sd(as.matrix(esforco))# padronizar esforco
+esforco_st <- as.matrix(esforco - mean(as.matrix(esforco)))/sd(as.matrix(esforco))# padronizar esforco
 range(esforco_st)
+str(esforco_st)
+
+visib <- as.matrix(cbind(effort$visib_m, effort$visib_m, effort$visib_m ))
+range(visib)
+visib_st <- as.matrix(visib - mean(as.matrix(visib)))/sd(as.matrix(visib))# padronizar esforco
+range(visib_st)
+str(visib_st)
+
+comp_local <- as.matrix(cbind(effort$locality_comp_m, effort$locality_comp_m, effort$locality_comp_m ))
+range(comp_local)
+comp_local_st <- as.matrix(comp_local - mean(as.matrix(comp_local)))/sd(as.matrix(comp_local))# padronizar esforco
+range(comp_local_st)
+str(visib_st)
+
+
 
 ## formatar os dados de acordo com os requerimentos do pacote
 ## y eh uma matriz, com os sítios nas linhas, dias de amostragem nas colunas
 ## siteCovs deve ser um dataframe, onde cada linha eh um si?tio e cada coluna uma covariavel
 ## obsCovs deve ser uma lista, onde cada linha eh um si?tio e cada elemento equivale a uma covariavel
 
-unmarked_data <- unmarkedFrameOccu(y=aegypti_det,
-                                   siteCovs = cbind(data.frame (floresta=floresta_st, populacao=populacao_st, #covs de site
-                                                                temp_ac=temp_ac_st, prec_ac=prec_ac_st)),
-                                   obsCovs = list(temp_sem=temp_sem_st,temp_ant=temp_ant_st, # requer uma lista
-                                                  prec_sem=prec_sem_st, prec_ant=prec_ant_st,
-                                                  esforco=esforco_st))
 
-## Com base em algum conhecimento que você tenha sobre a biologia de mosquitos,
-## construa diferentes modelos representando hipoteses alternativas
-## para definir os fatores explicando a deteccao e ocupacao de Aedes aegypti.
-## Veja os exemplos abaixo
-## Ajuste os modelos seguindo este formato: occu (~ deteccao ~ocupacao, dados)
+cs_det = as.matrix(detection[, 2:4])
+predictors = predictors[, 2:6] 
+
+
+# site covariates
+tf = as.matrix(predictors$tf)
+mp = as.matrix(predictors$mp)
+gc = as.matrix(predictors$gc)
+rpm = as.matrix(predictors$rpm)
+lg = as.matrix(predictors$lg)
+
+
+
+
+unmarked_data <- unmarkedFrameOccu(y=cs_det,
+                                   siteCovs = cbind(data.frame (tf = tf, 
+                                                                mp = mp, #covs de site
+                                                                gc = gc, 
+                                                                rpm = rpm,
+                                                                lg = lg)),
+                                   obsCovs = list(esforco = esforco_st,
+                                                  visib_m = visib_st,
+                                                  comp_local = comp_local_st))
+
+# modelo nulo
 mod1 <- occu(~1 ~1, unmarked_data)
 
-mod2 <- occu(~ esforco  ~floresta, unmarked_data)
-#esforço e gente
-mod3 <- occu(~ esforco + populacao  ~ floresta, unmarked_data) 
+# ~esforço ~geos 
+mod2 <- occu(~ esforco  ~ tf, unmarked_data)
 
-#esforço e gente + forest e precipitacao
-mod4 <- occu(~ esforco + populacao  ~ floresta * prec_ac, unmarked_data) 
+mod3 <- occu(~ esforco  ~ mp, unmarked_data)
 
-#detectabildiade é uma combinação do esforco com a temp acumulada
-mod5 <- occu(~ esforco   ~ floresta + prec_ac + temp_ac , unmarked_data)
+mod4 <- occu(~ esforco  ~ gc, unmarked_data)
+
+mod5 <- occu(~ esforco  ~ rpm, unmarked_data)
+
+mod6 <- occu(~ esforco  ~ lg, unmarked_data)
+
+mod7 <- occu(~ esforco ~ gc + mp, unmarked_data)
+
+mod8 <- occu(~ esforco ~ lg + rpm, unmarked_data)
+
+mod9 <- occu(~ esforco ~ mp * rpm, unmarked_data ) 
+
+# ~esforço + visib ~ geos 
+
+mod10 <- occu(~ esforco + visib_m  ~ tf, unmarked_data)
+
+mod11 <- occu(~ esforco + visib_m  ~ mp, unmarked_data)
+
+mod12 <- occu(~ esforco + visib_m  ~ gc, unmarked_data)
+
+mod13 <- occu(~ esforco + visib_m  ~ rpm, unmarked_data)
+
+mod14 <- occu(~ esforco + visib_m ~ lg, unmarked_data)
+
+mod15 <- occu(~ esforco + visib_m ~ gc + mp, unmarked_data)
+
+mod16 <- occu(~ esforco + visib_m ~ lg + rpm, unmarked_data)
+
+mod17 <- occu(~ esforco + visib_m ~ tf + mp + gc + rpm + lg, unmarked_data )
+
+
+# ~esforço + comp_local ~ geos 
+
+mod18 <- occu(~ esforco + comp_local  ~ tf, unmarked_data)
+
+mod19 <- occu(~ esforco + comp_local  ~ mp, unmarked_data)
+
+mod20 <- occu(~ esforco + comp_local  ~ gc, unmarked_data)
+
+mod21 <- occu(~ esforco + comp_local  ~ rpm, unmarked_data)
+
+mod22 <- occu(~ esforco + comp_local ~ lg, unmarked_data)
+
+mod23 <- occu(~ esforco + comp_local ~ gc + mp, unmarked_data)
+
+mod24 <- occu(~ esforco + comp_local ~ lg + rpm, unmarked_data)
+
+mod25 <- occu(~ esforco + comp_local ~ tf + mp + gc + rpm + lg, unmarked_data )
 
 
 
@@ -51,10 +131,34 @@ mod5 <- occu(~ esforco   ~ floresta + prec_ac + temp_ac , unmarked_data)
 ## fazer uma lista de modelos
 ## nomeie cada modelo de acordo com cada covariavel de cada componente dos seus modelos hierarquicos
 lista_modelos <- fitList('p(.)psi(.) null'= mod1, 
-                         'p(esf)psi(forest) M2'= mod2,
-                         'p(esf)p(pop)psi(forest) M3'= mod3, 
-                         'p(esf)p(pop)psi(forest)*(prec) M4'= mod4,  
-                         'p(esf)psi(forest)psi(p_ac)psi(t_ac) M5'= mod5)  #fazer com o mod5 
+                         'p(esforco)psi(tf) M2'= mod2,
+                         'p(esforco)psi(mp) M3'= mod3,
+                         'p(esforco)psi(gc) M4' = mod4,
+                         'p(esforco)psi(rpm) M5' = mod5,
+                         'p(esforco)psi(lg) M6' = mod6,
+                         'p(esforco)psi(gc)psi(mp) M7' = mod7,
+                         'p(esforco)psi(lg)psi(rpm) M8' = mod8,
+                         'p(esforco)psi(tf)psi(mp)*psi(rpm) M9' = mod9,
+                         'p(esforco)p(visib_m)psi(tf) M10'= mod10,
+                         'p(esforco)p(visib_m)psi(mp) M11'= mod11,
+                         'p(esforco)p(visib_m)psi(gc) M12' = mod12,
+                         'p(esforco)p(visib_m)psi(rpm) M13' = mod13,
+                         'p(esforco)p(visib_m)psi(lg) M14' = mod14,
+                         'p(esforco)p(visib_m)psi(gc)psi(mp) M15' = mod15,
+                         'p(esforco)p(visib_m)psi(lg)psi(rpm) M16' = mod16,
+                         'p(esforco)p(visib_m)psi(tf)psi(mp)psi(gc)psi(rpm)psi(lg) M17' = mod17,
+                         'p(esforco)p(comp_local)psi(tf) M18'= mod18,
+                         'p(esforco)p(comp_local)psi(mp) M19'= mod19,
+                         'p(esforco)p(comp_local)psi(gc) M20' = mod20,
+                         'p(esforco)p(comp_local)psi(rpm) M21' = mod21,
+                         'p(esforco)p(comp_local)psi(lg) M22' = mod22,
+                         'p(esforco)p(comp_local)psi(gc)psi(mp) M23' = mod23,
+                         'p(esforco)p(comp_local)psi(lg)psi(rpm) M24' = mod24,
+                         'p(esforco)p(comp_local)psi(tf)psi(mp)psi(gc)psi(rpm)psi(lg) M25' = mod25
+                         )
+                    
+                         
+              
 
 ## rankear os modelos de acordo com AIC (quanto menor o valor de AIC, melhor o modelo se ajusta aos dados)
 ## Mostrar tabela de selecao de modelos
@@ -62,83 +166,48 @@ selecao_modelos <- modSel(lista_modelos,nullmod='p(.)psi(.) null')
 selecao_modelos
 
 ## segundo o melhor modelo, qual a probabilidade ocupacao quando a variavel de sitio estao na media
-backTransform(linearComb(mod5, c(1,0,0,0), type="state"))
+backTransform(linearComb(mod2, c(1,0), type="state"))
 
 ## qual eh a probabilidade de deteccao quando o esforco amostral esta na media
-backTransform(linearComb(mod5, c(1,0), type="det"))
+backTransform(linearComb(mod2, c(1,0), type="det"))
 
 
 # Fazer com o melhor modelo
 ## construa graficos com valores preditos de ocupacao e deteccao de acordo com os fatores de cada componente do modelo
 ## obter dados preditos de acordo com o range de valores das covariaveis padronizadas
-## 
-
-dados_novos<- data.frame (floresta=seq(range(floresta_st)[1],range(floresta_st)[2],0.01)) # colocar isso  floresta + prec_ac + temp_ac
 
 
-prec_ac_st_cut=prec_ac_st[1:496, 1]
-temp_ac_st_cut=temp_ac_st[1:496, 1]
-str(floresta_st)
-str(prec_ac_st_cut)
-str(temp_ac_st_cut)
+dados_novos<- data.frame (mp=seq(range(mp)[1],range(mp)[2],0.01)) 
 
-dados_novos<- data.frame (floresta=seq(range(floresta_st)[1],range(floresta_st)[2],length.out=496),
-                          prec_ac=seq(range(prec_ac_st_cut)[1],range(prec_ac_st_cut)[2],length.out=496),
-                          temp_ac=seq(range(temp_ac_st_cut)[1], range(temp_ac_st_cut)[2], length.out=496))
+
+mp_cut=mp[1:33, 1]
+str(mp_cut)
+
+dados_novos<- data.frame (mp=seq(range(mp)[1],range(mp)[2],length.out=33))
 
 
 
-pred_occur<- predict (mod5,type="state", dados_novos,append=T)
+pred_occur<- predict (mod3,type="state", dados_novos,append=T)
 
 dados_novos<- data.frame (esforco=seq(range(esforco_st)[1],range(esforco_st)[2],0.01))
-pred_detec<- predict(mod2,type="det", dados_novos,append=T)
+pred_detec<- predict(mod3,type="det", dados_novos,append=T)
 
 ## construa os plots
 
 ### Floresta
 ## ocupacao
-par(mfrow=c(3,2))
-plot(pred_occur$floresta,pred_occur$Predicted,type="l",lwd=3,xlab="Forest cover",
-     ylab=expression (paste (italic("Aedes aegypti "), "occupancy (",Psi,")",sep=" ",
-                             ylim=c(0,1))))
-lines(pred_occur$floresta,pred_occur$lower)
-lines(pred_occur$floresta,pred_occur$upper)
+
+plot(pred_occur$mp,pred_occur$Predicted,type="l",lwd=3,xlab="Matacoes e Paredoes",
+     ylab=expression (paste (italic("T. cocciena "), "occupancy (",Psi,")",sep=" ",
+                             ylim=c(-1,1))))
+lines(pred_occur$mp,pred_occur$lower)
+lines(pred_occur$mp,pred_occur$upper)
 
 ## deteccao
-plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab="Sampling effort (number of eppendorfs)",
+plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab="Sampling effort (positive minutes)",
      ylab=expression (paste (italic("Aedes aegypti "), "detection (p)",sep=" ")))
 lines(pred_detec$esforco,pred_detec$lower)
 lines(pred_detec$esforco,pred_detec$upper)
-
-### Precipitacao acumulada
-
-plot(pred_occur$prec_ac,pred_occur$Predicted,type="l",lwd=3,xlab="Precipitação Acumulada",
-     ylab=expression (paste (italic("Aedes aegypti "), "occupancy (",Psi,")",sep=" ",
-                             ylim=c(0,1))))
-lines(pred_occur$prec_ac,pred_occur$lower)
-lines(pred_occur$prec_ac,pred_occur$upper)
-
-## deteccao
-plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab="Sampling effort (number of eppendorfs)",
-     ylab=expression (paste (italic("Aedes aegypti "), "detection (p)",sep=" ")))
-lines(pred_detec$esforco,pred_detec$lower)
-lines(pred_detec$esforco,pred_detec$upper)
-
-### temperatura
-### Precipitacao acumulada
-
-plot(pred_occur$temp_ac,pred_occur$Predicted,type="l",lwd=3,xlab="Temperatura Acumulada",
-     ylab=expression (paste (italic("Aedes aegypti "), "occupancy (",Psi,")",sep=" ",
-                             ylim=c(0,1))))
-lines(pred_occur$temp_ac,pred_occur$lower)
-lines(pred_occur$temp_ac,pred_occur$upper)
-
-## deteccao
-plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab="Sampling effort (number of eppendorfs)",
-     ylab=expression (paste (italic("Aedes aegypti "), "detection (p)",sep=" ")))
-lines(pred_detec$esforco,pred_detec$lower)
-lines(pred_detec$esforco,pred_detec$upper)
-
 
 
 
