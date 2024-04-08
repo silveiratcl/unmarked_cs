@@ -4,6 +4,7 @@ library("unmarked")
 load("unmarked_data.RData")
 
 effort
+print(effort, n = 33)
 detection
 predictors
 
@@ -72,58 +73,54 @@ unmarked_data <- unmarkedFrameOccu(y=cs_det,
 mod1 <- occu(~1 ~1, unmarked_data)
 
 # ~esforço ~geos 
-mod2 <- occu(~ esforco  ~ tf, unmarked_data)
+mod2 <- occu(~ esforco  ~ tf, starts = c(1,1,1,1), unmarked_data)
 
-mod3 <- occu(~ esforco  ~ mp, unmarked_data)
+mod3 <- occu(~ esforco  ~ mp, starts = c(1,1,1,1), unmarked_data)
 
-mod4 <- occu(~ esforco  ~ gc, unmarked_data)
+mod4 <- occu(~ esforco  ~ gc, starts = c(1,1,1,1), unmarked_data)
 
-mod5 <- occu(~ esforco  ~ rpm, unmarked_data)
+mod5 <- occu(~ esforco  ~ rpm, starts = c(1,1,1,1), unmarked_data)
 
-mod6 <- occu(~ esforco  ~ lg, unmarked_data)
+mod6 <- occu(~ esforco  ~ lg, starts = c(1,1,1,1), unmarked_data)
 
-mod7 <- occu(~ esforco ~ gc + mp, unmarked_data)
+mod7 <- occu(~ esforco ~ gc + mp,starts = c(1,1,1,1,1), unmarked_data)
 
-mod8 <- occu(~ esforco ~ lg + rpm, unmarked_data)
+mod8 <- occu(~ esforco ~ lg + rpm, starts = c(1,1,1,1,1), unmarked_data)
 
-mod9 <- occu(~ esforco ~ mp * rpm, unmarked_data ) 
+mod9 <- occu(~ esforco ~ mp * rpm, starts = c(1,1,1,1,1,1), unmarked_data ) 
 
 # ~esforço + visib ~ geos 
 
-mod10 <- occu(~ esforco + visib_m  ~ tf, unmarked_data)
+mod10 <- occu(~ esforco + visib_m  ~ tf, starts = c(1,1,1,1,1), unmarked_data)
 
-mod11 <- occu(~ esforco + visib_m  ~ mp, unmarked_data)
+mod11 <- occu(~ esforco + visib_m  ~ mp, starts = c(1,1,1,1,1), unmarked_data)
 
-mod12 <- occu(~ esforco + visib_m  ~ gc, unmarked_data)
+mod12 <- occu(~ esforco + visib_m  ~ gc, starts = c(1,1,1,1,1), unmarked_data)
 
-mod13 <- occu(~ esforco + visib_m  ~ rpm, unmarked_data)
+mod13 <- occu(~ esforco + visib_m  ~ rpm, starts = c(1,1,1,1,1), unmarked_data)
 
-mod14 <- occu(~ esforco + visib_m ~ lg, unmarked_data)
+mod14 <- occu(~ esforco + visib_m ~ lg, starts = c(1,1,1,1,1), unmarked_data)
 
-mod15 <- occu(~ esforco + visib_m ~ gc + mp, unmarked_data)
+mod15 <- occu(~ esforco + visib_m ~ gc + mp, starts = c(1,1,1,1,1,1), unmarked_data)
 
-mod16 <- occu(~ esforco + visib_m ~ lg + rpm, unmarked_data)
-
-mod17 <- occu(~ esforco + visib_m ~ tf + mp + gc + rpm + lg, unmarked_data )
-
+mod16 <- occu(~ esforco + visib_m ~ lg + rpm, starts = c(1,1,1,1,1,1),unmarked_data)
 
 # ~esforço + comp_local ~ geos 
 
-mod18 <- occu(~ esforco + comp_local  ~ tf, unmarked_data)
+mod17 <- occu(~ esforco + comp_local  ~ tf, starts = c(1,1,1,1,1), unmarked_data)
 
-mod19 <- occu(~ esforco + comp_local  ~ mp, unmarked_data)
+mod18 <- occu(~ esforco + comp_local  ~ mp, starts = c(1,1,1,1,1), unmarked_data)
 
-mod20 <- occu(~ esforco + comp_local  ~ gc, unmarked_data)
+mod19 <- occu(~ esforco + comp_local  ~ gc, starts = c(1,1,1,1,1), unmarked_data)
 
-mod21 <- occu(~ esforco + comp_local  ~ rpm, unmarked_data)
+mod20 <- occu(~ esforco + comp_local  ~ rpm, starts = c(1,1,1,1,1), unmarked_data)
 
-mod22 <- occu(~ esforco + comp_local ~ lg, unmarked_data)
+mod21 <- occu(~ esforco + comp_local ~ lg, starts = c(1,1,1,1,1), unmarked_data)
 
-mod23 <- occu(~ esforco + comp_local ~ gc + mp, unmarked_data)
+mod22 <- occu(~ esforco + comp_local ~ gc + mp, starts = c(1,1,1,1,1,1), unmarked_data)
 
-mod24 <- occu(~ esforco + comp_local ~ lg + rpm, unmarked_data)
+mod23 <- occu(~ esforco + comp_local ~ lg + rpm, starts = c(1,1,1,1,1,1), unmarked_data)
 
-mod25 <- occu(~ esforco + comp_local ~ tf + mp + gc + rpm + lg, unmarked_data )
 
 
 
@@ -146,15 +143,13 @@ lista_modelos <- fitList('p(.)psi(.) null'= mod1,
                          'p(esforco)p(visib_m)psi(lg) M14' = mod14,
                          'p(esforco)p(visib_m)psi(gc)psi(mp) M15' = mod15,
                          'p(esforco)p(visib_m)psi(lg)psi(rpm) M16' = mod16,
-                         'p(esforco)p(visib_m)psi(tf)psi(mp)psi(gc)psi(rpm)psi(lg) M17' = mod17,
-                         'p(esforco)p(comp_local)psi(tf) M18'= mod18,
-                         'p(esforco)p(comp_local)psi(mp) M19'= mod19,
-                         'p(esforco)p(comp_local)psi(gc) M20' = mod20,
-                         'p(esforco)p(comp_local)psi(rpm) M21' = mod21,
-                         'p(esforco)p(comp_local)psi(lg) M22' = mod22,
-                         'p(esforco)p(comp_local)psi(gc)psi(mp) M23' = mod23,
-                         'p(esforco)p(comp_local)psi(lg)psi(rpm) M24' = mod24,
-                         'p(esforco)p(comp_local)psi(tf)psi(mp)psi(gc)psi(rpm)psi(lg) M25' = mod25
+                         'p(esforco)p(comp_local)psi(tf) M17'= mod17,
+                         'p(esforco)p(comp_local)psi(mp) M18'= mod18,
+                         'p(esforco)p(comp_local)psi(gc) M19' = mod19,
+                         'p(esforco)p(comp_local)psi(rpm) M20' = mod20,
+                         'p(esforco)p(comp_local)psi(lg) M21' = mod21,
+                         'p(esforco)p(comp_local)psi(gc)psi(mp) M22' = mod22,
+                         'p(esforco)p(comp_local)psi(lg)psi(rpm) M23' = mod23
                          )
                     
                          
@@ -177,31 +172,31 @@ backTransform(linearComb(mod2, c(1,0), type="det"))
 ## obter dados preditos de acordo com o range de valores das covariaveis padronizadas
 
 
-dados_novos<- data.frame (mp=seq(range(mp)[1],range(mp)[2],0.01)) 
+dados_novos<- data.frame (tf=seq(range(tf)[1],range(tf)[2],0.01)) 
+tf_cut=tf[1:33, 1]
+str(tf_cut)
 
-
-mp_cut=mp[1:33, 1]
-str(mp_cut)
-
-dados_novos<- data.frame (mp=seq(range(mp)[1],range(mp)[2],length.out=33))
+dados_novos<- data.frame (tf=seq(range(tf)[1],range(tf)[2],length.out=33))
 
 
 
-pred_occur<- predict (mod3,type="state", dados_novos,append=T)
+pred_occur<- predict(mod2,type="state", dados_novos,append=T)
 
 dados_novos<- data.frame (esforco=seq(range(esforco_st)[1],range(esforco_st)[2],0.01))
-pred_detec<- predict(mod3,type="det", dados_novos,append=T)
+pred_detec<- predict(mod2,type="det", dados_novos,append=T)
 
 ## construa os plots
 
-### Floresta
+### M3
 ## ocupacao
 
-plot(pred_occur$mp,pred_occur$Predicted,type="l",lwd=3,xlab="Matacoes e Paredoes",
+par(mfrow = c(2,1))
+plot(pred_occur$tf,pred_occur$Predicted,type="l",lwd=3,xlab="Tocas e Fendas",
      ylab=expression (paste (italic("T. cocciena "), "occupancy (",Psi,")",sep=" ",
                              ylim=c(-1,1))))
-lines(pred_occur$mp,pred_occur$lower)
-lines(pred_occur$mp,pred_occur$upper)
+
+lines(pred_occur$tf,pred_occur$lower)
+lines(pred_occur$tf,pred_occur$upper)
 
 ## deteccao
 plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab="Sampling effort (positive minutes)",
