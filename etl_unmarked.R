@@ -93,7 +93,7 @@ df_localidade$comp_m/1
 
 # Obtaining the detection and effort df
 # detection is presence/absence by locality by each monitoring strata
-# effort is the number of visual transects wheer cs were detected
+# effort is the number of visual transects where cs were detected
 
 df_monit_effort <- df_monit %>% 
   group_by(localidade, data, faixa_bat) %>%
@@ -177,7 +177,7 @@ df_geo_pd_local  <- df_geo_pd %>%
 df_geo_pd_local
 print(df_geo_pd_local, n = 33)
 
-## Checking if columns matching by licality and data availability
+## Checking if columns matching by locality and data availability
 ## shortening names and storing as rdata
 
 
