@@ -202,9 +202,33 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 
 plot_dpue_strata
 
-# Geomorfolgia localidades
+# Geomorfolgia total
 
-df_geo
+df_geo_local <- df_geo %>% 
+  group_by(localidade, geo_cat) %>%
+  mutate(geo_value = max(iar_geo)) %>% 
+  ungroup()
+
+max(df_geo_local$geo_value)
+
+
+
+
+bp_all_local = df_geo_local  %>%
+  ggplot( aes(x=geo_cat, y=iar_geo, fill=geo_value)) +
+  geom_boxplot() +
+  geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme(
+    legend.position="none",
+    plot.title = element_text(size=11)
+  ) +
+  ggtitle("A boxplot with jitter") +
+  xlab("")
+
+bp_all_local
+
+# Correlation entre as geo e ocorrencias
+
 
 # Modelos ocorrência por geomorfologia
 

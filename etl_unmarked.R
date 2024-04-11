@@ -68,7 +68,7 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      geo_id = col_double())
 )
 spec(df_geo)
-df_geo = df_geo[, 1:13]
+df_geo = df_geo[, 1:14]
 df_geo
 
 # localities
@@ -78,9 +78,45 @@ df_localidade = read_delim("data/localidade_rebio.csv", delim = ";",
 df_localidade
 print(df_localidade, n = 41)
 
+# checking deciamls
+#df_localidade$comp_m = df_localidade$comp_m/1000
+#df_localidade$comp_m/1
 
-df_localidade$comp_m = df_localidade$comp_m/1000
-df_localidade$comp_m/1
+################################################################################
+# cheking matching by locality
+# for the analysis using geomorphology 
+# use just the detection where the geomorphology was evaluated 
+
+df_monit
+df_geo
+df_localidade
+
+# #locality inspection
+monit <-sort(unique(df_monit$localidade))
+geo <-sort(unique(df_geo$localidade))
+localidade <-sort(unique(df_localidade$localidade))
+
+
+setdiff(localidade, monit) 
+#[1] "gale_sul"         "ponta_do_meio"    "saco_das_balas"   "saco_do_letreiro" "toca_da_salema"  
+# those places werent monitored in monit df
+
+
+setdiff(localidade, geo) 
+#[1] "gale_sul"          "lagoinha_do_norte" "naufragio_do_lili"
+#[4] "ponta_das_canas"   "ponta_do_meio"     "saco_das_balas"   
+#[7] "saco_do_letreiro"  "toca_da_salema"   
+# those localities were not avaluated for geomorphology
+
+setdiff(geo, monit)
+# [1] "tamboretes"
+# jst the id 25 should be checked in the filed notes
+
+
+
+
+################################################################################
+
 
 
 
@@ -152,6 +188,7 @@ glimpse(df_geo)
 # deep and shallow
 
 df_geo_pd <- df_geo %>% 
+  filter(obs != "verificar") %>% 
   group_by(localidade, geo_cat) %>%
   mutate(geo_avg = mean(iar_geo)) %>% 
   ungroup()
@@ -175,6 +212,8 @@ df_geo_pd_local  <- df_geo_pd %>%
   arrange(localidade)
 
 df_geo_pd_local
+print(df_geo_pd_local, n = 33)
+df_geo_pd_local = df_geo_pd_local[1:33, 1:6]
 print(df_geo_pd_local, n = 33)
 
 ## Checking if columns matching by locality and data availability
