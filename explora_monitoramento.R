@@ -110,9 +110,10 @@ plot_detec_strata <- df_monit_effort %>%
   mutate(localidade = fct_reorder(localidade, n_detection, sum)) %>% 
   filter(n_detection > 0)  %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=n_detection)) +
+  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99')) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Número de Transectos com Coral-sol") +
+  ggtitle("Detecções por faixa batimétrica") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -122,15 +123,16 @@ plot_detec_strata <- df_monit_effort %>%
                                linewidth = 0.8, linetype = "solid"),
     axis.ticks.y= element_blank(),
     axis.title.x = element_blank(),
-    plot.title = element_text(hjust = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
     axis.title.y = element_blank(), 
-    legend.text = element_text(size=15),
+    legend.text = element_text(size=15, color ="#284b80" ),
     legend.title = element_blank(),
-    legend.key.size = unit(2, 'cm')
+    legend.key.size = unit(1.5, 'cm')
     ) 
   
 
 plot_detec_strata 
+ggsave("plots/detec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 
 # n transects
@@ -138,9 +140,10 @@ plot_detec_strata
 plot_transec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, max_trsct_vis, sum)) %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=max_trsct_vis)) +
+  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99')) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Número de Transectos por localidade") +
+  ggtitle("Transectos (1min) por localidade") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -150,15 +153,15 @@ plot_transec_strata <- df_monit_effort %>%
                                linewidth = 0.8, linetype = "solid"),
     axis.ticks.y= element_blank(),
     axis.title.x = element_blank(),
-    plot.title = element_text(hjust = 0.5),
-    axis.title.y = element_blank(), ###
-    legend.text = element_text(size=15),
+    plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
+    axis.title.y = element_blank(), 
+    legend.text = element_text(size=15, color ="#284b80" ),
     legend.title = element_blank(),
-    legend.key.size = unit(2, 'cm')
+    legend.key.size = unit(1.5, 'cm')
   )
 
 plot_transec_strata
-
+ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 # CPUE
 # Creating dpue colunm
@@ -181,6 +184,7 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
   filter(n_detection > 0)  %>% 
   mutate(localidade = fct_reorder(localidade, dpue, sum)) %>% 
   ggplot(aes(fill = factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=dpue)) +
+  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99')) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("DPUE - Detecções/60mim ") +
@@ -193,42 +197,89 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
                                linewidth = 0.8, linetype = "solid"),
     axis.ticks.y= element_blank(),
     axis.title.x = element_blank(),
-    plot.title = element_text(hjust = 0.5),
+    plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
     axis.title.y = element_blank(), 
-    legend.text = element_text(size=15),
+    legend.text = element_text(size=15, color ="#284b80" ),
     legend.title = element_blank(),
-    legend.key.size = unit(2, 'cm')
+    legend.key.size = unit(1.5, 'cm')
   )
 
 plot_dpue_strata
+ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
 # Geomorfolgia total
 
 df_geo_local <- df_geo %>% 
+  filter(iar_geo != "Na") %>% 
   group_by(localidade, geo_cat) %>%
-  mutate(geo_value = max(iar_geo)) %>% 
+  mutate(geo_value = mean(iar_geo)) %>% 
   ungroup()
 
 max(df_geo_local$geo_value)
 
 
-
-
+##
 bp_all_local = df_geo_local  %>%
-  ggplot( aes(x=geo_cat, y=iar_geo, fill=geo_value)) +
-  geom_boxplot() +
-  geom_jitter(color="black", size=0.4, alpha=0.9) +
+  mutate(geo_cat = fct_relevel(geo_cat, "mp", "tf", "gc", "lg", "rpm" )) %>%
+  ggplot( aes(fill = geo_cat, x = geo_cat, y = iar_geo)) +
+  scale_fill_manual(values=c('#db6d10', '#db6d10', '#db6d10', '#536e99', '#536e99' )) +
+  scale_x_discrete(labels = c('Matacões e Paredões','Tocas e Fendas','Grutas', "Lages", "Rochas P e M")) +
+  geom_boxplot(lwd = 0.2) +
+  scale_y_continuous(position="left", n.breaks = 10, expand = c(0, 0.05)) +
+  ggtitle("Índice de Abragência Relativa das Geomorfologias (IAR GEO)") +
+  xlab("") +
+  labs(y = "IAR GEO") +
+  #geom_jitter(color="black", size=0.2, alpha=0.5) +
     theme(
-    legend.position="none",
-    plot.title = element_text(size=11)
-  ) +
-  ggtitle("A boxplot with jitter") +
-  xlab("")
+      panel.background = element_blank(),
+      axis.ticks.y = element_line(colour = "grey",
+                                  linewidth = 0.8, linetype = "solid"),
+      axis.line.y = element_line(colour = "grey",
+                                 linewidth = 0.8, linetype = "solid"),
+      axis.text.x = element_text(size = 13,  color = "#284b80" ),
+      axis.text.y = element_text(size = 15,  color = "grey" ),
+      axis.title.y = element_text(size = 14,  color = "#284b80" ),
+      legend.position="none",
+      axis.ticks.x = element_blank(), 
+      plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" )
+  )
+
 
 bp_all_local
+ggsave("plots/geo_local.png", width = 10, height = 5, dpi = 300)
+
+
 
 # Correlation entre as geo e ocorrencias
+# combinar com id geo id
 
+#### grou_by geo_id
+
+df_monit_effort_dpue
+
+
+df_monit_effort_eval = df_monit_effort %>% 
+  group_by(localidade) %>% 
+  filter(n_detection > 0) %>% 
+  mutate(detections = sum(n_detection))
+
+
+df_monit_effort_eval
+
+
+df_geo_local_eval <- df_geo %>% 
+  filter(iar_geo != "Na") %>% 
+  group_by(localidade, geo_cat) %>%
+  mutate(geo_value = mean(iar_geo)) %>% 
+  ungroup()
+df_geo_local_eval
+
+
+detec_vs_geo = df_monit_effort_eval %>% 
+  left_join(df_monit_effort_eval, df_geo_local_eval, by = "localidade") %>%
+  select(localidade, geo_value , tf , mp , gc , rpm , lg )
+
+detec_vs_geo
 
 # Modelos ocorrência por geomorfologia
 

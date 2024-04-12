@@ -187,7 +187,7 @@ pred_detec<- predict(mod2,type="det", dados_novos,append=T)
 
 ## construa os plots
 
-### M3
+### M2
 ## ocupacao
 
 par(mfrow = c(2,1))
