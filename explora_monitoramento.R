@@ -5,6 +5,7 @@ library(tidyverse)
 library(readr)
 library(tidyr)
 library(stringr)
+library(hb)
 
 ## data
 
@@ -100,6 +101,14 @@ print(df_monit_effort, n=85)
 
 library(ggplot2)
 library(RColorBrewer)
+library(hrbrthemes)
+
+# Positive instead DAFOR
+# Geting the numbers
+
+df_monit_dafor
+table(df_monit_dafor$dafor_DAFOR)
+length(df_monit_dafor$dafor_DAFOR)
 
 
 
@@ -245,6 +254,7 @@ bp_all_local = df_geo_local  %>%
   )
 
 
+
 bp_all_local
 ggsave("plots/geo_local.png", width = 10, height = 5, dpi = 300)
 
@@ -252,34 +262,64 @@ ggsave("plots/geo_local.png", width = 10, height = 5, dpi = 300)
 
 # Correlation entre as geo e ocorrencias
 # combinar com id geo id
+##### Stoped here
 
-#### grou_by geo_id
 
-df_monit_effort_dpue
-
+##### grou_by geo_id
 
 df_monit_effort_eval = df_monit_effort %>% 
   group_by(localidade) %>% 
-  filter(n_detection > 0) %>% 
-  mutate(detections = sum(n_detection))
-
-
+  filter(n_detection != 0) %>% 
+  reframe(detections = sum(n_detection))
 df_monit_effort_eval
 
 
 df_geo_local_eval <- df_geo %>% 
   filter(iar_geo != "Na") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
   group_by(localidade, geo_cat) %>%
-  mutate(geo_value = mean(iar_geo)) %>% 
+  reframe(mean_geo_value = max(iar_geo)) %>% 
   ungroup()
 df_geo_local_eval
 
 
 detec_vs_geo = df_monit_effort_eval %>% 
-  left_join(df_monit_effort_eval, df_geo_local_eval, by = "localidade") %>%
-  select(localidade, geo_value , tf , mp , gc , rpm , lg )
+  left_join(df_geo_local_eval, df_monit_effort_eval, by = "localidade")
+  
 
-detec_vs_geo
+detec_vs_geo %>% 
+  ggplot(aes(x=sqrt(mean_geo_value), y= sqrt(detections), shape = geo_cat, color=geo_cat)) + 
+  geom_point() +
+  geom_jitter() 
+  # fazer esse figura melhor
+
+
+
+# Dados padronizados unmarked 
+
+
+
+# Standardidized data
+#detections and predictors
+
+load("unmarked_data.RData")
+
+# exclude location where detection were 0
+effort_positive <- effort %>%
+  group_by(localidade) %>% 
+  mutate(sum_detection = sum( eff_raso, eff_entremare, eff_fundo)) %>% 
+  filter(sum_detection > 0)
+
+effort_positive
+
+
+
+detection
+predictors
+
+
+
+
 
 # Modelos ocorrência por geomorfologia
 

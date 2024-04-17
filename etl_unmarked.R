@@ -66,8 +66,9 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      iar_geo = col_double(),
                                      n_trans_vis = col_double(),
                                      geo_id = col_double())
-)
+                                     )
 spec(df_geo)
+problems(df_geo)
 df_geo = df_geo[, 1:14]
 df_geo
 
@@ -99,19 +100,18 @@ localidade <-sort(unique(df_localidade$localidade))
 
 setdiff(localidade, monit) 
 #[1] "gale_sul"         "ponta_do_meio"    "saco_das_balas"   "saco_do_letreiro" "toca_da_salema"  
-# those places werent monitored in monit df
+# those places werent monitored in monit df - OK
 
 
 setdiff(localidade, geo) 
 #[1] "gale_sul"          "lagoinha_do_norte" "naufragio_do_lili"
 #[4] "ponta_das_canas"   "ponta_do_meio"     "saco_das_balas"   
 #[7] "saco_do_letreiro"  "toca_da_salema"   
-# those localities were not avaluated for geomorphology
+# those localities were not avaluated for geomorphology  - OK
 
 setdiff(geo, monit)
 # [1] "tamboretes"
-# jst the id 25 should be checked in the filed notes
-
+# just the id 25 should be checked in the field notes
 
 
 
@@ -120,7 +120,7 @@ setdiff(geo, monit)
 
 
 
-## Data tranformation
+## Data transforming
 # Aggregate by locality 
 # total time
 # total detections 
@@ -133,7 +133,8 @@ setdiff(geo, monit)
 
 df_monit_effort <- df_monit %>% 
   group_by(localidade, data, faixa_bat) %>%
-  filter(obs != "estimado dos dados do ICMBio") %>% 
+  filter(obs != "estimado dos dados do ICMBio" ) %>% 
+  filter(localidade != "tamboretes" ) %>% 
   summarise(max_trsct_vis = sum(max(n_trans_vis)),
             n_detection = max(n_trans_pres),
             n_divers = max(n_divers),
@@ -141,6 +142,10 @@ df_monit_effort <- df_monit %>%
   ungroup()
 df_monit_effort
 print(df_monit_effort, n=85)
+unique(df_monit_effort$localidade)
+
+
+
 
 # creating one line by locality
 
@@ -157,7 +162,7 @@ df_monit_effort <- df_monit_effort %>%
 
 df_monit_effort ###
 print(df_monit_effort, n=35)
-
+unique(df_monit_effort$localidade)
 
 
 # detection data
@@ -170,15 +175,13 @@ df_monit_detec <- df_monit_effort %>%
   ungroup()
 
 df_monit_detec ###
-
-
+unique(df_monit_detec$localidade)
 
 ## Adding length of localities to df effort
 
 df_monit_effort <- left_join(df_monit_effort, df_localidade, by = "localidade")
 df_monit_effort 
-
-
+unique(df_monit_effort$localidade)
 
 ## Processing and Standardization of geomorphology data by the deviation from average
 
@@ -194,6 +197,7 @@ df_geo_pd <- df_geo %>%
   ungroup()
 
 df_geo_pd
+unique(df_geo_pd$localidade)
 
 ## scaling mean scores from geo categories at each locality
 ## The value at each locality show the deviance from average
@@ -254,6 +258,18 @@ print(predictors,n= 35)
 print(effort, n = 33)
 print(detection, n = 33)
 print(predictors, n = 33)
+
+
+setdiff(effort$localidade, detection$localidade) 
+setdiff(detection$localidade, effort$localidade) 
+setdiff(effort$localidade, predictors$localidade )
+setdiff(predictors$localidade, detection$localidade)
+
+
+
+
+
+
 
 
 
