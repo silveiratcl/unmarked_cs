@@ -173,7 +173,7 @@ plot_transec_strata
 ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 # CPUE
-# Creating dpue colunm
+# Creating dpue colunm ######## VERIFY THE SUM TO OBTAIM MAX MINUTES BY LOCALITY
 
 
 df_monit_effort_dpue <- df_monit %>% 
@@ -263,7 +263,7 @@ ggsave("plots/geo_local.png", width = 10, height = 5, dpi = 300)
 # Correlation entre as geo e ocorrencias
 # combinar com id geo id
 ##### Stoped here
-
+### TO DO
 
 ##### grou_by geo_id
 
