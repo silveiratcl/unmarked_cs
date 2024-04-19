@@ -119,7 +119,8 @@ plot_detec_strata <- df_monit_effort %>%
   mutate(localidade = fct_reorder(localidade, n_detection, sum)) %>% 
   filter(n_detection > 0)  %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=n_detection)) +
-  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99')) +
+  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
+                    labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("Detecções por faixa batimétrica") +
@@ -149,7 +150,8 @@ ggsave("plots/detec_batimetria.png", width = 10, height = 5, dpi = 300)
 plot_transec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, max_trsct_vis, sum)) %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=max_trsct_vis)) +
-  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99')) +
+  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
+                    labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("Transectos (1min) por localidade") +
