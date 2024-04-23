@@ -94,7 +94,8 @@ df_index = df_last_check %>%
 print(df_index, n = 35 )
 
  
-############## first version ###################
+############## Function to min-max normalization
+
 min_max_normalize <- function(x) {
   if (all(is.na(x)) || all(is.infinite(x))) {
     return(x)  # Return input if all values are NA or infinite
@@ -103,34 +104,27 @@ min_max_normalize <- function(x) {
   }
 }
 
-
-
-
-
-min_max_normalize(c(20, 30, 0.2, 12 ,14, 2000))
-
 df_index_total = df_index %>% 
-  group_by(localidade) %>% 
   mutate(
     dpue_scaled = min_max_normalize(dpue),
     days_sl_check_scaled = min_max_normalize(as.numeric(days_sl_check)),
     distance_scaled = min_max_normalize(distance),
-    index_priority = dpue_scaled * days_sl_check_scaled * (1/distance_scaled), 
-    index_priority_scaled = min_max_normalize(index_priority)
+    index_priority = ((dpue_scaled) + (days_sl_check_scaled) + -1*(distance_scaled-100))/3
+
   ) %>% 
   arrange( -index_priority)
-
-
 print(df_index_total, n = 35)
 
-############################################################# stoped here
 
-###############################################
 plot_index <- df_index_total %>% 
   ggplot(aes(y = fct_reorder(localidade, index_priority), x = index_priority, fill = fct_relevel(regiao, "rebio", "entorno_imediato", "entorno"))) +
-  # scale_fill_manual(values = c( 'grey')) +
+  scale_fill_manual(values=c('#990000','grey',  '#536e99'),
+                    labels = c("Rebio", "Entorno Imediato", "Entorno")) +
   geom_bar(position = "stack", stat = "identity") +
-  scale_x_continuous(position = "top", n.breaks = 10, expand = c(0, 0)) +
+  scale_x_continuous(position = "top", 
+                     n.breaks = 10, 
+                     expand = c(0, 0),
+                     limits = c(0, 100)) +
   ggtitle("Índice de Prioridade para manejo/monitoramento ") +
   theme(
     panel.background = element_blank(),
@@ -151,26 +145,16 @@ plot_index
 ggsave("plots/index.png", width = 10, height = 5, dpi = 300)
 
 
-#### teste
-
-
-
-
-####
-
-
-
-####
 
 plot_dpue <- df_index %>%
   filter(dpue > 0) %>%
   ggplot(aes(y = fct_reorder(localidade, dpue), x = dpue, fill = fct_relevel(regiao, "rebio", "entorno_imediato"))) +
-  scale_fill_manual(values = c( 'grey', '#990000' ),
+  scale_fill_manual(values = c( '#990000','grey',  '#536e99'),
                     labels = c("REBIO", "Entorno Imediato")) +
   
   geom_bar(position = "stack", stat = "identity") +
   scale_x_continuous(position = "top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("DPUE - Detecções/60mim") +
+  ggtitle("DPUE - Detecções/60min") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"),
