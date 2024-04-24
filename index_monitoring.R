@@ -146,11 +146,14 @@ ggsave("plots/index.png", width = 10, height = 5, dpi = 300)
 
 
 
+### DPUE corrected
+
+
 plot_dpue <- df_index %>%
   filter(dpue > 0) %>%
   ggplot(aes(y = fct_reorder(localidade, dpue), x = dpue, fill = fct_relevel(regiao, "rebio", "entorno_imediato"))) +
   scale_fill_manual(values = c( '#990000','grey',  '#536e99'),
-                    labels = c("REBIO", "Entorno Imediato")) +
+                    labels = c("REBIO", "Entorno Imediato", "Entorno")) +
   
   geom_bar(position = "stack", stat = "identity") +
   scale_x_continuous(position = "top", n.breaks = 10, expand = c(0, 0)) +
@@ -172,10 +175,5 @@ plot_dpue <- df_index %>%
 
 plot_dpue
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
-
-
-
-
-
 
 

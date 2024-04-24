@@ -123,7 +123,7 @@ plot_detec_strata <- df_monit_effort %>%
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Detecções por faixa batimétrica") +
+  ggtitle("Total de transectos(1m) com presença de coral-sol") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -154,7 +154,7 @@ plot_transec_strata <- df_monit_effort %>%
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Transectos (1min) por localidade") +
+  ggtitle("Total de Transectos (1min) por localidade") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -174,9 +174,11 @@ plot_transec_strata <- df_monit_effort %>%
 plot_transec_strata
 ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
-# CPUE
+# CPUE #########################################################################
 # Creating dpue colunm ######## VERIFY THE SUM TO OBTAIM MAX MINUTES BY LOCALITY
-
+# Dont use this script for dpue, bacause the dpue is calculated before 
+# and then summed, overestimating the detections.
+# The script index_monitoring is correct
 
 df_monit_effort_dpue <- df_monit %>% 
   
@@ -188,8 +190,9 @@ df_monit_effort_dpue <- df_monit %>%
             n_detection = max(n_trans_pres),
             dpue = n_detection/(sum(max(max_trsct_vis)/60))) %>%
   ungroup()
-print(df_monit_effort_dpue, n= 85)
+print(df_monit_effort_dpue, n= 86)
 
+### sum faixa bat
 
 plot_dpue_strata <- df_monit_effort_dpue %>% 
   filter(n_detection > 0)  %>% 
@@ -217,6 +220,11 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
+
+
+############ !!!!!!!!!!!!!!!!!!!!!! ############################################
+################################################################################
+
 
 # Geomorfolgia total
 
