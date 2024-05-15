@@ -78,7 +78,7 @@ df_localidade$comp_m/1
 # detection is presence/absence by locality by each monitoring strata
 # effort is the number of visual transects wheer cs were detected
 
-df_monit_effort <- df_monit %>% 
+df_monit_effort <- df_monit  %>% 
   group_by(localidade, data, faixa_bat) %>%
   filter(obs != "estimado dos dados do ICMBio") %>% 
   mutate(faixa_bat = str_to_title(str_replace_all(faixa_bat, "entremare", "entremaré")),
@@ -89,7 +89,20 @@ df_monit_effort <- df_monit %>%
             visib_m = max(visib_horiz)) %>%
     ungroup()
 df_monit_effort
-print(df_monit_effort, n=85)
+print(df_monit_effort, n=86)
+
+
+#### TESTE
+
+df_monit %>% 
+  filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
+  print( n=63)
+
+
+
+####
+
+
 
 
 
@@ -174,6 +187,8 @@ plot_transec_strata <- df_monit_effort %>%
 plot_transec_strata
 ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
+
+
 # CPUE #########################################################################
 # Creating dpue colunm ######## VERIFY THE SUM TO OBTAIM MAX MINUTES BY LOCALITY
 # Dont use this script for dpue, bacause the dpue is calculated before 
@@ -248,7 +263,7 @@ bp_all_local = df_geo_local  %>%
   ggtitle("Índice de Abragência Relativa das Geomorfologias (IAR GEO)") +
   xlab("") +
   labs(y = "IAR GEO") +
-  #geom_jitter(color="black", size=0.2, alpha=0.5) +
+    geom_jitter(color="black", size=0.2, alpha=0.5) +
     theme(
       panel.background = element_blank(),
       axis.ticks.y = element_line(colour = "grey",

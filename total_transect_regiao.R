@@ -24,7 +24,7 @@ plot_transec_strata_regiao <- df_ntrans_plit_regiao %>%
   scale_fill_manual(values = c('#db6d10', '#78bd49', '#536e99'),
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   scale_x_continuous(position = "top", n.breaks = 10, expand = c(0, 0)) +
-  facet_wrap(~ regiao, ncol = 1, scales = "free_y") +
+  facet_wrap(~ regiao, ncol = 1, scales = "free_y") + # cats jump
   ggtitle("Total de Transectos (1min) por localidade") +
   theme(
     panel.background = element_blank(),
@@ -43,7 +43,7 @@ plot_transec_strata_regiao <- df_ntrans_plit_regiao %>%
   )
 
 plot_transec_strata_regiao
-
+ggsave("plots/plot_transec_strata_regiao.png", width = 12, height = 7, dpi = 300)
 
 
 
