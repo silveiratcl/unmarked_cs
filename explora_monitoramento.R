@@ -1,11 +1,14 @@
 ## 
 # Indicadores Monitoramento
 
+install.packages("hbal")
+
 library(tidyverse)
 library(readr)
 library(tidyr)
 library(stringr)
-library(hb)
+library(hbal)
+library(dplyr)
 
 ## data
 
@@ -26,10 +29,9 @@ df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                                        n_trans_vis = col_double(),
                                        n_trans_pres = col_double(),
                                        dafor_id = col_double(),
-                                       geo_id = col_character(),
+                                       geo_id = col_double(),
                                        obs = col_character()
                       ))
-
 
 
 spec(df_monit)
@@ -93,11 +95,27 @@ print(df_monit_effort, n=86)
 
 
 #### TESTE
+df_monit_filt <- df_monit %>% 
+filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
+  print(n=40)
 
-df_monit %>% 
-  filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
-  print( n=63)
+##errado???
+df2 <- merge(x=df_monit_filt, y=df_geo, by.x=c("geo_id"), by.y=c("geo_id")) %>%
+  group_by(localidade.x, data.x, dafor_id, geo_id, dafor, tempo_censo, tempo_geo, geo_cat, iar_geo, obs) %>%
+  reframe() %>%
+  arrange(geo_id) %>%
+  ungroup()
 
+###NAs????
+df3 <-(left.join.dplyr <- left_join(df_monit_filt, df_geo))
+
+df_join <- left_join(df_monit, df_geo) %>%
+  filter(dafor > 0 , metodo == "scuba", 
+         obs != "estimado dos dados do ICMBio", obs != "Sem geo" )
+
+  
+#df2 <-(right.join.r.base <- merge(df_monit_filt, df_geo, all.x = TRUE)
+  print()
 
 
 ####
