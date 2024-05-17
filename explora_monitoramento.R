@@ -95,28 +95,37 @@ print(df_monit_effort, n=86)
 
 
 #### TESTE
-df_monit_filt <- df_monit %>% 
-filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
-  print(n=40)
 
-##errado???
-df2 <- merge(x=df_monit_filt, y=df_geo, by.x=c("geo_id"), by.y=c("geo_id")) %>%
-  group_by(localidade.x, data.x, dafor_id, geo_id, dafor, tempo_censo, tempo_geo, geo_cat, iar_geo, obs) %>%
+df_join <- left_join(df_monit, df_geo, by= "geo_id") %>%
+  filter(dafor > 0, iar_geo > 0, metodo.x == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo", data.x > as.Date("2022-12-13")) %>%
+  group_by(localidade.x, data.x, data.y, dafor_id, geo_id, metodo.x, dafor, tempo_censo, tempo_geo, geo_cat, iar_geo, obs) %>%
+  rename(localidade = localidade.x,
+          data_dafor = data.x,
+          data_geo = data.y,
+          método = metodo.x) %>%
   reframe() %>%
-  arrange(geo_id) %>%
+  arrange(data_dafor) %>%
   ungroup()
 
-###NAs????
-df3 <-(left.join.dplyr <- left_join(df_monit_filt, df_geo))
-
-df_join <- left_join(df_monit, df_geo) %>%
-  filter(dafor > 0 , metodo == "scuba", 
-         obs != "estimado dos dados do ICMBio", obs != "Sem geo" )
-
+# Criando relação entre tempo censo e tempo geo
+##erro tabelas - tempo dafor nao ta associado certo ao tempo geo
+df_join_rel <- df_join[df_join$tempo_censo >= 1 & df_join$tempo_censo <= 5 & df_join$tempo_geo == 1 |
+                     df_join$tempo_censo > 5 & df_join$tempo_censo <= 10 & df_join$tempo_geo == 2 |
+                     df_join$tempo_censo > 10 & df_join$tempo_censo <= 15 & df_join$tempo_geo == 3 |
+                     df_join$tempo_censo > 15 & df_join$tempo_censo <= 20 & df_join$tempo_geo == 4 |
+                     df_join$tempo_censo > 20 & df_join$tempo_censo <= 25 & df_join$tempo_geo == 5 |
+                     df_join$tempo_censo > 25 & df_join$tempo_censo <= 30 & df_join$tempo_geo == 6 |
+                     df_join$tempo_censo > 30 & df_join$tempo_censo <= 35 & df_join$tempo_geo == 7 |
+                     df_join$tempo_censo > 35 & df_join$tempo_censo <= 40 & df_join$tempo_geo == 8 |
+                     df_join$tempo_censo > 40 & df_join$tempo_censo <= 45 & df_join$tempo_geo == 9 |
+                     df_join$tempo_censo > 45 & df_join$tempo_censo <= 50 & df_join$tempo_geo == 10 |
+                     df_join$tempo_censo > 50 & df_join$tempo_censo <= 55 & df_join$tempo_geo == 11 |
+                     df_join$tempo_censo > 55 & df_join$tempo_censo <= 60 & df_join$tempo_geo == 12 |
+                     df_join$tempo_censo > 60 & df_join$tempo_censo <= 65 & df_join$tempo_geo == 13 |
+                     df_join$tempo_censo > 65 & df_join$tempo_censo <= 70 & df_join$tempo_geo == 14 |
+                     df_join$tempo_censo > 70 & df_join$tempo_censo <= 75 & df_join$tempo_geo == 15 |
+                     df_join$tempo_censo > 75 & df_join$tempo_censo <= 80 & df_join$tempo_geo == 16, ]
   
-#df2 <-(right.join.r.base <- merge(df_monit_filt, df_geo, all.x = TRUE)
-  print()
-
 
 ####
 
