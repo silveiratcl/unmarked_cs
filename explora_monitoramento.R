@@ -96,16 +96,38 @@ print(df_monit_effort, n=86)
 
 #### TESTE
 
-df_join <- left_join(df_monit, df_geo, by= "geo_id") %>%
-  filter(dafor > 0, iar_geo > 0, metodo.x == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo", data.x > as.Date("2022-12-13")) %>%
-  group_by(localidade.x, data.x, data.y, dafor_id, geo_id, metodo.x, dafor, tempo_censo, tempo_geo, geo_cat, iar_geo, obs) %>%
-  rename(localidade = localidade.x,
-          data_dafor = data.x,
-          data_geo = data.y,
-          método = metodo.x) %>%
+# Join df a partir da chave geo_id
+df_join <- left_join(df_monit, df_geo, by = "geo_id") %>%
+  filter(data.x > as.Date("2022-12-13"), n_trans_pres > 0, obs != "Presente no naufrágio do lili") %>%
+  group_by(data.x, dafor_id, geo_id, faixa_bat.x, n_trans_pres, geo_cat, iar_geo, obs) %>%
+  rename(positive_min = n_trans_pres,
+         faixa_bat = faixa_bat.x) %>%
   reframe() %>%
-  arrange(data_dafor) %>%
+  arrange(data.x) %>%
   ungroup()
+
+
+# Centralização da variável
+df_geo_filt <- df_geo %>%
+  filter(data > as.Date("2022-12-13"))
+
+
+geomorf <- sqrt(df_geo_filt[, 11])
+range(geomorf)
+geomorf_st <- as.matrix(geomorf - mean(as.matrix(geomorf)))/sd(as.matrix(geomorf))
+range(geomorf_st)
+str(geomorf_st)
+print(geomorf_st)
+
+media <- mean(df_geo_filt$iar_geo)
+vetor_centralizado <- df_geo_filt$iar_geo - media
+print(vetor_centralizado)
+
+# Associando a coluna de dados centralizados ao df
+df_geo_filt$geomorf_st <- geomorf_st
+print(df_geo_filt)
+
+
 
 # Criando relação entre tempo censo e tempo geo
 ##erro tabelas - tempo dafor nao ta associado certo ao tempo geo
