@@ -30,12 +30,13 @@ df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                                        n_trans_pres = col_double(),
                                        dafor_id = col_double(),
                                        geo_id = col_double(),
-                                       obs = col_character()
-                      ))
-
+                                       obs = col_character())), 
 
 spec(df_monit)
 df_monit[2000,]
+
+df_monit2 = df_monit[563:567, ] %>%
+print(n = 41)
 
 # geomophology
 
@@ -54,9 +55,14 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      n_trans_vis = col_double(),
                                      geo_id = col_double())
 )
+problems()
 spec(df_geo)
 df_geo = df_geo[, 1:13]
 df_geo
+
+df_geo2 = df_geo[496:500, ] %>%
+print (n = 40)
+
 
 # localities
 
@@ -97,14 +103,17 @@ print(df_monit_effort, n=86)
 #### TESTE
 
 # Join df a partir da chave geo_id
-df_join <- left_join(df_monit, df_geo, by = "geo_id") %>%
+
+
+df_join2 <- merge(df_monit2, df_geo2, by = "geo_id")
+
+df_join <- inner_join(df_geo, df_monit, by = "geo_id") %>%
   filter(data.x > as.Date("2022-12-13"), n_trans_pres > 0, obs != "Presente no naufrágio do lili") %>%
-  group_by(data.x, dafor_id, geo_id, faixa_bat.x, n_trans_pres, geo_cat, iar_geo, obs) %>%
+  select(data.x, dafor_id, geo_id, faixa_bat.x, n_trans_pres, geo_cat, iar_geo, obs) %>%
   rename(positive_min = n_trans_pres,
          faixa_bat = faixa_bat.x) %>%
   reframe() %>%
-  arrange(data.x) %>%
-  ungroup()
+  arrange(data.x)
 
 
 # Centralização da variável
