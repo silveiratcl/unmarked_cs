@@ -73,7 +73,7 @@ print(df_localidade, n = 41)
 df_monit_test = df_monit %>% 
   filter(data > "2023-01-01",
          obs != "estimado dos dados do ICMBio",
-         dafor > 1,
+         dafor > 0,
          faixa_bat != "entremare"
          ) %>% 
   mutate(dafor_id = as.integer(dafor_id),
@@ -125,26 +125,27 @@ df_monit_geo = df_monit_geo %>%
 
 
 df_monit_geo
-print(df_monit_geo, n = 790)
-  
-df_monit_geo %>% 
-  filter(diff_t_dafor_geo >= 15 | diff_t_dafor_geo <= -15)
-  
-print(df_monit_geo, n = 790)
+print(df_monit_geo, n = 30)
+
+
+# creating table
 
 
 
-  
-# adjusting max time in dafor to the max time in geo
 
-df_monit_geo = df_monit_geo %>% 
-  group_by(geo_id) %>% 
-  mutate(tempo_censo_adj = if_else(diff_t_dafor_geo > 0, tempo_geo_min, tempo_censo))
-  
-  
-  
-############ see dafor id 99, 100 -  2023 instead 2022 
+df_model <- df_monit_geo %>%
+  group_by(dafor_id) %>%
+  reframe(
+    n_trans = max(n_trans_pres),
+    tf_std = (iar_geo[geo_cat == "tf"] - mean(iar_geo[geo_cat == "tf"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    mp_std = (iar_geo[geo_cat == "mp"] - mean(iar_geo[geo_cat == "mp"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    gc_std = (iar_geo[geo_cat == "gc"] - mean(iar_geo[geo_cat == "gc"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    rpm_std = (iar_geo[geo_cat == "rpm"] - mean(iar_geo[geo_cat == "rpm"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    lg_std = (iar_geo[geo_cat == "lg"] - mean(iar_geo[geo_cat == "lg"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
+  )
 
+df_model
+  
 
 
 
