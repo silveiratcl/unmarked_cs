@@ -112,6 +112,7 @@ print(df_monit_geo, n = 50)
 
 
 
+
 # creating time in minutes to geo and investigating differences in time 
 
 df_monit_geo = df_monit_geo %>% 
@@ -125,12 +126,10 @@ df_monit_geo = df_monit_geo %>%
 
 
 df_monit_geo
-print(df_monit_geo, n = 30)
+print(df_monit_geo, n = 500)
 
 
 # creating table
-
-
 
 
 df_model <- df_monit_geo %>%
@@ -145,7 +144,48 @@ df_model <- df_monit_geo %>%
   )
 
 df_model
-  
+print(df_model, n = 148)  
+
+
+
+
+
+
+#### AED
+
+df_aed <- df_monit_geo %>%
+  group_by(dafor_id) %>%
+  reframe(
+    n_trans = max(n_trans_pres),
+    tf_avg = mean(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    tf_sd = sd(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    mp_avg = mean(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    mp_sd = sd(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    gc_avg = mean(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    gc_sd = sd(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    rpm_avg = mean(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    rpm_sd = sd(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    lg_avg = mean(iar_geo[geo_cat == "lg"], na.rm = TRUE),
+    lg_sd = sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
+  )
+
+df_aed
+print(df_aed, n = 148)  
+
+mean(df_aed$n_trans)
+sd(df_aed$n_trans)
+
+max(df_aed$n_trans)
+
+cor(df_aed$n_trans, df_aed$tf_avg)
+cor(df_aed$n_trans, df_aed$mp_avg)
+cor(df_aed$n_trans, df_aed$gc_avg)
+cor(df_aed$n_trans, df_aed$rpm_avg)
+cor(df_aed$n_trans, df_aed$lg_avg)
+
+
+
+
 
 
 
