@@ -80,7 +80,7 @@ df_monit_test = df_monit %>%
   mutate(dafor_id = as.integer(dafor_id),
          geo_id = as.integer(geo_id))
 
-df_monit_test  #ok
+df_monit_test[ , 12:15]  #ok
 
 
 df_geo_test =    df_geo %>%
@@ -167,6 +167,18 @@ df_aed <- df_monit_geo %>%
     lg_sd = sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
   )
 
+mean(df_aed$tf_avg)
+sd(df_aed$tf_sd)
+mean(df_aed$mp_avg)
+sd(df_aed$mp_sd)
+mean(df_aed$gc_avg)
+sd(df_aed$gc_sd)
+mean(df_aed$rpm_avg)
+sd(df_aed$rpm_sd)
+mean(df_aed$lg_avg)
+sd(df_aed$lg_sd)
+
+
 df_aed
 print(df_aed, n = 148)  
 
@@ -192,7 +204,7 @@ max(df_aed$n_trans)
 ## Analise de correlação
 cor(df_aed$n_trans, df_aed$tf_avg, method = "spearman") #sem correlacao
 cor(df_aed$n_trans, df_aed$mp_avg, method = "spearman") #sem correlacao
-cor(df_aed$n_trans, df_aed$gc_avg, method = "spearman") #sem correlacao
+cor(df_aed$n_trans, df_aed$gc_avg, method = "spearman") 
 cor(df_aed$n_trans, df_aed$rpm_avg, method = "spearman") 
 cor(df_aed$n_trans, df_aed$lg_avg, method = "spearman") 
 ##p < 0,05, tem correlacao
@@ -203,7 +215,7 @@ df_aed_mean <- df_aed %>%
   select(n_trans, tf_avg, mp_avg, gc_avg, rpm_avg, lg_avg)
 str(df_aed_mean)
 
-ggplot(df_aed_mean, aes(x = lg_avg, y = n_trans)) +
+ggplot(df_aed_mean, aes(x = gc_avg, y = n_trans)) +
   geom_point(color = "black", fill = "seagreen", shape = 21, size = 3, alpha = .7)  +
   xlab("tf_avg") +          
   ylab("n_trans") +
