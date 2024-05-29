@@ -111,11 +111,14 @@ df_monit_test_all_sum= df_monit_test_all %>%
 sum(df_monit_test_all_sum$total_trans)
 # 3221
 
+3222/60 #HORas
+
+length(unique(df_monit_test_all$localidade))
+
 ####
 df_monit_local = df_monit_test_all %>% 
   left_join(df_localidade, join_by(localidade))# %>% ###########################
-  select( )#####################################################################
-  
+ 
 
 ############################ resumo vic
 
@@ -297,9 +300,25 @@ sd(df_aed$lg_sd)
  
 
 
+#######
+
+#minzzi
 
 
+table(df_monit$localidade)
 
+complete_dafor_cases <- c(0, 2, 4, 6, 8, 10)
 
+df_monit_minuzzi <- df_monit %>%
+  filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua")) %>%
+  group_by(localidade, dafor) %>%
+  summarize(case_count = n(), .groups = 'drop') %>%
+  ungroup() %>%
+  complete(localidade, dafor = complete_dafor_cases, fill = list(case_count = 0)) %>%
+  pivot_wider(names_from = dafor, values_from = case_count, values_fill = list(case_count = 0))
+
+df_monit_minuzzi 
+
+######
 
 
