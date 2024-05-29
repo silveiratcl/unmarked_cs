@@ -79,8 +79,45 @@ df_monit_test = df_monit %>%
   mutate(dafor_id = as.integer(dafor_id),
          geo_id = as.integer(geo_id))
 
-df_monit_test  #ok
+df_monit_test #ok
 
+############################### resumo vic
+
+df_monit_test_all = df_monit %>% 
+  filter(data > "2023-01-01",
+         obs != "estimado dos dados do ICMBio",
+         #dafor > 0,
+         faixa_bat != "entremare"
+  ) %>% 
+  mutate(dafor_id = as.integer(dafor_id),
+         geo_id = as.integer(geo_id))
+
+df_monit_test_all#ok
+
+length(unique(df_monit_test_all$dafor_id))
+# 69 transect
+
+df_monit_test_all %>%
+  group_by(dafor_id) %>% 
+  filter(dafor > 0) %>% 
+  summarise()
+
+
+df_monit_test_all_sum= df_monit_test_all %>%
+  group_by(dafor_id) %>% 
+  #filter(dafor > 0) %>% 
+  summarise(total_trans = max(n_trans_vis))
+
+sum(df_monit_test_all_sum$total_trans)
+# 3221
+
+####
+df_monit_local = df_monit_test_all %>% 
+  left_join(df_localidade, join_by(localidade))# %>% ###########################
+  select( )#####################################################################
+  
+
+############################ resumo vic
 
 df_geo_test =    df_geo %>%
   filter(data > "2023-01-01",
@@ -147,10 +184,6 @@ df_model
 print(df_model, n = 148)  
 
 
-
-
-
-
 #### AED
 
 df_aed <- df_monit_geo %>%
@@ -170,18 +203,99 @@ df_aed <- df_monit_geo %>%
   )
 
 df_aed
-print(df_aed, n = 148)  
+
+
+# A tibble: 11 × 12
+#dafor_id n_trans tf_avg tf_sd mp_avg mp_sd gc_avg gc_sd rpm_avg rpm_sd lg_avg lg_sd
+#<int>   <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>   <dbl>  <dbl>  <dbl> <dbl>
+ # 1       15       1   6    3.02    0.5  0.926  0     0       10     0       0.5  0.926
+#2       21       2   6    0       0.4  0.843  0     0        8.4   0.843   0    0    
+#3       22       4   6.75 1.41    4    2.03   1.75  1.59     6.75  2.68    0    0    
+#4       44       5   3.75 1.58    4.5  2.82   0     0        0.5   0.877   0.5  0.877
+#5       45       2   1.5  1.37    2.5  2.25   0     0        8.88  2.16    1.5  2    
+#6       58       1   6    0.894   7.27 2.24   5.45  2.02     3.82  1.40    3.45 1.29 
+#7       74       1   4.25 1.28    1.75 1.28   0.25  0.707    7.5   2.78    3.25 4.27 
+#8       99       2   8.44 1.89    6.44 3.60   4.67  2.57     6.44  2.33    0    0    
+#9      100      11   5.33 3.00    4.22 3.34   1.11  1.38     6.89  3.68    4.44 2.64 
+#10      118       3   6.33 3.16    3.08 2.83   0.833 1.01     9.25  1.42    2.25 3.03 
+#11      119       1   4    2.45    3.78 1.86   0     0        8.67  2.24    2.89 3.18 
+
+
+
+
+
 
 mean(df_aed$n_trans)
+#3
 sd(df_aed$n_trans)
+#2.966479
 
 max(df_aed$n_trans)
+# 11
 
-cor(df_aed$n_trans, df_aed$tf_avg)
-cor(df_aed$n_trans, df_aed$mp_avg)
-cor(df_aed$n_trans, df_aed$gc_avg)
-cor(df_aed$n_trans, df_aed$rpm_avg)
-cor(df_aed$n_trans, df_aed$lg_avg)
+cor(df_aed$n_trans, df_aed$tf_avg, method = "spearman")
+cor(df_aed$n_trans, df_aed$mp_avg, method = "spearman")
+cor(df_aed$n_trans, df_aed$gc_avg, method = "spearman")
+cor(df_aed$n_trans, df_aed$rpm_avg, method = "spearman")
+cor(df_aed$n_trans, df_aed$lg_avg, method = "spearman")
+
+#> cor(df_aed$n_trans, df_aed$tf_avg, method = "spearman")
+#[1] 0.07111002
+#> cor(df_aed$n_trans, df_aed$mp_avg, method = "spearman")
+#[1] 0.2818424
+#> cor(df_aed$n_trans, df_aed$gc_avg, method = "spearman")
+#[1] 0.1231662
+#> cor(df_aed$n_trans, df_aed$rpm_avg, method = "spearman")
+#[1] -0.314724
+#> cor(df_aed$n_trans, df_aed$lg_avg, method = "spearman")
+#[1] -0.163933
+
+
+
+
+
+
+mean(df_aed$tf_avg)
+sd(df_aed$tf_sd)
+#> mean(df_aed$tf_avg)
+#[1] 5.305556
+#> sd(df_aed$tf_sd)
+#[1] 0.9954703
+
+mean(df_aed$mp_avg)
+sd(df_aed$mp_sd)
+#> mean(df_aed$mp_avg)
+#[1] 3.4955
+#> sd(df_aed$mp_sd)
+#[1] 0.9220174
+
+
+mean(df_aed$gc_avg)
+sd(df_aed$gc_sd)
+#> mean(df_aed$gc_avg)
+#[1] 1.278696
+#> sd(df_aed$gc_sd)
+#[1] 0.9374563
+#> 
+
+
+mean(df_aed$rpm_avg)
+sd(df_aed$rpm_sd)
+#> mean(df_aed$rpm_avg)
+#[1] 7.008471
+#> sd(df_aed$rpm_sd)
+#[1] 1.055789
+
+
+
+mean(df_aed$lg_avg)
+sd(df_aed$lg_sd)
+#> mean(df_aed$lg_avg)
+#[1] 1.707989
+#> sd(df_aed$lg_sd)
+#[1] 1.469996
+ 
+
 
 
 
