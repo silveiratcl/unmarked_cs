@@ -354,6 +354,22 @@ detec_vs_geo %>%
   theme(legend.position = "bottom")
 
 
+
+#####
+
+# alternative plot
+
+detec_vs_geo %>% 
+  ggplot(aes(x = mean_geo_value, y = detections, shape = geo_cat, color = geo_cat)) + 
+  geom_point() +
+  geom_jitter() +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+
+
+
 #####
 
 #minzzi
