@@ -117,7 +117,18 @@ length(unique(df_monit_test_all$localidade))
 
 ####
 df_monit_local = df_monit_test_all %>% 
-  left_join(df_localidade, join_by(localidade))# %>% ###########################
+  left_join(df_localidade, join_by(localidade)) %>%
+  group_by(localidade) %>% 
+  reframe(comp_m_local = sum(max(comp_m)/1000)) 
+  
+  
+sum(df_monit_local$comp_m_local)/1000
+  
+
+df_monit_local$comp_m_local[1]
+
+print(df_monit_local, n=200)
+  ###########################
  
 
 ############################ resumo vic
@@ -301,6 +312,49 @@ sd(df_aed$lg_sd)
 
 
 #######
+### Fig correlation with trendline
+
+
+round(cor(df_aed$n_trans, df_aed$tf_avg, method = "spearman"), 2)
+round(cor(df_aed$n_trans, df_aed$mp_avg, method = "spearman"), 2)
+round(cor(df_aed$n_trans, df_aed$gc_avg, method = "spearman"), 2)
+round(cor(df_aed$n_trans, df_aed$rpm_avg, method = "spearman"), 2)
+round(cor(df_aed$n_trans, df_aed$lg_avg, method = "spearman"), 2)
+
+geo_cat = c("tf", "mp", "gc", "rpm", "lg")
+cor_spear = c(0.07, 0.28, 0.12, -0.31, -0.16)
+cor_scores = tibble(geo_cat = geo_name, cor_spear = cor_spear)
+
+
+detec_vs_geo <- detec_vs_geo %>%
+  left_join(cor_scores, by = "geo_cat")
+
+# Define positions for annotations
+annotation_positions <- data.frame(
+  geo_cat = geo_name,
+  x_pos = c(2, 2, 2, 2, 2),
+  y_pos = c(12, 13, 14, 15, 16)
+)
+
+summary_data <- summary_data %>%
+  left_join(annotation_positions, by = "geo_cat")
+
+
+
+
+detec_vs_geo %>% 
+  ggplot(aes(x = mean_geo_value, y = detections, shape = geo_cat, color = geo_cat)) + 
+  geom_point() +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE) +
+  geom_text(data = summary_data, 
+            aes(x = x_pos, y = y_pos, label = paste0("r = ", round(cor_spear, 2))), 
+            hjust = 0, vjust = 1) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+#####
 
 #minzzi
 
