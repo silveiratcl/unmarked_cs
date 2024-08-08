@@ -221,7 +221,7 @@ df_aed
 #### com localidade
 
 df_aed <- df_monit_geo %>%
-  group_by(dafor_id, localidade.x) %>%
+  group_by(localidade.x) %>%
   reframe(
     n_trans = max(n_trans_pres),
     tf_avg = mean(iar_geo[geo_cat == "tf"], na.rm = TRUE),
@@ -236,7 +236,7 @@ df_aed <- df_monit_geo %>%
     lg_sd = sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
   )
 
-df_aed
+print(df_aed, n =12)
 
 
 
@@ -245,7 +245,7 @@ df_aed
 # A tibble: 11 × 12
 #dafor_id n_trans tf_avg tf_sd mp_avg mp_sd gc_avg gc_sd rpm_avg rpm_sd lg_avg lg_sd
 #<int>   <dbl>  <dbl> <dbl>  <dbl> <dbl>  <dbl> <dbl>   <dbl>  <dbl>  <dbl> <dbl>
- # 1       15       1   6    3.02    0.5  0.926  0     0       10     0       0.5  0.926
+#1       15       1   6    3.02    0.5  0.926  0     0       10     0       0.5  0.926
 #2       21       2   6    0       0.4  0.843  0     0        8.4   0.843   0    0    
 #3       22       4   6.75 1.41    4    2.03   1.75  1.59     6.75  2.68    0    0    
 #4       44       5   3.75 1.58    4.5  2.82   0     0        0.5   0.877   0.5  0.877
