@@ -372,7 +372,7 @@ detec_vs_geo %>%
 
 #####
 
-#minzzi
+#minuzzi  samuel
 
 
 table(df_monit$localidade)
@@ -389,6 +389,29 @@ df_monit_minuzzi <- df_monit %>%
 
 df_monit_minuzzi 
 
-######
+#####
 
+library(ggplot2)
+library(reshape2)
+
+
+# Create a data frame with a category column
+dt <- data.frame(
+  category = factor("A", "B", "C", "D", "E", "F"),  # Added a 'category' column
+  A = rbinom(6, 100, 0.9),
+  B = rbinom(6, 100, 0.5),
+  C = rbinom(6, 100, 0.2),
+  D = rbinom(6, 100, 0.05)
+)
+
+######
+dt_melt <- melt(dt, id.vars = "category")
+
+ggplot(dt_melt, aes(x = variable, y = category, fill = value)) +
+  geom_tile(color = "black") +  # Add borders to the cells
+  geom_text(aes(label = value), color = "white", size = 4) +  # Add text values
+  scale_fill_gradient(low = "blue", high = "red") +
+  labs(x = "Variable", y = "Category", fill = "Value") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
 
