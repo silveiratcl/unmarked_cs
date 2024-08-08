@@ -218,6 +218,29 @@ df_aed <- df_monit_geo %>%
 
 df_aed
 
+#### com localidade
+
+df_aed <- df_monit_geo %>%
+  group_by(dafor_id, localidade.x) %>%
+  reframe(
+    n_trans = max(n_trans_pres),
+    tf_avg = mean(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    tf_sd = sd(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    mp_avg = mean(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    mp_sd = sd(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    gc_avg = mean(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    gc_sd = sd(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    rpm_avg = mean(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    rpm_sd = sd(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    lg_avg = mean(iar_geo[geo_cat == "lg"], na.rm = TRUE),
+    lg_sd = sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
+  )
+
+df_aed
+
+
+
+
 
 # A tibble: 11 × 12
 #dafor_id n_trans tf_avg tf_sd mp_avg mp_sd gc_avg gc_sd rpm_avg rpm_sd lg_avg lg_sd
@@ -382,12 +405,24 @@ complete_dafor_cases <- c(0, 2, 4, 6, 8, 10)
 df_monit_minuzzi <- df_monit %>%
   filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua")) %>%
   group_by(localidade, dafor) %>%
-  summarize(case_count = n(), .groups = 'drop') %>%
+  summarize(case_count = n(), .groups = 'drop'  ) %>%
   ungroup() %>%
   complete(localidade, dafor = complete_dafor_cases, fill = list(case_count = 0)) %>%
   pivot_wider(names_from = dafor, values_from = case_count, values_fill = list(case_count = 0))
 
 df_monit_minuzzi 
+
+
+df_monit_minuzzi <- df_monit %>%
+  filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua")) %>%
+  group_by(localidade) %>%
+  summarize(mean_dafor = mean(dafor), , .groups = 'drop') %>% 
+  ungroup() 
+
+df_monit_minuzzi 
+
+
+
 
 #####
 
