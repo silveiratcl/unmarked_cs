@@ -221,7 +221,7 @@ df_aed
 #### com localidade
 
 df_aed <- df_monit_geo %>%
-  group_by(localidade.x) %>%
+  group_by(localidade.x, dafor_id) %>%
   reframe(
     n_trans = max(n_trans_pres),
     tf_avg = mean(iar_geo[geo_cat == "tf"], na.rm = TRUE),
@@ -238,6 +238,25 @@ df_aed <- df_monit_geo %>%
 
 print(df_aed, n =12)
 
+
+
+df_aed <- df_monit_geo %>%
+  group_by(localidade.x) %>%
+  reframe(
+    n_trans = max(n_trans_pres),
+    tf_avg = mean(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    tf_sd = sd(iar_geo[geo_cat == "tf"], na.rm = TRUE),
+    mp_avg = mean(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    mp_sd = sd(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+    gc_avg = mean(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    gc_sd = sd(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+    rpm_avg = mean(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    rpm_sd = sd(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+    lg_avg = mean(iar_geo[geo_cat == "lg"], na.rm = TRUE),
+    lg_sd = sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
+  )
+
+print(df_aed, n =12)
 
 
 
@@ -403,7 +422,7 @@ table(df_monit$localidade)
 complete_dafor_cases <- c(0, 2, 4, 6, 8, 10)
 
 df_monit_minuzzi <- df_monit %>%
-  filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua")) %>%
+  filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua", "farol")) %>%
   group_by(localidade, dafor) %>%
   summarize(case_count = n(), .groups = 'drop'  ) %>%
   ungroup() %>%
@@ -414,7 +433,7 @@ df_monit_minuzzi
 
 
 df_monit_minuzzi <- df_monit %>%
-  filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua")) %>%
+  filter(localidade %in% c("engenho", "deserta_norte", "deserta_sul", "saco_dagua", "farol")) %>%
   group_by(localidade) %>%
   summarize(mean_dafor = mean(dafor), , .groups = 'drop') %>% 
   ungroup() 
