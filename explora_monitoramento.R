@@ -1,11 +1,12 @@
 ## 
 # Indicadores Monitoramento
 
-library(tidyverse)
-library(readr)
-library(tidyr)
-library(stringr)
-library(hb)
+library("tidyverse")
+library("readr")
+library("tidyr")
+library("stringr")
+library("hb")
+library("dplyr")
 
 ## data
 
@@ -94,9 +95,10 @@ print(df_monit_effort, n=86)
 
 #### TESTE
 
-df_monit %>% 
-  filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
-  print( n=63)
+#df_monit %>% 
+ 
+# filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
+ # print( n=63)
 
 
 
@@ -123,6 +125,9 @@ df_monit_dafor
 table(df_monit_dafor$dafor_DAFOR)
 length(df_monit_dafor$dafor_DAFOR)
 
+df_monit
+table(df_monit$dafor)
+length(df_monit$dafor)
 
 
 
