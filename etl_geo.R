@@ -2,7 +2,7 @@
 library(tidyverse)
 library(readr)
 library(tidyr)
-
+library(dplyr)
 # monitoring
 df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                       col_types = list(localidade = col_character(),
@@ -174,6 +174,7 @@ df_monit_geo = df_monit_geo %>%
   mutate(tempo_geo_max = (max(tempo_geo)*5), 
          dif_t_dafor_geo = max(tempo_censo) - tempo_geo_max,
          )
+
 
 
 df_monit_geo
