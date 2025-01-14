@@ -5,6 +5,7 @@ library(tidyr)
 library(ggplot2)
 library(dplyr)
 
+
 # monitoring
 
 df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
@@ -30,19 +31,44 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
 
 
 spec(df_monit)
-df_monit[2000,]
+df_monit
 
+# grouping by localities
+# total time
+# total detections
 
-dfmonit_filt <- df_monit[ ,c("localidade", "n_trans_vis", "n_trans_pres")] %>%
+dfmonit_filt <- df_monit[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")]
 
-  
+df_teste <- dfmonit_filt %>%
   group_by(localidade) %>%
-  summarise()
-length(unique(dfmonit_filt$localidade))
-####tentando agrupar por localidade
-#####################
-         
-dfmonit_filt
+  summarise(trans_pres_total = sum(n_trans_pres),
+            trans_vis_total = sum(n_trans_vis),
+            effort = sum(n_trans_pres/n_trans_vis)) %>%
+  arrange(desc(trans_pres_total)) %>%
+  drop_na()
+
+print(df_teste, n = 37)
+
+####padronizando
+
+monit <- sqrt(df_teste[, 2:3])
+range(monit)
+monit_st <- as.matrix(monit - mean(as.matrix(monit)))/sd(as.matrix(monit))
+range(monit_st)
+str(monit_st)
+print(monit_st)
+ 
+        
+df_teste$trans_pres_total <- as.matrix(df_teste$trans_pres_total - mean(as.matrix(df_teste$trans_pres_total)))/sd(as.matrix(df_teste$trans_pres_total))
+df_teste$trans_vis_total <- as.matrix(df_teste$trans_vis_total - mean(as.matrix(df_teste$trans_vis_total)))/sd(as.matrix(df_teste$trans_vis_total))
+
+
+
+mp_std = (iar_geo[geo_cat == "mp"] - mean(iar_geo[geo_cat == "mp"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "mp"], na.rm = TRUE),
+gc_std = (iar_geo[geo_cat == "gc"] - mean(iar_geo[geo_cat == "gc"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "gc"], na.rm = TRUE),
+rpm_std = (iar_geo[geo_cat == "rpm"] - mean(iar_geo[geo_cat == "rpm"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
+lg_std = (iar_geo[geo_cat == "lg"] - mean(iar_geo[geo_cat == "lg"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
+)
 
 # geomorphology
 
