@@ -1,6 +1,7 @@
 ## 
 # Indicadores Monitoramento
 
+<<<<<<< HEAD
 install.packages("hbal")
 
 library(tidyverse)
@@ -9,6 +10,14 @@ library(tidyr)
 library(stringr)
 library(hbal)
 library(dplyr)
+=======
+library("tidyverse")
+library("readr")
+library("tidyr")
+library("stringr")
+library("hb")
+library("dplyr")
+>>>>>>> main
 
 ## data
 
@@ -102,7 +111,14 @@ print(df_monit_effort, n=86)
 
 #### TESTE
 
+<<<<<<< HEAD
 # Join df a partir da chave geo_id
+=======
+#df_monit %>% 
+ 
+# filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
+ # print( n=63)
+>>>>>>> main
 
 
 df_join2 <- merge(df_monit2, df_geo2, by = "geo_id")
@@ -181,6 +197,9 @@ df_monit_dafor
 table(df_monit_dafor$dafor_DAFOR)
 length(df_monit_dafor$dafor_DAFOR)
 
+df_monit
+table(df_monit$dafor)
+length(df_monit$dafor)
 
 
 
@@ -310,18 +329,37 @@ df_geo_local <- df_geo %>%
 max(df_geo_local$geo_value)
 
 
+###
+df_monit_effort_dpue <- df_monit %>% 
+  
+  group_by(localidade, data, faixa_bat) %>%
+  filter(obs != "estimado dos dados do ICMBio") %>% 
+  mutate(faixa_bat = str_to_title(str_replace_all(faixa_bat, "entremare", "entremaré")),
+         localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
+  summarise(max_trsct_vis = sum(max(n_trans_vis)),
+            n_detection = max(n_trans_pres),
+            dpue = n_detection/(sum(max(max_trsct_vis)/60))) %>%
+  ungroup()
+print(df_monit_effort_dpue, n= 86)
+
+####
+
+
+
+
+
 ##
 bp_all_local = df_geo_local  %>%
   mutate(geo_cat = fct_relevel(geo_cat, "mp", "tf", "gc", "lg", "rpm" )) %>%
   ggplot( aes(fill = geo_cat, x = geo_cat, y = iar_geo)) +
-  scale_fill_manual(values=c('#db6d10', '#db6d10', '#db6d10', '#536e99', '#536e99' )) +
+  scale_fill_manual(values=c('#ff8200ff', '#ff8200ff', '#ff8200ff', '#ff8200ff', '#ff8200ff' )) +
   scale_x_discrete(labels = c('Matacões e Paredões','Tocas e Fendas','Grutas', "Lages", "Rochas P e M")) +
   geom_boxplot(lwd = 0.2) +
   scale_y_continuous(position="left", n.breaks = 10, expand = c(0, 0.05)) +
   ggtitle("Índice de Abragência Relativa das Geomorfologias (IAR GEO)") +
   xlab("") +
   labs(y = "IAR GEO") +
-    geom_jitter(color="black", size=0.2, alpha=0.5) +
+    #geom_jitter(color="black", size=0.2, alpha=0.5) +
     theme(
       panel.background = element_blank(),
       axis.ticks.y = element_line(colour = "grey",
@@ -371,9 +409,22 @@ detec_vs_geo = df_monit_effort_eval %>%
   
 
 detec_vs_geo %>% 
-  ggplot(aes(x=sqrt(mean_geo_value), y= sqrt(detections), shape = geo_cat, color=geo_cat)) + 
+  ggplot(aes(x=(mean_geo_value), y= (detections), shape = geo_cat, color=geo_cat)) + 
   geom_point() +
   geom_jitter() 
+
+
+# regression
+detec_vs_geo %>% 
+  ggplot(aes(x=(mean_geo_value), y= (detections), shape = geo_cat, color=geo_cat)) + 
+  geom_point() +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = F)
+  
+
+
+
+
   # fazer esse figura melhor
 
 
