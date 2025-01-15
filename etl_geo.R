@@ -36,10 +36,11 @@ df_monit
 # grouping by localities
 # total time
 # total detections
+# effort 
 
 dfmonit_filt <- df_monit[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")]
 
-df_teste <- dfmonit_filt %>%
+monit <- dfmonit_filt %>%
   group_by(localidade) %>%
   summarise(trans_pres_total = sum(n_trans_pres),
             trans_vis_total = sum(n_trans_vis),
@@ -47,28 +48,31 @@ df_teste <- dfmonit_filt %>%
   arrange(desc(trans_pres_total)) %>%
   drop_na()
 
-print(df_teste, n = 37)
+print(monit, n = 37)
 
-####padronizando
+# standardazing the filtered data
 
-monit <- sqrt(df_teste[, 2:3])
-range(monit)
-monit_st <- as.matrix(monit - mean(as.matrix(monit)))/sd(as.matrix(monit))
-range(monit_st)
-str(monit_st)
-print(monit_st)
- 
-        
-df_teste$trans_pres_total <- as.matrix(df_teste$trans_pres_total - mean(as.matrix(df_teste$trans_pres_total)))/sd(as.matrix(df_teste$trans_pres_total))
-df_teste$trans_vis_total <- as.matrix(df_teste$trans_vis_total - mean(as.matrix(df_teste$trans_vis_total)))/sd(as.matrix(df_teste$trans_vis_total))
+pad_trans_pres_total <- as.matrix(monit$trans_pres_total - mean(as.matrix(monit$trans_pres_total)))/sd(as.matrix(monit$trans_pres_total))
+pad_trans_vis_total <- as.matrix(monit$trans_vis_total - mean(as.matrix(monit$trans_vis_total)))/sd(as.matrix(monit$trans_vis_total))
+pad_effort <- as.matrix(monit$effort - mean(as.matrix(monit$effort)))/sd(as.matrix(monit$effort))
+pad_trans_pres_total
+pad_trans_vis_total
+pad_effort
+
+#####
+pad <- scale(monit[, 2:3]) #função que padroniza direto 
+#variavel com media 0 e desvio padrao 1
+#subtrai a média de cada coluna e divide pelo desvio padrão da mesma coluna
 
 
+# associating to the filtered data frame
 
-mp_std = (iar_geo[geo_cat == "mp"] - mean(iar_geo[geo_cat == "mp"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "mp"], na.rm = TRUE),
-gc_std = (iar_geo[geo_cat == "gc"] - mean(iar_geo[geo_cat == "gc"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "gc"], na.rm = TRUE),
-rpm_std = (iar_geo[geo_cat == "rpm"] - mean(iar_geo[geo_cat == "rpm"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "rpm"], na.rm = TRUE),
-lg_std = (iar_geo[geo_cat == "lg"] - mean(iar_geo[geo_cat == "lg"], na.rm = TRUE)) / sd(iar_geo[geo_cat == "lg"], na.rm = TRUE)
-)
+monit$pad_trans_pres_total <- pad_trans_pres_total
+monit$pad_trans_vis_total <- pad_trans_vis_total
+monit$pad_effort <- pad_effort
+monit
+print(monit, n = 37)
+
 
 # geomorphology
 
@@ -91,6 +95,29 @@ spec(df_geo)
 df_geo = df_geo[, 1:14]
 df_geo
 
+# grouping by localities
+
+dfgeo_filt <- df_geo[ ,c("localidade", "geo_cat", "iar_geo")]
+dfgeo_filt
+
+geomorf <- dfgeo_filt %>%
+  group_by(geo_cat) %>%
+  reframe(localidade = localidade,
+    sum_iar_geo = sum(iar_geo))
+  
+  
+
+geomorf 
+  
+
+
+
+
+  summarise(trans_pres_total = sum(n_trans_pres),
+            trans_vis_total = sum(n_trans_vis),
+            effort = sum(n_trans_pres/n_trans_vis)) %>%
+  arrange(desc(trans_pres_total)) %>%
+  drop_na()
 
 # localities
 
