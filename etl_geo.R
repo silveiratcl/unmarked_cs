@@ -32,23 +32,49 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
 
 spec(df_monit)
 df_monit
+print(df_monit, n = 100)
 
-# grouping by localities
-# total time
-# total detections
-# effort 
+# aplicando os filtros 
+ 
+dfmonit_filt <- df_monit %>% 
+  filter(data > "2022-01-01" &
+         !(obs %in% c("Sem geo", "estimado dos dados do ICMBio"))) %>%
+  arrange(data)
 
-dfmonit_filt <- df_monit[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")]
+# selecionando a localidade por data para filtrar o numero de transectos
 
-monit <- dfmonit_filt %>%
+monit <- dfmonit_filt[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")] %>%
+  group_by(localidade, data) %>%
+  reframe(visuals = max(n_trans_vis),
+            detec = max(n_trans_pres)) %>%
+  arrange(data)
+
+print(monit, n = 44)
+##número maximo de transectos por data e localidade
+
+# obtendo o total de transectos vistos e detecções para cada localidade
+
+monit2 <- monit %>%
   group_by(localidade) %>%
-  summarise(trans_pres_total = sum(n_trans_pres),
-            trans_vis_total = sum(n_trans_vis),
-            effort = sum(n_trans_pres/n_trans_vis)) %>%
-  arrange(desc(trans_pres_total)) %>%
-  drop_na()
+  summarise(vis = sum(visuals),
+            det = sum(detec)) %>%
+  arrange(desc(vis))
 
-print(monit, n = 37)
+print(monit2, n = 35)
+
+# detecções por unidade de tempo
+
+dpue <- (monit2$vis/ 60)
+dpue2 <- (monit2$det/dpue)
+monit2$dpue2 <- dpue2
+monit2
+
+print(monit2, n = 35)
+
+
+
+
+
 
 # standardazing the filtered data
 
