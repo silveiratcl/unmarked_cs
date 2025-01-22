@@ -127,8 +127,10 @@ print(geo_pad, n = 34)
 
 # unindo os data frames
 
-geomonit <- left_join(monit2, geo_pad)
+geomonit <- left_join(monit2, geo_pad) %>%
+  arrange(desc(det))
 
 print(geomonit, n = 182)
+
 
 
