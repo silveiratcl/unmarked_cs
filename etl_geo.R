@@ -34,14 +34,15 @@ spec(df_monit)
 df_monit
 print(df_monit, n = 100)
 
-# aplicando os filtros 
+## aplicando os filtros 
  
 dfmonit_filt <- df_monit %>% 
   filter(data > "2022-01-01" &
          !(obs %in% c("Sem geo", "estimado dos dados do ICMBio"))) %>%
   arrange(data)
+dfmonit_filt
 
-# selecionando a localidade por data para filtrar o numero de transectos
+## selecionando a localidade por data para filtrar o numero de transectos
 
 monit <- dfmonit_filt[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")] %>%
   group_by(localidade, data) %>%
@@ -50,9 +51,9 @@ monit <- dfmonit_filt[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")] 
   arrange(data)
 
 print(monit, n = 44)
-##número maximo de transectos por data e localidade
+###número maximo de transectos por data e localidade
 
-# obtendo o total de transectos vistos e detecções para cada localidade
+## obtendo o total de transectos vistos e detecções para cada localidade
 
 monit2 <- monit %>%
   group_by(localidade) %>%
@@ -62,7 +63,7 @@ monit2 <- monit %>%
 
 print(monit2, n = 35)
 
-# detecções por unidade de tempo
+## detecções por unidade de tempo
 
 dpue <- (monit2$vis/ 60)
 dpue2 <- (monit2$det/dpue)
@@ -70,6 +71,58 @@ monit2$dpue2 <- dpue2
 monit2
 
 print(monit2, n = 35)
+
+
+# geomorphology
+
+df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv", 
+                    col_types = list(localidade = col_character(),
+                                     data = col_date(format = "%d/%m/%Y"),
+                                     visibilidade = col_double(),
+                                     faixa_bat = col_character(),
+                                     prof_interface_min = col_double(),
+                                     prof_interface_max = col_double(),
+                                     metodo = col_character(),
+                                     observador = col_character(),
+                                     tempo_geo = col_double(),
+                                     geo_cat = col_character(),
+                                     iar_geo = col_double(),
+                                     n_trans_vis = col_double(),
+                                     geo_id = col_double())
+)
+spec(df_geo)
+df_geo = df_geo[, 1:14]
+df_geo
+
+## agrupando e obtendo o total do IAR para cada geomorfologia em cada localidade
+
+geo <- df_geo[ ,c("localidade", "data", "geo_cat", "iar_geo")] %>%
+  group_by(localidade, data, geo_cat) %>%
+  reframe(iar_geo = max(iar_geo)) %>%
+  arrange(data)
+
+print(geo, n = 185)
+
+geo2 <- geo[ ,c("localidade", "geo_cat", "iar_geo")] %>%
+  group_by(localidade)
+
+print(geo2, n = 185)
+
+## unindo os df 
+
+geomonit <- left_join(monit2, geo2)
+print(geomonit, n = 182)
+
+###colocar as geos como coluna e iargeo como linha dessa coluna
+geomonit$iar_geo <- as.numeric(geomonit$iar_geo)
+str(geomonit)
+
+df_final <- geomonit %>%
+  group_by(localidade) %>%
+  pivot_wider(names_from = geo_cat, values_from = iar_geo, values_fn = list)
+  
+      
+
 
 
 
