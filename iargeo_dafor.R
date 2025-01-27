@@ -33,6 +33,8 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
 spec(df_monit)
 df_monit
 print(df_monit, n = 100)
+df_monit[, 1:17]
+
 
 ## aplicando os filtros 
 
