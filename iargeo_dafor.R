@@ -161,18 +161,19 @@ geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo2)-1),eig=T,add=T)
 ##pra usar a correção de Cailliez, que evita autovalores negativos,'add=T’
 
 
-#windows(6,6)
+windows(6,6)
 #par(mfrow=c(1,3))
 ordiplot(prcomp(geo_euc.pcoa$points[,c(1,2)]),type="t",
          main="PCoA - distância de Chord")
 head(geo_euc.pcoa$points)
 abline(h=0, lty=3)
 abline(v=0, lty=3)
-gpcoa.wa <- wascores(x=geo_euc.pcoa$points[,1:2],w=geo_pad[, 2:6])
+gpcoa.wa <- wascores(x=geo_euc.pcoa$points[,1:2],w=geo2[, 2:6])
 text(gpcoa.wa,rownames(gpcoa.wa),cex=0.7,col="red")
 rownames(geo_euc.pcoa$points) <- (geo2$localidade)
 #text(-0.45,-0.45,labels="reduz o peso das spp \n muito abundantes",
      #pos=4,col="blue")
+geo_euc.pcoa$
 
 
 #pcoa por hellinger
