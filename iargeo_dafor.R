@@ -44,29 +44,32 @@ dfmonit_filt <- df_monit %>%
   filter(data > "2022-01-01" &
            !(obs %in% c("Sem geo", "estimado dos dados do ICMBio"))) %>%
   arrange(data)
-dfmonit_filt
+print(dfmonit_filt, n = 100)
 
 ## selecionando a localidade por data para filtrar o numero de transectos
 
-monit <- dfmonit_filt[ ,c("localidade", "data", "n_trans_vis", "n_trans_pres")] %>%
-  group_by(localidade, data) %>%
+monit <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis", "n_trans_pres", "n_divers")] %>%
+  group_by(localidade, data, faixa_bat) %>%
   reframe(visuals = max(n_trans_vis),
-          detec = max(n_trans_pres)) %>%
+          detec = max(n_trans_pres),
+          divers = max(n_divers)) %>%
   arrange(data)
 
-print(monit, n = 44)
+print(monit, n = 84)
 ###número maximo de transectos por data e localidade
 
 ## obtendo o total de transectos vistos e detecções para cada localidade
+## criando a variável minutos por mergulhador
 
 monit2 <- monit %>%
   group_by(localidade) %>%
   summarise(vis = sum(visuals),
-            det = sum(detec)) %>%
+            det = sum(detec),
+            t_divers = sum(divers),
+            min.div = sum(vis*t_divers)) %>%
   arrange(desc(vis))
 
-print(monit2, n = 35)
-
+print(monit2, n = 76)
 
 
 # geomorfologia
@@ -310,7 +313,7 @@ geomonit <- left_join(monit2, geo_pad) %>%
   arrange(desc(det)) %>%
   drop_na()
 
-print(geomonit, n = 182)
+print(geomonit, n = 33)
 
 
 
