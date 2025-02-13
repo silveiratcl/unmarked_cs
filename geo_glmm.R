@@ -1,3 +1,4 @@
+
 # generalize linear mixed models
 
 library(lme4)
@@ -16,6 +17,8 @@ summary(glm01)
 
 modelo1 <- glm(det ~ gc_pad, family = poisson, data = geomonit)
 summary(modelo1)
+plot(modelo1)
+plot(geomonit$det, geomonit$gc_pad)
 
 modelo2 <- glm(det ~ gc_pad + lg_pad + gc_pad:lg_pad, family = poisson, data = geomonit)
 summary(modelo2)
@@ -28,6 +31,9 @@ summary(modelo3)
 modelo4 <- glm(det ~ mp_pad, family = poisson, data = geomonit)
 summary(modelo4)
 #importancia
+plot(modelo4)
+
+plot(geomonit$det, geomonit$mp_pad)
 
 modelo5 <- glm(det ~ mp_pad + gc_pad, family = poisson, data = geomonit)
 summary(modelo5)
@@ -78,9 +84,11 @@ m2 <- lmer(Richness ~ fExposure * NAP + (NAP|Beach), data = dados)
 
 Richness ~ fExposure + NAP + fExposure:NAP + “efeito(s) aleatório(s)”
 
-m0 <- lm(det ~ mp_paS * gc_pad, data = geomonit)
+m0 <- lm(det ~ mp_pad * gc_pad, data = geomonit)
 m1 <- lmer(det ~ mp_pad * gc_pad + (1|vis), data = geomonit)
-m2 <- lmer(det ~ mp_pad * gc_pad + (gc_pad|vis), data = geomonit)
+m2 <- lmer(det ~ mp_pad * gc_pad + (min.div|vis), data = geomonit)
+summary(m1)
+
 m3 <- lm(mp_pad ~ det, data = geomonit)
 m4 <- lmer(mp_pad ~ det + (1|vis), data = geomonit)
 m5 <- lmer(mp_pad ~ det + (1|min.div), data = geomonit)
