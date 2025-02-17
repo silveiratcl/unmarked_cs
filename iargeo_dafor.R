@@ -116,11 +116,11 @@ print(geo2, n = 34)
 ###média = 0
 ###desvio padrão = 1
 
-#gc_pad <- as.matrix(geo2$gc - mean(as.matrix(geo2$gc)))/sd(as.matrix(geo2$gc))
-#lg_pad <- as.matrix(geo2$lg - mean(as.matrix(geo2$lg)))/sd(as.matrix(geo2$lg))
-#mp_pad <- as.matrix(geo2$mp - mean(as.matrix(geo2$mp)))/sd(as.matrix(geo2$mp))
-#rpm_pad <- as.matrix(geo2$rpm - mean(as.matrix(geo2$rpm)))/sd(as.matrix(geo2$rpm))
-#tf_pad <- as.matrix(geo2$tf - mean(as.matrix(geo2$tf)))/sd(as.matrix(geo2$tf))
+gc_pad <- as.matrix(geo2$gc - mean(as.matrix(geo2$gc)))/sd(as.matrix(geo2$gc))
+lg_pad <- as.matrix(geo2$lg - mean(as.matrix(geo2$lg)))/sd(as.matrix(geo2$lg))
+mp_pad <- as.matrix(geo2$mp - mean(as.matrix(geo2$mp)))/sd(as.matrix(geo2$mp))
+rpm_pad <- as.matrix(geo2$rpm - mean(as.matrix(geo2$rpm)))/sd(as.matrix(geo2$rpm))
+tf_pad <- as.matrix(geo2$tf - mean(as.matrix(geo2$tf)))/sd(as.matrix(geo2$tf))
 
 ### padronizando por mínimo e máximo pra tirar os valores negativos
 ### é obrigatório pra fazer a pcoa
@@ -149,14 +149,15 @@ print(geo_pad, n = 34)
 
 
 
-geo_euc <- vegdist(decostand(geo2[, 2:6], "normalize"), "euc")
+geo_euc <- vegdist(geo_pad[, 2:6 ], "euc")
+rownames(geo_pad) <- geo_pad$localidade
 #a função ja normaliza os dados? se sim, usar geo2, senão geo_pad
 #decostante padroniza ou transforma os dados
 ##com normalize, normaliza entre 0 e 1
 #vegdist calcula a distancia entre as observações
 ##euc é a euclidiana
 
-geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo2)-1),eig=T,add=T)
+geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo_pad)-1),eig=T,add=T)
 ##cmdscale indica a matriz de distância ou de dissimilaridade
 ##objeto classe ‘dist’, noargumento ‘d’ 
 ##número de dimensões em ‘k’, onde usaremos o número de linhas de ‘spe’ (número de objetos) menos 1
@@ -166,17 +167,17 @@ geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo2)-1),eig=T,add=T)
 
 windows(6,6)
 #par(mfrow=c(1,3))
-ordiplot(prcomp(geo_euc.pcoa$points[,c(1,2)]),type="t",
-         main="PCoA - distância de Chord")
+ordiplot(geo_euc.pcoa$points[,c(1,2)],type="t")
 head(geo_euc.pcoa$points)
 abline(h=0, lty=3)
 abline(v=0, lty=3)
 gpcoa.wa <- wascores(x=geo_euc.pcoa$points[,1:2],w=geo2[, 2:6])
+head(geo2)
+#pode usar direto o dado bruto no argumento w
 text(gpcoa.wa,rownames(gpcoa.wa),cex=0.7,col="red")
 rownames(geo_euc.pcoa$points) <- (geo2$localidade)
 #text(-0.45,-0.45,labels="reduz o peso das spp \n muito abundantes",
      #pos=4,col="blue")
-geo_euc.pcoa$
 
 
 #pcoa por hellinger
