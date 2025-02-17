@@ -125,11 +125,11 @@ tf_pad <- as.matrix(geo2$tf - mean(as.matrix(geo2$tf)))/sd(as.matrix(geo2$tf))
 ### padronizando por mínimo e máximo pra tirar os valores negativos
 ### é obrigatório pra fazer a pcoa
 
-gc_pad <- (geo2$gc - min(geo2$gc)) / (max(geo2$gc) - min(geo2$gc))
-lg_pad <- (geo2$lg - min(geo2$lg)) / (max(geo2$lg) - min(geo2$lg))
-mp_pad <- (geo2$mp - min(geo2$mp)) / (max(geo2$mp) - min(geo2$mp))
-rpm_pad <- (geo2$rpm - min(geo2$rpm)) / (max(geo2$rpm) - min(geo2$rpm))
-tf_pad <- (geo2$tf - min(geo2$tf)) / (max(geo2$tf) - min(geo2$tf))
+#gc_pad <- (geo2$gc - min(geo2$gc)) / (max(geo2$gc) - min(geo2$gc))
+#lg_pad <- (geo2$lg - min(geo2$lg)) / (max(geo2$lg) - min(geo2$lg))
+#mp_pad <- (geo2$mp - min(geo2$mp)) / (max(geo2$mp) - min(geo2$mp))
+#rpm_pad <- (geo2$rpm - min(geo2$rpm)) / (max(geo2$rpm) - min(geo2$rpm))
+#tf_pad <- (geo2$tf - min(geo2$tf)) / (max(geo2$tf) - min(geo2$tf))
 
 ## inserindo no dataframe
 
@@ -145,19 +145,14 @@ print(geo_pad, n = 34)
 
 # matriz de similaridade das geos entre as localidades
 ##pcoa a partir da matriz gerada pela distancia de Chord
-##medida baseada na distância euclidiana
-
-
 
 geo_euc <- vegdist(geo_pad[, 2:6 ], "euc")
-rownames(geo_pad) <- geo_pad$localidade
-#a função ja normaliza os dados? se sim, usar geo2, senão geo_pad
-#decostante padroniza ou transforma os dados
-##com normalize, normaliza entre 0 e 1
-#vegdist calcula a distancia entre as observações
-##euc é a euclidiana
+##vegdist calcula a distancia entre as observações
 
-geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo_pad)-1),eig=T,add=T)
+geo_pad2 <- as.data.frame(geo_pad)
+rownames(geo_pad2) <- geo_pad2$localidade
+
+geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo_pad2)-1),eig=T,add=T)
 ##cmdscale indica a matriz de distância ou de dissimilaridade
 ##objeto classe ‘dist’, noargumento ‘d’ 
 ##número de dimensões em ‘k’, onde usaremos o número de linhas de ‘spe’ (número de objetos) menos 1
