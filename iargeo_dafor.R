@@ -139,26 +139,18 @@ geo2$mp_pad <- mp_pad
 geo2$rpm_pad <- rpm_pad
 geo2$tf_pad <- tf_pad
 
-geo_pad <- geo2[, c(1, 7:11)]
+geo_pad <- as.data.frame(geo2[, c(1, 7:11)])
 print(geo_pad, n = 34)
+
+rownames(geo_pad) <- geo_pad$localidade
 
 
 # matriz de similaridade das geos entre as localidades
 ##pcoa a partir da matriz gerada pela distancia de Chord
 
 geo_euc <- vegdist(geo_pad[, 2:6 ], "euc")
-##vegdist calcula a distancia entre as observações
 
-geo_pad2 <- as.data.frame(geo_pad)
-rownames(geo_pad2) <- geo_pad2$localidade
-
-geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo_pad2)-1),eig=T,add=T)
-##cmdscale indica a matriz de distância ou de dissimilaridade
-##objeto classe ‘dist’, noargumento ‘d’ 
-##número de dimensões em ‘k’, onde usaremos o número de linhas de ‘spe’ (número de objetos) menos 1
-##pra retornar os autovalores ‘eig=T’
-##pra usar a correção de Cailliez, que evita autovalores negativos,'add=T’
-
+geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo_pad)-1),eig=T,add=T)
 
 windows(6,6)
 #par(mfrow=c(1,3))
@@ -170,12 +162,11 @@ gpcoa.wa <- wascores(x=geo_euc.pcoa$points[,1:2],w=geo2[, 2:6])
 head(geo2)
 #pode usar direto o dado bruto no argumento w
 text(gpcoa.wa,rownames(gpcoa.wa),cex=0.7,col="red")
-rownames(geo_euc.pcoa$points) <- (geo2$localidade)
 #text(-0.45,-0.45,labels="reduz o peso das spp \n muito abundantes",
      #pos=4,col="blue")
 
 
-#pcoa por hellinger
+# pcoa por hellinger
 
 geo.hel <- decostand(geo2[, 2:6], "hellinger")
 geo.dhel <- vegdist(geo.hel, "euc")
@@ -186,9 +177,7 @@ head(site.sc.pcoa)
 colnames(site.sc.pcoa) <- c("PCoA1","PCoA2", "localidade")
 names(site.sc.pcoa)
 
-##analise de agrupamento feita pelo método de ligação UPGMA (?)
-###coeficiente dee correlação cofenético
-###dendograma
+##analise de agrupamento feita pelo método de ligação UPGMA
 
 geo.dhel.upgma <- hclust(geo.dhel,"average")
 cor(geo.dhel,cophenetic(geo.dhel.upgma))
@@ -196,9 +185,7 @@ plot(geo.dhel.upgma,hang=-1)
 
 gr <- cutree(tree=geo.dhel.upgma, k= 6)
 ##cutree gera os grupos separados visualmente no dendograma
-##quantos grupos?
 site.sc.pcoa$gr <- gr
-##acrescenta no objeto os escores das observações
 head(site.sc.pcoa)
 
 explic.pcoa <- geo.dhel.pcoa$eig/sum(geo.dhel.pcoa$eig)*100
@@ -225,7 +212,10 @@ geo.dhel.wa$maxcls <- as.numeric(isa.hel$maxcls)
 geo.dhel.wa$pval <- as.numeric(isa.hel$pval)
 head(geo.dhel.wa)
 geo.dhel.wa <- geo.dhel.wa[geo.dhel.wa$pval<0.05,]
+geo.dhel.wa$names <- c("GC","LG","MP","RPM","TF")
 nrow(geo.dhel.wa)
+
+
 
 x11()
 par(mar=c(5,5,4,2))
@@ -273,6 +263,33 @@ text(x$PCoA1[x$maxcls==5],x$PCoA2[x$maxcls==5],
 text(x$PCoA1[x$maxcls==6],x$PCoA2[x$maxcls==6],
      labels=rownames(x)[x$maxcls==6],col="salmon")
 
+##usando o ggplot
+
+g1 <- ggplot(data=site.sc.pcoa, aes(x=PCoA1, y=PCoA2)) +
+  geom_point(data=site.sc.pcoa, aes(color=gr),pch=1, size=2) +
+  scale_color_continuous(limits=c(1,6), low = "blue", high = "red") +
+  theme_bw() + xlab(paste("PCoA 1 - ",round(explic.pcoa[1],1),"%")) + 
+  ylab(paste("PCoA 2 - ",round(explic.pcoa[2],1),"%")) +
+  scale_y_continuous(limits=c(-0.6,0.5), breaks=c(-0.5,0,0.5)) +
+  scale_x_continuous(limits=c(-0.6,0.5), breaks=c(-0.5,0,0.5)) +
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        axis.text=element_text(size=12),axis.title=element_text(size=14),
+        legend.position=c(0.12,0.12), legend.title=element_blank(),
+        legend.background=element_rect(fill="transparent",color="transparent"),
+        legend.text=element_text(size=14)) +
+  geom_vline(xintercept=0,linetype="dotted") + 
+  geom_hline(yintercept=0,linetype="dotted") +
+  geom_segment(data=geo.dhel.wa, aes(x=0, xend=PCoA1, y=0, yend=PCoA2),
+               arrow=arrow(length=unit(0.025,"npc"),angle=15),lwd=1) +
+  geom_text(data=geo.dhel.wa, aes(x=PCoA1*1.15, y=PCoA2*1.15,label=names),
+            check_overlap=FALSE, size=4)
+
+max(site.sc.pcoa$PCoA1)
+max(site.sc.pcoa$PCoA2)
+min(site.sc.pcoa$PCoA1)
+min(site.sc.pcoa$PCoA2)
+
+
 # nmds
 
 geo.euc.nmds <- metaMDS(comm=geo2[, 2:6],distance="euc",k=2)
@@ -312,4 +329,8 @@ geomonit <- left_join(monit2, geo_pad) %>%
 print(geomonit, n = 33)
 
 
+geo_mon <- left_join(monit2, geo2[, 1:6]) %>%
+  arrange(desc(det)) %>%
+  drop_na()
 
+print(geo_mon, n = 33)

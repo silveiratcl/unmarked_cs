@@ -138,8 +138,19 @@ print(geomonit, n = 33)
 
 # generalize linear mixed models
 
+install.packages('glmmTMB')
+install.packages('DHARMa')
+install.packages('bbmle')
+news(package = 'DHARMa')
+
 library(lme4)
 library(MASS)
+library(glmmTMB)
+library(bbmle)
+library(ggeffects)
+library(ggpubr)
+library(DHARMa)
+library(lattice)
 
 # gráfico das detecçoes em função das geomorfologias
 
@@ -203,3 +214,46 @@ m3 <- lmer(det ~ gc_pad + (min.div|t_divers), data = geomonit)
 
 
 anova(m1, m3, refit = FALSE)
+
+
+m0 <- glmmTMB(det ~ mp_pad, data = geomonit, family = poisson)
+summary(m0)
+m0.bin1 <- update(m0, family=nbinom1)
+m0.bin2 <- update(m0, family=nbinom2)
+m0.inflated <- update(m0, ziformula = ~1)
+AICtab(m0, m0.bin1, m0.bin2, m0.inflated)
+#m0.bin1 foi o melhor
+
+modelo <- glmmTMB(det ~ mp, data = geo_mon, family = poisson)
+summary(modelo)
+
+m1 <- glmmTMB(det ~ gc_pad, data = geomonit, family = poisson)
+summary(m1)  
+m1.bin1 <- update(m1, family=nbinom1)
+m1.bin2 <- update(m1, family=nbinom2)
+AICtab(m1, m1.bin1, m1.bin2)
+#m1.bin1 foi o melhor
+
+
+m2 <- glmmTMB(det ~ lg_pad, data = geomonit, family = poisson)
+summary(m2) 
+m2.bin1 <- update(m2, family=nbinom1)
+m2.bin2 <- update(m2, family=nbinom2)
+AICtab(m2, m2.bin1, m2.bin2)
+#m2.bin2 o melhor
+
+AICtab(m0.bin1, m1.bin1, m2.bin2)
+
+res.m0.bin1 <- simulateResiduals(fittedModel=m0.bin1, n=1000)
+windows(12,8)
+plot(res.m0.bin1)
+
+
+plot(table(geomonit$det))
+
+
+zeroinflated.model <- glmmTMB(det ~ mp + (1|min.div), ziformula = ~1,  family = poisson, data = geo_mon)
+model <- glmmTMB(det ~ gc + (, ziformula = ~1,  family = poisson, data = geo_mon)
+print(geomonit, n = 33)
+summary(zeroinflated.model)
+summary(geomonit)
