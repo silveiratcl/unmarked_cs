@@ -138,11 +138,6 @@ print(geomonit, n = 33)
 
 # generalize linear mixed models
 
-install.packages('glmmTMB')
-install.packages('DHARMa')
-install.packages('bbmle')
-news(package = 'DHARMa')
-
 library(lme4)
 library(MASS)
 library(glmmTMB)
@@ -216,11 +211,13 @@ m3 <- lmer(det ~ gc_pad + (min.div|t_divers), data = geomonit)
 anova(m1, m3, refit = FALSE)
 
 
-m0 <- glmmTMB(det ~ mp_pad, data = geomonit, family = poisson)
+m0 <- glmmTMB(det ~ mp_pad, data = geomonit.transp, family = poisson)
 summary(m0)
 m0.bin1 <- update(m0, family=nbinom1)
+summary(m0.bin1)
 m0.bin2 <- update(m0, family=nbinom2)
 m0.inflated <- update(m0, ziformula = ~1)
+summary(m0.inflated)
 AICtab(m0, m0.bin1, m0.bin2, m0.inflated)
 #m0.bin1 foi o melhor
 
@@ -252,8 +249,10 @@ plot(res.m0.bin1)
 plot(table(geomonit$det))
 
 
-zeroinflated.model <- glmmTMB(det ~ mp + (1|min.div), ziformula = ~1,  family = poisson, data = geo_mon)
-model <- glmmTMB(det ~ gc + (, ziformula = ~1,  family = poisson, data = geo_mon)
+zeroinflated.model <- glmmTMB(det ~ mp_pad + (1|min.div), ziformula = ~1,  family = poisson, data = geomonit)
+
+teste <- glmmTMB(det ~ gc + (1|min.div), ziformula = ~1, family = poisson, data = geo_mon)
+
 print(geomonit, n = 33)
 summary(zeroinflated.model)
 summary(geomonit)

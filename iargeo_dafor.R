@@ -1,3 +1,4 @@
+# localidade como unidade amostral
 
 library(tidyverse)
 library(readr)
@@ -42,34 +43,37 @@ df_monit[, 1:17]
 
 dfmonit_filt <- df_monit %>% 
   filter(data > "2022-01-01" &
-           !(obs %in% c("Sem geo", "estimado dos dados do ICMBio"))) %>%
-  arrange(data)
-print(dfmonit_filt, n = 100)
+           !(obs %in% c("Sem geo", "estimado dos dados do ICMBio", "geo nao realizada", "geo nao realizada, sem ficha de campo")) &
+           !(geo_id %in% c("Na"))) %>%
+  arrange(geo_id)
+
+summary(dfmonit_filt$geo_id)
+print(dfmonit_filt)
 
 ## selecionando a localidade por data para filtrar o numero de transectos
 
 monit <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis", "n_trans_pres", "n_divers")] %>%
   group_by(localidade, data, faixa_bat) %>%
-  reframe(visuals = max(n_trans_vis),
-          detec = max(n_trans_pres),
+  reframe(trans_vis = max(n_trans_vis),
+          detections  = max(n_trans_pres),
           divers = max(n_divers)) %>%
   arrange(data)
 
-print(monit, n = 84)
+print(monit, n = 71)
 ###número maximo de transectos por data e localidade
 
 ## obtendo o total de transectos vistos e detecções para cada localidade
 ## criando a variável minutos por mergulhador
 
 monit2 <- monit %>%
-  group_by(localidade) %>%
-  summarise(vis = sum(visuals),
-            det = sum(detec),
+  group_by(localidade, faixa_bat) %>%
+  summarise(t_trans_vis = sum(trans_vis),
+            t_detections = sum(detections),
             t_divers = sum(divers),
-            min.div = sum(vis*t_divers)) %>%
-  arrange(desc(vis))
+            min.div = sum(trans_vis*t_divers)) %>%
+  arrange(desc(t_trans_vis))
 
-print(monit2, n = 76)
+print(monit2, n = 67)
 
 
 # geomorfologia
@@ -140,7 +144,6 @@ geo2$rpm_pad <- rpm_pad
 geo2$tf_pad <- tf_pad
 
 geo_pad <- as.data.frame(geo2[, c(1, 7:11)])
-print(geo_pad, n = 34)
 
 rownames(geo_pad) <- geo_pad$localidade
 
@@ -290,47 +293,11 @@ min(site.sc.pcoa$PCoA1)
 min(site.sc.pcoa$PCoA2)
 
 
-# nmds
-
-geo.euc.nmds <- metaMDS(comm=geo2[, 2:6],distance="euc",k=2)
-summary(geo.euc.nmds)
-##points escores dos objetos pra cada eixo ou dimensão
-##stress valor final de stress calculado pra análise
-##species escores das geos pra cada eixo
-head(geo.euc.nmds$points)
-geo.euc.nmds$stress
-head(geo.euc.nmds$species)
-
-
-x11()
-par(mar=c(5,5,3,1))
-plot(geo.euc.nmds, type="t", main=paste("Euclidian - stress =",
-                                         round(geo.euc.nmds$stress,2)))
-
-x11()
-par(mfrow=c(1,2))
-stressplot(object=geo.euc.nmds, main="Gráfico de Shepard")
-gof <- goodness(geo.euc.nmds)
-plot(geo.euc.nmds,type="t",main="Qualidade do ajuste")
-points(geo.euc.nmds,display="sites",cex=gof*200)
-##objetos mal ajustados tem circulos maiores
-
-geo.hel <- decostand(geo2[, 2:6], "hellinger")
-geo.dhel.nmds <- metaMDS(comm=geo.hel,distance="euclidean",k=2)
-
-
-
 # unindo os data frames
 
 geomonit <- left_join(monit2, geo_pad) %>%
-  arrange(desc(det)) %>%
+  arrange(localidade) %>%
   drop_na()
 
-print(geomonit, n = 33)
-
-
-geo_mon <- left_join(monit2, geo2[, 1:6]) %>%
-  arrange(desc(det)) %>%
-  drop_na()
-
-print(geo_mon, n = 33)
+print(geomonit, n = 67)
+#diminui uma localidade (tamboretes) porque nao tem no monit df
