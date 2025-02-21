@@ -104,6 +104,7 @@ geo <- df_geo[ ,c("localidade", "data", "geo_cat", "iar_geo")] %>%
   reframe(iar_geo = mean(iar_geo)) %>%
   arrange(data)
 
+
 print(geo, n = 185)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
@@ -301,3 +302,5 @@ geomonit <- left_join(monit2, geo_pad) %>%
 
 print(geomonit, n = 67)
 #diminui uma localidade (tamboretes) porque nao tem no monit df
+
+geomonit <- as.data.frame(geomonit)

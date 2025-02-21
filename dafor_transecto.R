@@ -60,7 +60,7 @@ monit.trans <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis"
           divers = max(n_divers)) %>%
   arrange(geo_id)
 
-print(monit.trans, n = 169)
+print(monit.trans, n = 89)
 
 
 ## criando a variável minutos por mergulhador
@@ -105,7 +105,7 @@ geo.trans <- df_geo[ ,c("localidade", "data", "faixa_bat", "visibilidade", "geo_
             iar_geo = mean(iar_geo)) %>%
   arrange(geo_id)
 
-print(geo.trans, n = 185)
+print(geo.trans, n = 375)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
@@ -145,4 +145,8 @@ geomonit.transp$mp_pad <- mp_pad
 geomonit.transp$rpm_pad <- rpm_pad
 geomonit.transp$tf_pad <- tf_pad
 
+print(geomonit.transp, n = 59)
+
+geomonit.transp <- geomonit.transp[, c(1, 3:14)]
+#sem data
 print(geomonit.transp, n = 59)

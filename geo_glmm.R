@@ -211,7 +211,7 @@ m3 <- lmer(det ~ gc_pad + (min.div|t_divers), data = geomonit)
 anova(m1, m3, refit = FALSE)
 
 
-m0 <- glmmTMB(det ~ mp_pad, data = geomonit.transp, family = poisson)
+m0 <- glmmTMB(t_detections ~ mp_pad, data = geomonit, family = poisson)
 summary(m0)
 m0.bin1 <- update(m0, family=nbinom1)
 summary(m0.bin1)
@@ -221,7 +221,7 @@ summary(m0.inflated)
 AICtab(m0, m0.bin1, m0.bin2, m0.inflated)
 #m0.bin1 foi o melhor
 
-modelo <- glmmTMB(det ~ mp, data = geo_mon, family = poisson)
+modelo <- glmmTMB(det ~ mp_pad, data = geomonit, family = poisson)
 summary(modelo)
 
 m1 <- glmmTMB(det ~ gc_pad, data = geomonit, family = poisson)
@@ -249,9 +249,20 @@ plot(res.m0.bin1)
 plot(table(geomonit$det))
 
 
-zeroinflated.model <- glmmTMB(det ~ mp_pad + (1|min.div), ziformula = ~1,  family = poisson, data = geomonit)
+controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
+                           optCtrl=list(iter.max=1e3,eval.max=1e3))
 
-teste <- glmmTMB(det ~ gc + (1|min.div), ziformula = ~1, family = poisson, data = geo_mon)
+
+
+teste <- glmmTMB(t_detections ~ gc_pad + offset(log(min.div)), family = poisson, data = geomonit)
+summary(teste)
+#erro na hessian matrix da pra tentar corrigir com o controle
+
+
+
+zeroinflated.model <- glmmTMB(det ~ mp_pad + (1|min.div), family = poisson, data = geomonit)
+
+teste <- glmmTMB(det ~ gc_pad + (1|min.div), ziformula = ~, family = poisson, data = geomonit)
 
 print(geomonit, n = 33)
 summary(zeroinflated.model)
