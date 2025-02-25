@@ -70,7 +70,7 @@ monit2 <- monit %>%
   summarise(t_trans_vis = sum(trans_vis),
             t_detections = sum(detections),
             t_divers = sum(divers),
-            min.div = sum(trans_vis*t_divers)) %>%
+            min.div = sum(t_trans_vis*t_divers)) %>%
   arrange(desc(t_trans_vis))
 
 print(monit2, n = 67)
@@ -99,8 +99,8 @@ df_geo
 
 ## agrupando e obtendo o total do IAR para cada geomorfologia em cada localidade
 
-geo <- df_geo[ ,c("localidade", "data", "geo_cat", "iar_geo")] %>%
-  group_by(localidade, data, geo_cat) %>%
+geo <- df_geo[ ,c("localidade", "data", "faixa_bat","geo_cat", "iar_geo")] %>%
+  group_by(localidade, data, faixa_bat, geo_cat) %>%
   reframe(iar_geo = mean(iar_geo)) %>%
   arrange(data)
 
@@ -109,8 +109,8 @@ print(geo, n = 185)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
-geo2 <- geo[ ,c("localidade", "geo_cat", "iar_geo")] %>%
-  group_by(localidade, geo_cat) %>%
+geo2 <- geo[ ,c("localidade", "faixa_bat","geo_cat", "iar_geo")] %>%
+  group_by(localidade, faixa_bat, geo_cat) %>%
   summarise(iar_geo = mean(sum(iar_geo))) %>%
   spread(geo_cat, iar_geo)
 
@@ -144,7 +144,10 @@ geo2$mp_pad <- mp_pad
 geo2$rpm_pad <- rpm_pad
 geo2$tf_pad <- tf_pad
 
-geo_pad <- as.data.frame(geo2[, c(1, 7:11)])
+geo_pad <- (geo2[, c(1:2, 8:12)]) %>%
+  group_by(localidade, faixa_bat)
+
+geo_pad.df <- as.data.frame(geo_pad)
 
 rownames(geo_pad) <- geo_pad$localidade
 
@@ -152,7 +155,7 @@ rownames(geo_pad) <- geo_pad$localidade
 # matriz de similaridade das geos entre as localidades
 ##pcoa a partir da matriz gerada pela distancia de Chord
 
-geo_euc <- vegdist(geo_pad[, 2:6 ], "euc")
+geo_euc <- vegdist(geo_pad[, 3:7 ], "euc")
 
 geo_euc.pcoa <- cmdscale(d=geo_euc,k=(nrow(geo_pad)-1),eig=T,add=T)
 
@@ -300,7 +303,7 @@ geomonit <- left_join(monit2, geo_pad) %>%
   arrange(localidade) %>%
   drop_na()
 
-print(geomonit, n = 67)
+print(geomonit, n = 51)
 #diminui uma localidade (tamboretes) porque nao tem no monit df
 
 geomonit <- as.data.frame(geomonit)

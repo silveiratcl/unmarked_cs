@@ -38,33 +38,36 @@ spec(df_monit)
 
 dfmonit_filt <- df_monit %>% 
   filter(data > "2022-01-01" &
-           !(obs %in% c("Sem geo", "estimado dos dados do ICMBio"))) %>%
-  arrange(data)
-print(dfmonit_filt, n = 100)
+           !(obs %in% c("Sem geo", "estimado dos dados do ICMBio", "geo nao realizada", "geo nao realizada, sem ficha de campo")) &
+           !(geo_id %in% c("Na"))) %>%
+  arrange(geo_id)
+
+summary(dfmonit_filt$geo_id)
+print(dfmonit_filt)
 
 ## selecionando a localidade por data para filtrar o numero de transectos
 
 monit <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis", "n_trans_pres", "n_divers")] %>%
   group_by(localidade, data, faixa_bat) %>%
-  reframe(visuals = max(n_trans_vis),
-          detec = max(n_trans_pres),
+  reframe(trans_vis = max(n_trans_vis),
+          detections  = max(n_trans_pres),
           divers = max(n_divers)) %>%
   arrange(data)
 
-print(monit, n = 84)
+print(monit)
 
 ## obtendo o total de transectos vistos e detecções para cada localidade
 ## criando a variável minutos por mergulhador
 
 monit2 <- monit %>%
-  group_by(localidade) %>%
-  summarise(vis = sum(visuals),
-            det = sum(detec),
+  group_by(localidade, faixa_bat) %>%
+  summarise(t_trans_vis = sum(trans_vis),
+            t_detections = sum(detections),
             t_divers = sum(divers),
-            min.div = sum(vis*t_divers)) %>%
-  arrange(desc(vis))
+            min.div = sum(t_trans_vis*t_divers)) %>%
+  arrange(desc(t_trans_vis))
 
-print(monit2, n = 76)
+print(monit2, n = 67)
 
 # geomorfologia
 
@@ -89,8 +92,8 @@ df_geo
 
 ## agrupando e obtendo o total do IAR para cada geomorfologia em cada localidade
 
-geo <- df_geo[ ,c("localidade", "data", "geo_cat", "iar_geo")] %>%
-  group_by(localidade, data, geo_cat) %>%
+geo <- df_geo[ ,c("localidade", "data", "faixa_bat","geo_cat", "iar_geo")] %>%
+  group_by(localidade, data, faixa_bat, geo_cat) %>%
   reframe(iar_geo = mean(iar_geo)) %>%
   arrange(data)
 
@@ -98,8 +101,8 @@ print(geo, n = 185)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
-geo2 <- geo[ ,c("localidade", "geo_cat", "iar_geo")] %>%
-  group_by(localidade, geo_cat) %>%
+geo2 <- geo[ ,c("localidade", "faixa_bat","geo_cat", "iar_geo")] %>%
+  group_by(localidade, faixa_bat, geo_cat) %>%
   summarise(iar_geo = mean(sum(iar_geo))) %>%
   spread(geo_cat, iar_geo)
 
@@ -110,31 +113,54 @@ print(geo2, n = 34)
 ###média = 0
 ###desvio padrão = 1
 
-gc_pad <- as.matrix(geo2$gc - mean(as.matrix(geo2$gc)))/sd(as.matrix(geo2$gc))
-lg_pad <- as.matrix(geo2$lg - mean(as.matrix(geo2$lg)))/sd(as.matrix(geo2$lg))
-mp_pad <- as.matrix(geo2$mp - mean(as.matrix(geo2$mp)))/sd(as.matrix(geo2$mp))
-rpm_pad <- as.matrix(geo2$rpm - mean(as.matrix(geo2$rpm)))/sd(as.matrix(geo2$rpm))
-tf_pad <- as.matrix(geo2$tf - mean(as.matrix(geo2$tf)))/sd(as.matrix(geo2$tf))
+#gc_pad <- as.matrix(geo2$gc - mean(as.matrix(geo2$gc)))/sd(as.matrix(geo2$gc))
+#lg_pad <- as.matrix(geo2$lg - mean(as.matrix(geo2$lg)))/sd(as.matrix(geo2$lg))
+#mp_pad <- as.matrix(geo2$mp - mean(as.matrix(geo2$mp)))/sd(as.matrix(geo2$mp))
+#rpm_pad <- as.matrix(geo2$rpm - mean(as.matrix(geo2$rpm)))/sd(as.matrix(geo2$rpm))
+#tf_pad <- as.matrix(geo2$tf - mean(as.matrix(geo2$tf)))/sd(as.matrix(geo2$tf))
 
 ## inserindo no dataframe
 
-geo2$gc_pad <- gc_pad
-geo2$lg_pad <- lg_pad
-geo2$mp_pad <- mp_pad
-geo2$rpm_pad <- rpm_pad
-geo2$tf_pad <- tf_pad
+#geo2$gc_pad <- gc_pad
+#geo2$lg_pad <- lg_pad
+#geo2$mp_pad <- mp_pad
+#geo2$rpm_pad <- rpm_pad
+#geo2$tf_pad <- tf_pad
 
-geo_pad <- geo2[, c(1, 7:11)]
-print(geo_pad, n = 34)
+#geo_pad <- (geo2[, c(1:2, 8:12)]) %>%
+  #group_by(localidade, faixa_bat)
+
+#print(geo_pad, n = 53)
 
 # unindo os data frames
 
-geomonit <- left_join(monit2, geo_pad) %>%
-  arrange(desc(det)) %>%
+geomonit <- left_join(monit2, geo2) %>%
+  arrange(localidade) %>%
   drop_na()
 
-print(geomonit, n = 33)
+max(geomonit$min.div)
+min(geomonit$min.div)
 
+print(geomonit, n = 51)
+
+geomonit <- as.data.frame(geomonit)
+
+# categorizando em faixa a variável minutos por mergulhador
+
+min.div2 <- rep("very_intense", nrow(geomonit))
+quantile(geomonit$min.div)
+
+min.div2[geomonit$min.div <= quantile(geomonit$min.div)[4]] <- "intense"
+min.div2[geomonit$min.div <= quantile(geomonit$min.div)[3]] <- "moderate"
+min.div2[geomonit$min.div <= quantile(geomonit$min.div)[2]] <- "low"
+min.div2 <- factor(min.div2, levels=c("low", "moderate", "intense", "very_intense"))
+levels(min.div2)
+table(min.div2)
+
+geomonit2 <- geomonit
+geomonit2$min.div2 <- min.div2
+
+geomonit2 <- as.data.frame(geomonit2)
 
 # generalize linear mixed models
 
@@ -146,6 +172,7 @@ library(ggeffects)
 library(ggpubr)
 library(DHARMa)
 library(lattice)
+library(MuMIn)
 
 # gráfico das detecçoes em função das geomorfologias
 
@@ -160,86 +187,30 @@ legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"),
        col = c("red", "blue", "green", "orange", "brown"), lty = 1)
 
 
-# modelos glm 
-
-modelo1 <- glm.nb(det ~ gc_pad, data = geomonit)
-plot(modelo1)
-summary(modelo1)
-
-modelo2 <- glm(det ~ gc_pad + lg_pad + gc_pad:lg_pad, family = poisson, data = geomonit)
-summary(modelo2)
-
-
-modelo3 <- glm(det ~ lg_pad, family = poisson, data = geomonit)
-summary(modelo3)
-
-
-modelo4 <- glm(det ~ mp_pad, family = poisson, data = geomonit)
-summary(modelo4)
-
-
-modelo5 <- glm(det ~ mp_pad + gc_pad, family = poisson, data = geomonit)
-summary(modelo5)
-
-modelo6 <- glm(det ~ mp_pad + gc_pad + mp_pad:gc_pad, family = poisson, data = geomonit)
-summary(modelo6)
-
-# comparando os modelos para ver qual é o mais significante
-
-anova(modelo4, modelo5, modelo6, test = 'Chisq')
-
-
-#deviance é o quanto o modelo ta explicando
-#residual deviance é o quanto o modelo deixou de explicar
-#o que ele deixou de explicar somado ao que explicou vai dar o resultado do quanto o outro modelo não tinha explciado
-#mesmo que o modelo explique pouco, se ele for bastante significativo (p value) ainda sim é considerado
-
-
 # modelos glmm
-##primeiro ajustar um modelo completo, com todos os efeitos fixos que estão sendo testados 
-##depois que monta o modelo completo, coloca os efeitos aleatorios
+
+## avaliando o efeito aleatório
+
+m0 <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat), data = geomonit2, family = poisson)
 
 
-m0 <- lm(det ~ mp_pad, data = geomonit)
-m1 <- lmer(det ~ mp_pad + (min.div|t_divers), data = geomonit)
-summary(m1)
-
-m2 <- lm(det ~ gc_pad, data = geomonit)
-m3 <- lmer(det ~ gc_pad + (min.div|t_divers), data = geomonit)
-
-
-anova(m1, m3, refit = FALSE)
-
-
-m0 <- glmmTMB(t_detections ~ mp_pad, data = geomonit, family = poisson)
 summary(m0)
+
 m0.bin1 <- update(m0, family=nbinom1)
 summary(m0.bin1)
 m0.bin2 <- update(m0, family=nbinom2)
-m0.inflated <- update(m0, ziformula = ~1)
+summary(m0.bin2)
+m0.inflated <- update(m0, ziformula = ~t_trans_vis)
 summary(m0.inflated)
-AICtab(m0, m0.bin1, m0.bin2, m0.inflated)
-#m0.bin1 foi o melhor
 
-modelo <- glmmTMB(det ~ mp_pad, data = geomonit, family = poisson)
-summary(modelo)
-
-m1 <- glmmTMB(det ~ gc_pad, data = geomonit, family = poisson)
-summary(m1)  
-m1.bin1 <- update(m1, family=nbinom1)
-m1.bin2 <- update(m1, family=nbinom2)
-AICtab(m1, m1.bin1, m1.bin2)
-#m1.bin1 foi o melhor
+model.sel(m0, m0.bin1, m0.bin2, m0.inflated)
 
 
-m2 <- glmmTMB(det ~ lg_pad, data = geomonit, family = poisson)
-summary(m2) 
-m2.bin1 <- update(m2, family=nbinom1)
-m2.bin2 <- update(m2, family=nbinom2)
-AICtab(m2, m2.bin1, m2.bin2)
-#m2.bin2 o melhor
 
-AICtab(m0.bin1, m1.bin1, m2.bin2)
+
+
+
+
 
 res.m0.bin1 <- simulateResiduals(fittedModel=m0.bin1, n=1000)
 windows(12,8)
