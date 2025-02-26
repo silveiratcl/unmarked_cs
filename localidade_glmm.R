@@ -159,6 +159,7 @@ table(min.div2)
 
 geomonit2 <- geomonit
 geomonit2$min.div2 <- min.div2
+colnames(geomonit2)
 
 geomonit2 <- as.data.frame(geomonit2)
 
@@ -174,15 +175,55 @@ library(DHARMa)
 library(lattice)
 library(MuMIn)
 
-# gráfico das detecçoes em função das geomorfologias
+# gráfico da geo em função das detecções
 
-plot(geomonit$det, geomonit$gc_pad, type = "p", col = "red", 
+## categorizando as detecções
+
+gm.loc <- geomonit2[, c(1, 4, 7:11)] %>%
+  group_by(localidade) %>%
+  summarise(det = sum(t_detections),
+            m_gc = mean(gc),
+            m_lg = mean(lg),
+            m_mp = mean (mp),
+            m_rpm = mean(rpm),
+            m_tf = mean(tf))
+
+categoria <- ifelse(gm.loc$det == 0, "Zero", "Diferente de Zero")
+
+gm.loc$categoria <- categoria
+gm.loc
+
+## transformando em dados longos
+
+gm.loc_long <- gather(gm.loc, key = "geomorfologia", value = "valor", 
+                   m_gc, m_lg, m_mp, m_rpm, m_tf)
+
+gm.loc_long2 <- gm.loc_long[ ,c("det", "categoria", "geomorfologia", "valor")] %>%
+  group_by(det, categoria, geomorfologia) %>%
+  summarise(valor_medio = mean(valor))
+
+
+## plot barras empilhadas 
+
+ggplot(gm.loc_long2, aes(x = geomorfologia, y = valor_medio, fill = categoria)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Valor médio das geo_class em função das detecções", 
+       x = "Classes geomorfológicas", 
+       y = "Detecções") +
+  scale_fill_manual(values = c("pink1", "darkorange")) +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank())
+
+## plot em pontos
+
+plot(geomonit.transp$gc_pad, geomonit.transp$t_detections, type = "p", col = "red", 
      main = "Geos em função das det", 
-     xlab = "Detecções", ylab = "Geomorfologias")
-lines(geomonit$det, geomonit$lg_pad, type = "p", col = "blue")
-lines(geomonit$det, geomonit$mp_pad, type = "p", col = "green")
-lines(geomonit$det, geomonit$rpm_pad, type = "p", col = "orange")
-lines(geomonit$det, geomonit$tf_pad, type = "p", col = "brown")
+     xlab = "Geomorfologias", ylab = "Detecções")
+lines(geomonit.transp$lg_pad, geomonit.transp$t_detections, type = "p", col = "blue")
+lines(geomonit.transp$mp_pad, geomonit.transp$t_detections, type = "p", col = "green")
+lines(geomonit.transp$rpm_pad, geomonit.transp$t_detections, type = "p", col = "orange")
+lines(geomonit.transp$tf_pad, geomonit.transp$t_detections, type = "p", col = "brown")
 legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"), 
        col = c("red", "blue", "green", "orange", "brown"), lty = 1)
 
@@ -191,10 +232,71 @@ legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"),
 
 ## avaliando o efeito aleatório
 
-m0 <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat), data = geomonit2, family = poisson)
+controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
+                           optCtrl=list(iter.max=1e3,eval.max=1e3))
 
+model <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|localidade) + (1|min.div2),
+                 data = geomonit2, ziformula = ~t_trans_vis + t_divers, control=controle, 
+                 family = poisson)
 
-summary(m0)
+model.nb1 <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|localidade) + (1|min.div2),
+                     data = geomonit2, ziformula = ~t_trans_vis + t_divers, control=controle, 
+                     family = nbinom1)
+
+model.nb2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|localidade) + (1|min.div2),
+                     data = geomonit2, ziformula = ~t_trans_vis + t_divers, control=controle, 
+                     family = nbinom2)
+
+### selecionando o melhor modelo a depender da distribuição
+ICtab(model, model.nb1, model.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+#menor AICc, melhor modelo
+
+### comparando os modelos mais completos com os mais simples
+
+model.nb1a <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat),
+                      data = geomonit2,  family = nbinom1, 
+                      ziformula = ~min.div2, control=controle)
+
+modelo.nb1b <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
+                       data = geomonit2,  family = nbinom1, 
+                       ziformula = ~min.div2, control=controle)
+  
+  
+  
+  glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio1), data = dados, 
+                      family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+mod_nb1_0b <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                      family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+ICtab(mod_nb1_0,  mod_nb1_0a, mod_nb1_0b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+# Na seleção do efeito aleatório, vamos supor que o melhor modelo contém apenas o intercepto_aleatorio2 (mod_nb1_0b), vou mudar o nome do objeto (isso não é necessário se você não quiser) e chamá-lo agora de mod_nb1_1 e usá-lo na seleção das variáveis relacionadas à inflação por zeros.
+
+mod_nb1_1 <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+# Agora vou criar dois modelos mais simples, cada um contendo apenas uma variável relacionada ao argumento ziformula para comparar com o modelo mais completo selecionado, ou seja, o modelo mod_nb1_1.
+
+mod_nb1_1a <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                      family=nbinom1, ziformula = efeito_fixo_zi_1, control=controle)
+
+mod_nb1_1b <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                      family=nbinom1, ziformula = efeito_fixo_zi_2, control=controle)
+
+ICtab(mod_nb1_1, mod_nb1_1a, mod_nb1_1b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+# Vamos supor que as duas variáveis se mostraram importantes para explicar a inflação por zeros na variável resposta, então ficaremos com o modelo mod_nb1_1. Este modelo será usada na etapa final da seleção, que é a seleção do efeito fixo.
+
+mod_nb1_2 <- glmmTMB(resposta ~ efeito_fixo1 + (1 | intercepto_aleatorio2), data = dados, 
+                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+mod_nb1_3 <- glmmTMB(resposta ~ efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+ICtab(mod_nb1_1, mod_nb1_2, mod_nb1_3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+# Digamos que o melhor modelo ficou apenas com o efeito_fixo2, este é o modelo mais parcimonioso que usaremos na validação usando a simulação de resíduos do pacote 'DHARMa'.
 
 m0.bin1 <- update(m0, family=nbinom1)
 summary(m0.bin1)
@@ -220,8 +322,7 @@ plot(res.m0.bin1)
 plot(table(geomonit$det))
 
 
-controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
-                           optCtrl=list(iter.max=1e3,eval.max=1e3))
+
 
 
 
