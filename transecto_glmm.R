@@ -8,7 +8,6 @@ library(dplyr)
 library(vegan)
 library(labdsv)
 
-
 # monitoramento 
 
 df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",

@@ -1,4 +1,4 @@
-
+# localidade como unidade amostral
 # data frames
 
 library(tidyverse)
