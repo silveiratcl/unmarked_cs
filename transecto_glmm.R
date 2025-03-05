@@ -1,4 +1,5 @@
 # transecto como unidade amostral
+# data frames
 
 library(tidyverse)
 library(readr)
@@ -59,7 +60,7 @@ monit.trans <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis"
           divers = max(n_divers)) %>%
   arrange(geo_id)
 
-print(monit.trans, n = 169)
+print(monit.trans, n = 89)
 
 
 ## criando a variável minutos por mergulhador
@@ -145,21 +146,21 @@ geomonit.trans <- as.data.frame(geomonit.trans)
 ###média = 0
 ###desvio padrão = 1
 
-gc_pad <- as.matrix(geomonit.trans$gc - mean(as.matrix(geomonit.trans$gc)))/sd(as.matrix(geomonit.trans$gc))
-lg_pad <- as.matrix(geomonit.trans$lg - mean(as.matrix(geomonit.trans$lg)))/sd(as.matrix(geomonit.trans$lg))
-mp_pad <- as.matrix(geomonit.trans$mp - mean(as.matrix(geomonit.trans$mp)))/sd(as.matrix(geomonit.trans$mp))
-rpm_pad <- as.matrix(geomonit.trans$rpm - mean(as.matrix(geomonit.trans$rpm)))/sd(as.matrix(geomonit.trans$rpm))
-tf_pad <- as.matrix(geomonit.trans$tf - mean(as.matrix(geomonit.trans$tf)))/sd(as.matrix(geomonit.trans$tf))
+#gc_pad <- as.matrix(geomonit.trans$gc - mean(as.matrix(geomonit.trans$gc)))/sd(as.matrix(geomonit.trans$gc))
+#lg_pad <- as.matrix(geomonit.trans$lg - mean(as.matrix(geomonit.trans$lg)))/sd(as.matrix(geomonit.trans$lg))
+#mp_pad <- as.matrix(geomonit.trans$mp - mean(as.matrix(geomonit.trans$mp)))/sd(as.matrix(geomonit.trans$mp))
+#rpm_pad <- as.matrix(geomonit.trans$rpm - mean(as.matrix(geomonit.trans$rpm)))/sd(as.matrix(geomonit.trans$rpm))
+#tf_pad <- as.matrix(geomonit.trans$tf - mean(as.matrix(geomonit.trans$tf)))/sd(as.matrix(geomonit.trans$tf))
 
-geomonit.transp <- (geomonit.trans[, c(1, 2:9)])
+#geomonit.transp <- (geomonit.trans[, c(1, 2:9)])
 
-geomonit.transp$gc_pad <- gc_pad
-geomonit.transp$lg_pad <- lg_pad
-geomonit.transp$mp_pad <- mp_pad
-geomonit.transp$rpm_pad <- rpm_pad
-geomonit.transp$tf_pad <- tf_pad
+#geomonit.transp$gc_pad <- gc_pad
+#geomonit.transp$lg_pad <- lg_pad
+#geomonit.transp$mp_pad <- mp_pad
+#geomonit.transp$rpm_pad <- rpm_pad
+#geomonit.transp$tf_pad <- tf_pad
 
-print(geomonit.transp, n = 59)
+#print(geomonit.transp, n = 59)
 
 
 # generalize linear mixed models
@@ -201,7 +202,7 @@ ggmt_long <- gmt_long[ ,c("det", "categoria", "geomorfologia", "valor")] %>%
   summarise(valor_medio = mean(valor))
 
 
-## plot
+## plot barras empilhadas 
 
 ggplot(ggmt_long, aes(x = geomorfologia, y = valor_medio, fill = categoria)) +
   geom_bar(stat = "identity", position = "stack") +
@@ -213,14 +214,15 @@ ggplot(ggmt_long, aes(x = geomorfologia, y = valor_medio, fill = categoria)) +
         panel.grid.minor = element_blank(),
         panel.background = element_blank())
 
+## plot em pontos
 
-plot(geomonit.transp$gc_pad, geomonit.transp$t_detections, type = "p", col = "red", 
+plot(geomonit.trans$gc, geomonit.trans$t_detections, type = "p", col = "red", 
      main = "Geos em função das det", 
      xlab = "Geomorfologias", ylab = "Detecções")
-lines(geomonit.transp$lg_pad, geomonit.transp$t_detections, type = "p", col = "blue")
-lines(geomonit.transp$mp_pad, geomonit.transp$t_detections, type = "p", col = "green")
-lines(geomonit.transp$rpm_pad, geomonit.transp$t_detections, type = "p", col = "orange")
-lines(geomonit.transp$tf_pad, geomonit.transp$t_detections, type = "p", col = "brown")
+lines(geomonit.trans$lg, geomonit.trans$t_detections, type = "p", col = "blue")
+lines(geomonit.trans$mp, geomonit.trans$t_detections, type = "p", col = "green")
+lines(geomonit.trans$rpm, geomonit.trans$t_detections, type = "p", col = "orange")
+lines(geomonit.trans$tf, geomonit.trans$t_detections, type = "p", col = "brown")
 legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"), 
        col = c("red", "blue", "green", "orange", "brown"), lty = 1)
 
@@ -228,7 +230,81 @@ legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"),
 
 # modelos glmm
 
+## avaliando o efeito aleatório
 
-m0 <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat), data = geomonit.trans, family = poisson)
+controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
+                           optCtrl=list(iter.max=1e3,eval.max=1e3))
 
+modelo <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib) + (1|localidade) + (1|faixa_bat),
+                 data = geomonit.trans, ziformula = ~t_trans_vis + t_divers, control=controle, 
+                 family = poisson)
+
+modelo.nb1 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib) + (1|localidade) + (1|faixa_bat),
+                      data = geomonit.trans, ziformula = ~t_trans_vis + t_divers, control=controle,
+                      family = nbinom1)
+
+modelo.nb2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib) + (1|localidade) + (1|faixa_bat),
+                     data = geomonit.trans, ziformula = ~t_trans_vis + t_divers, control=controle,
+                     family = nbinom2)
+
+### selecionando o melhor modelo a depender da distribuição
+ICtab(model, model.nb1, model.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+#menor AICc, melhor modelo
+
+### comparando os modelos mais completos com os mais simples
+
+model.nb1a <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|localidade),
+                      data = geomonit2,  family = nbinom1, 
+                      ziformula = ~t_trans_vis + t_divers, control=controle)
+
+model.nb1b <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|min.div2),
+                      data = geomonit2,  family = nbinom1, 
+                      ziformula = ~t_trans_vis + t_divers, control=controle)
+
+modelo.nb1c <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|min.div2),
+                       data = geomonit2,  family = nbinom1, 
+                       ziformula = ~t_trans_vis + t_divers, control=controle)
+
+ICtab(model.nb1,  model.nb1a, modelo.nb1b, modelo.nb1c, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+#ver o melhor modelo e seguir comparando o mais completo com o mais simples
+
+modelo.nb1d <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat),
+                       data = geomonit2,  family = nbinom1, 
+                       ziformula = ~t_trans_vis + t_divers, control=controle)
+
+modelo.nb1e <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
+                       data = geomonit2,  family = nbinom1, 
+                       ziformula = ~t_trans_vis + t_divers, control=controle)
+
+modelo.nb1f <- glmmTMB(t_detections ~ mp + gc + lg + (1|min.div2),
+                       data = geomonit2,  family = nbinom1, 
+                       ziformula = ~t_trans_vis + t_divers, control=controle)
+
+ICtab(model.nb1,  model.nb1a, modelo.nb1b, modelo.nb1c, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+## avaliando as variaveis relacionadas a inflação por zero
+
+mod_nb1_1a <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                      family=nbinom1, ziformula = efeito_fixo_zi_1, control=controle)
+
+mod_nb1_1b <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                      family=nbinom1, ziformula = efeito_fixo_zi_2, control=controle)
+
+ICtab(mod_nb1_1, mod_nb1_1a, mod_nb1_1b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+## avaliando o efeito fixo
+
+mod_nb1_2 <- glmmTMB(resposta ~ efeito_fixo1 + (1 | intercepto_aleatorio2), data = dados, 
+                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+mod_nb1_3 <- glmmTMB(resposta ~ efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
+                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+
+ICtab(mod_nb1_1, mod_nb1_2, mod_nb1_3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+## avaliando o modelo mais simples pela simulaçao de residuos
+
+res.m0.bin1 <- simulateResiduals(fittedModel=m0.bin1, n=1000)
+windows(12,8)
+plot(res.m0.bin1)
 
