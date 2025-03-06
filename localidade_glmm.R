@@ -290,15 +290,6 @@ model.1ab <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
 
 ICtab(model.1a,  model.1aa, model.1ab, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-## avaliando as variaveis relacionadas a inflação por zero
-
-mod_nb1_1a <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
-                      family=nbinom1, ziformula = efeito_fixo_zi_1, control=controle)
-
-mod_nb1_1b <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
-                      family=nbinom1, ziformula = efeito_fixo_zi_2, control=controle)
-
-ICtab(mod_nb1_1, mod_nb1_1a, mod_nb1_1b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
 ## avaliando o efeito fixo
 
