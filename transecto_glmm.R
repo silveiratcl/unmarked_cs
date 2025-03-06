@@ -140,6 +140,20 @@ table(min.div2)
 
 geomonit.trans$min.div2 <- min.div2
 
+# categorizando em faixa a variável visibilidade
+
+t_visib2 <- rep("very_good", nrow(geomonit.trans))
+quantile(geomonit.trans$t_visib)
+
+t_visib2[geomonit.trans$t_visib <= quantile(geomonit.trans$t_visib)[4]] <- "good"
+t_visib2[geomonit.trans$t_visib <= quantile(geomonit.trans$t_visib)[3]] <- "moderate"
+t_visib2[geomonit.trans$t_visib <= quantile(geomonit.trans$t_visib)[2]] <- "low"
+t_visib2 <- factor(t_visib2, levels=c("low", "moderate", "good", "very_good"))
+levels(t_visib2)
+table(t_visib2)
+
+geomonit.trans$t_visib2 <- t_visib2
+
 geomonit.trans <- as.data.frame(geomonit.trans)
 
 ## padronizando as geos
@@ -235,76 +249,163 @@ legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"),
 controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
                            optCtrl=list(iter.max=1e3,eval.max=1e3))
 
-modelo <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib) + (1|localidade) + (1|faixa_bat),
-                 data = geomonit.trans, ziformula = ~t_trans_vis + t_divers, control=controle, 
+modelo <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+                 data = geomonit.trans, control=controle, 
                  family = poisson)
 
-modelo.nb1 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib) + (1|localidade) + (1|faixa_bat),
-                      data = geomonit.trans, ziformula = ~t_trans_vis + t_divers, control=controle,
+modelo1 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+                      data = geomonit.trans, control=controle,
                       family = nbinom1)
 
-modelo.nb2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib) + (1|localidade) + (1|faixa_bat),
-                     data = geomonit.trans, ziformula = ~t_trans_vis + t_divers, control=controle,
+modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+                     data = geomonit.trans, control=controle,
                      family = nbinom2)
 
 ### selecionando o melhor modelo a depender da distribuição
-ICtab(model, model.nb1, model.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #menor AICc, melhor modelo
 
 ### comparando os modelos mais completos com os mais simples
 
-model.nb1a <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|localidade),
-                      data = geomonit2,  family = nbinom1, 
-                      ziformula = ~t_trans_vis + t_divers, control=controle)
+modelo.1a <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat),
+                               data = geomonit.trans, control=controle, 
+                               family = poisson)
 
-model.nb1b <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|min.div2),
-                      data = geomonit2,  family = nbinom1, 
-                      ziformula = ~t_trans_vis + t_divers, control=controle)
+modelo.1b <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-modelo.nb1c <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|min.div2),
-                       data = geomonit2,  family = nbinom1, 
-                       ziformula = ~t_trans_vis + t_divers, control=controle)
+modelo.1c <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-ICtab(model.nb1,  model.nb1a, modelo.nb1b, modelo.nb1c, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+modelo.1d <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+                    data = geomonit.trans, control=controle, 
+                    family = poisson)
+
+modelo.1e <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|min.div2) + (1|faixa_bat),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
+
+
+ICtab(modelo, modelo.1a,  modelo.1b, modelo.1c, modelo.1d, modelo.1e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #ver o melhor modelo e seguir comparando o mais completo com o mais simples
+#1b e 1d
 
-modelo.nb1d <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat),
-                       data = geomonit2,  family = nbinom1, 
-                       ziformula = ~t_trans_vis + t_divers, control=controle)
+modelo.1ba <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-modelo.nb1e <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                       data = geomonit2,  family = nbinom1, 
-                       ziformula = ~t_trans_vis + t_divers, control=controle)
+modelo.1bb <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-modelo.nb1f <- glmmTMB(t_detections ~ mp + gc + lg + (1|min.div2),
-                       data = geomonit2,  family = nbinom1, 
-                       ziformula = ~t_trans_vis + t_divers, control=controle)
+modelo.1bc <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-ICtab(model.nb1,  model.nb1a, modelo.nb1b, modelo.nb1c, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+modelo.1da <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|faixa_bat),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-## avaliando as variaveis relacionadas a inflação por zero
+modelo.1db <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = poisson)
 
-mod_nb1_1a <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
-                      family=nbinom1, ziformula = efeito_fixo_zi_1, control=controle)
 
-mod_nb1_1b <- glmmTMB(resposta ~ efeito_fixo1 + efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
-                      family=nbinom1, ziformula = efeito_fixo_zi_2, control=controle)
+ICtab(modelo.1b, modelo.1ba, modelo.1bb, modelo.1bc, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo.1d, modelo.1da, modelo.1db, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo.1b, modelo.1d, modelo.1bc, modelo.1db, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-ICtab(mod_nb1_1, mod_nb1_1a, mod_nb1_1b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+modelo.1bc.a <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
+                      data = geomonit.trans, control=controle, 
+                      family = poisson)
+
+modelo.1bc.b <- glmmTMB(t_detections ~ mp + gc + lg + + (1|min.div2),
+                      data = geomonit.trans, control=controle, 
+                      family = poisson)
+
+ICtab(modelo.1bc, modelo.1bc.a, modelo.1bc.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+modelo.1db.a <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat),
+                      data = geomonit.trans, control=controle, 
+                      family = poisson)
+
+modelo.1db.b <- glmmTMB(t_detections ~ mp + gc + lg + (1|min.div2),
+                        data = geomonit.trans, control=controle, 
+                        family = poisson)
+
+ICtab(modelo.1db, modelo.1db.a, modelo.1db.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+ICtab(modelo.1db, modelo.1bc.a, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
 
 ## avaliando o efeito fixo
 
-mod_nb1_2 <- glmmTMB(resposta ~ efeito_fixo1 + (1 | intercepto_aleatorio2), data = dados, 
-                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+modelo.1bc.aa <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
+                      data = geomonit.trans, control=controle, 
+                      family = poisson)
 
-mod_nb1_3 <- glmmTMB(resposta ~ efeito_fixo2 + (1 | intercepto_aleatorio2), data = dados, 
-                     family=nbinom1, ziformula = efeito_fixo_zi_1 + efeito_fixo_zi_2, control=controle)
+modelo.1bc.ab <- glmmTMB(t_detections ~ mp + lg + (1|localidade),
+                      data = geomonit.trans, control=controle, 
+                      family = poisson)
 
-ICtab(mod_nb1_1, mod_nb1_2, mod_nb1_3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+modelo.1bc.ac <- glmmTMB(t_detections ~ gc + lg + (1|localidade),
+                      data = geomonit.trans, control=controle, 
+                      family = poisson)
+
+
+ICtab(modelo.1bc.a, modelo.1bc.aa, modelo.1bc.ab, modelo.1bc.ac, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+modelo.1bc.aaa <- glmmTMB(t_detections ~ mp + (1|localidade),
+                        data = geomonit.trans, control=controle, 
+                        family = poisson)
+
+modelo.1bc.aab <- glmmTMB(t_detections ~ gc + (1|localidade),
+                        data = geomonit.trans, control=controle, 
+                        family = poisson)
+
+ICtab(modelo.1bc.aa, modelo.1bc.aaa, modelo.1bc.aab, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+modelo.final <- modelo.1bc.aa
+  
+## avaliando as variaveis relacionadas a inflação por zero
+
+modelo.zi <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
+                     data = geomonit.trans, ziformula = ~t_trans_vis + t_divers,
+                     control=controle, family = poisson)
+
+modelo.zi1 <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
+                                   data = geomonit.trans, ziformula = ~t_trans_vis,
+                                   control=controle, family = poisson)
+
+modelo.zi2 <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
+                                   data = geomonit.trans, ziformula = ~t_divers,
+                                   family = poisson)
+
+ICtab(modelo.zi, modelo.zi1, modelo.zi2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+
+###  avaliando as variaveis relacionadas a inflação por zero em relacao a dispersao
+
+modelo.zi.nb1 <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
+                         data = geomonit.trans, ziformula = ~t_trans_vis + t_divers,
+                         control=controle, family = nbinom1)
+
+modelo.zi.nb2 <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
+                         data = geomonit.trans, ziformula = ~t_trans_vis + t_divers,
+                         control=controle, family = nbinom2)
+
+ICtab(modelo.zi, modelo.zi.nb1, modelo.zi.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+## comparando o modelo zi com o modelo final
+
+ICtab(modelo.zi, modelo.final, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
 
 ## avaliando o modelo mais simples pela simulaçao de residuos
 
-res.m0.bin1 <- simulateResiduals(fittedModel=m0.bin1, n=1000)
+res.modelo <- simulateResiduals(fittedModel=modelo.zi, n=1000)
 windows(12,8)
-plot(res.m0.bin1)
+plot(res.modelo)
 
