@@ -97,6 +97,7 @@ geo <- df_geo[ ,c("localidade", "data", "faixa_bat","geo_cat", "iar_geo")] %>%
   reframe(iar_geo = mean(iar_geo)) %>%
   arrange(data)
 
+
 print(geo, n = 185)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
@@ -144,11 +145,6 @@ min(geomonit$min.div)
 print(geomonit, n = 51)
 
 geomonit <- as.data.frame(geomonit)
-
-# categorizando em faixa a variável detecções
-
-det <- ifelse(geomonit$t_detections == 0, "non-detected", "detected")
-geomonit$det <- det
 
 # categorizando em faixa a variável minutos por mergulhador
 
@@ -335,8 +331,9 @@ ICtab(zi.model, zi.model.nb1, final.model, type="AICc",  weights =  TRUE, delta 
 
 ## avaliando o modelo mais simples pela simulaçao de residuos
 
-res.model <- simulateResiduals(fittedModel=final.model, n=1000)
+res.model <- simulateResiduals(fittedModel=model.1a, n=1000)
 windows(12,8)
 plot(res.model)
 
-
+plotResiduals(res.model, geomonit2$mp)
+plotResiduals(res.model, geomonit2$gc)

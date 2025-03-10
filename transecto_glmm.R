@@ -264,6 +264,7 @@ modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) +
 ### selecionando o melhor modelo a depender da distribuição
 ICtab(modelo, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #menor AICc, melhor modelo
+#diferença maior que 2 para serem 'diferentes'
 
 ### comparando os modelos mais completos com os mais simples
 
@@ -290,7 +291,20 @@ modelo.1e <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|min.div2) +
 
 ICtab(modelo, modelo.1a,  modelo.1b, modelo.1c, modelo.1d, modelo.1e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #ver o melhor modelo e seguir comparando o mais completo com o mais simples
-#1b e 1d
+
+
+res.modelo.1b <- simulateResiduals(fittedModel=modelo.1b, n=1000)
+windows(12,8)
+plot(res.modelo.1b)
+
+res.modelo.1d <- simulateResiduals(fittedModel=modelo.1d, n=1000)
+windows(12,8)
+plot(res.modelo.1d)
+
+res.modelo.1a <- simulateResiduals(fittedModel=modelo.1a, n=1000)
+windows(12,8)
+plot(res.modelo.1a)
+#1b melhor validação
 
 modelo.1ba <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade),
                      data = geomonit.trans, control=controle, 
@@ -304,18 +318,17 @@ modelo.1bc <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|min.div2
                      data = geomonit.trans, control=controle, 
                      family = poisson)
 
-modelo.1da <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|faixa_bat),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
-modelo.1db <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat) + (1|min.div2),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
 
 ICtab(modelo.1b, modelo.1ba, modelo.1bb, modelo.1bc, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-ICtab(modelo.1d, modelo.1da, modelo.1db, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-ICtab(modelo.1b, modelo.1d, modelo.1bc, modelo.1db, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo.1bc <- simulateResiduals(fittedModel=modelo.1bc, n=1000)
+windows(12,8)
+plot(res.modelo.1bc)
+
+res.modelo.1ba <- simulateResiduals(fittedModel=modelo.1ba, n=1000)
+windows(12,8)
+plot(res.modelo.1ba)
+#1bc melhor validação
 
 modelo.1bc.a <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
                       data = geomonit.trans, control=controle, 
@@ -326,18 +339,6 @@ modelo.1bc.b <- glmmTMB(t_detections ~ mp + gc + lg + + (1|min.div2),
                       family = poisson)
 
 ICtab(modelo.1bc, modelo.1bc.a, modelo.1bc.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
-modelo.1db.a <- glmmTMB(t_detections ~ mp + gc + lg + (1|faixa_bat),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
-
-modelo.1db.b <- glmmTMB(t_detections ~ mp + gc + lg + (1|min.div2),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-ICtab(modelo.1db, modelo.1db.a, modelo.1db.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
-ICtab(modelo.1db, modelo.1bc.a, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
 
 ## avaliando o efeito fixo
@@ -356,6 +357,14 @@ modelo.1bc.ac <- glmmTMB(t_detections ~ gc + lg + (1|localidade),
 
 
 ICtab(modelo.1bc.a, modelo.1bc.aa, modelo.1bc.ab, modelo.1bc.ac, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo.1bc.aa <- simulateResiduals(fittedModel=modelo.1bc.aa, n=1000)
+windows(12,8)
+plot(res.modelo.1bc.aa)
+
+res.modelo.1bc.a <- simulateResiduals(fittedModel=modelo.1bc.a, n=1000)
+windows(12,8)
+plot(res.modelo.1bc.a)
 
 modelo.1bc.aaa <- glmmTMB(t_detections ~ mp + (1|localidade),
                         data = geomonit.trans, control=controle, 
@@ -402,6 +411,13 @@ ICtab(modelo.zi, modelo.zi.nb1, modelo.zi.nb2, type="AICc",  weights =  TRUE, de
 
 ICtab(modelo.zi, modelo.final, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
+res.modelo.zi <- simulateResiduals(fittedModel=modelo.zi, n=1000)
+windows(12,8)
+plot(res.modelo.zi)
+
+res.modelo.final <- simulateResiduals(fittedModel=modelo.final, n=1000)
+windows(12,8)
+plot(res.modelo.final)
 
 ## avaliando o modelo mais simples pela simulaçao de residuos
 
