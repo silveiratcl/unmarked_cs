@@ -249,20 +249,26 @@ legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"),
 controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
                            optCtrl=list(iter.max=1e3,eval.max=1e3))
 
-modelo <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+modelo <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
                  data = geomonit.trans, control=controle, 
                  family = poisson)
 
-modelo1 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+
+modelocp <- glmmTMB(t_detections ~ mp + gc + lg + (mp|localidade) + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
+                  data = geomonit.trans, control=controle, 
+                  family = compois)
+
+
+modelo1 <- glmmTMB(t_detections ~ mp + gc + lg + (mp|localidade) + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
                       data = geomonit.trans, control=controle,
                       family = nbinom1)
 
-modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat) + (1|min.div2),
+modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + (mp|localidade) + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
                      data = geomonit.trans, control=controle,
                      family = nbinom2)
 
 ### selecionando o melhor modelo a depender da distribuição
-ICtab(modelo, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo, modelocp, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #menor AICc, melhor modelo
 #diferença maior que 2 para serem 'diferentes'
 
