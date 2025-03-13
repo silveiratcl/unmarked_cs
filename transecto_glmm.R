@@ -44,7 +44,7 @@ df_monit[, 1:17]
 
 dfmonit_filt <- df_monit %>% 
   filter(data > as.Date("2022-01-01") &
-           !(obs %in% c("Sem geo", "estimado dos dados do ICMBio", "geo nao realizada", "geo nao realizada, sem ficha de campo")) &
+           !(obs %in% c("Sem geo", "estimado dos dados do ICMBio", "geo não realizada", "geo não realizada, sem ficha de campo")) &
            !(geo_id %in% c("Na"))) %>%
   arrange(geo_id)
 
@@ -60,7 +60,7 @@ monit.trans <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis"
           divers = max(n_divers)) %>%
   arrange(geo_id)
 
-print(monit.trans, n = 89)
+print(monit.trans, n = 95)
 
 
 ## criando a variável minutos por mergulhador
@@ -115,7 +115,7 @@ geo.trans2 <- geo.trans[ ,c("geo_id", "localidade", "faixa_bat", "visibilidade",
             iar_geo = mean(sum(iar_geo))) %>%
   spread(geo_cat, iar_geo)
 
-print(geo.trans2, n = 75)
+print(geo.trans2, n = 81)
 
 
 # unindo os data frames
@@ -124,33 +124,26 @@ geomonit.trans <- left_join(monit.trans2, geo.trans2) %>%
   arrange(geo_id) %>%
   drop_na()
 
-print(geomonit.trans, n = 59)
+print(geomonit.trans, n = 69)
 
 # categorizando em faixa a variável minutos por mergulhador
 
-min.div2 <- rep("very_intense", nrow(geomonit.trans))
-quantile(geomonit.trans$min.div)
-
-min.div2[geomonit.trans$min.div <= quantile(geomonit.trans$min.div)[4]] <- "intense"
-min.div2[geomonit.trans$min.div <= quantile(geomonit.trans$min.div)[3]] <- "moderate"
-min.div2[geomonit.trans$min.div <= quantile(geomonit.trans$min.div)[2]] <- "low"
-min.div2 <- factor(min.div2, levels=c("low", "moderate", "intense", "very_intense"))
-levels(min.div2)
-table(min.div2)
+min.div2 <- cut(geomonit.trans$min.div, breaks = seq(0, max(geomonit.trans$min.div), by = 5), right = TRUE)
+levels(min.div2) <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35", "35-40", "40-45", "45-50",
+                      "50-55", "55-60", "60-65", "65-70", "70-75", "75-80", "80-85", "85-90", "90-95", "95-100",
+                      "1000-105", "105-110", "110-115", "115-120", "120-125", "125-130", "130-135", "135-140",
+                      "140-145", "145-150", "150-155", "155-160", "160-165", "165-170", "170-175", "175-180",
+                      "180-185", "185-190", "190-195", "195-200", "200-205", "205-210", "210-215", "215-220",
+                      "220-225", "225-230", "230-235", "235-240")
+print(min.div2)
 
 geomonit.trans$min.div2 <- min.div2
 
 # categorizando em faixa a variável visibilidade
 
-t_visib2 <- rep("very_good", nrow(geomonit.trans))
-quantile(geomonit.trans$t_visib)
-
-t_visib2[geomonit.trans$t_visib <= quantile(geomonit.trans$t_visib)[4]] <- "good"
-t_visib2[geomonit.trans$t_visib <= quantile(geomonit.trans$t_visib)[3]] <- "moderate"
-t_visib2[geomonit.trans$t_visib <= quantile(geomonit.trans$t_visib)[2]] <- "low"
-t_visib2 <- factor(t_visib2, levels=c("low", "moderate", "good", "very_good"))
-levels(t_visib2)
-table(t_visib2)
+t_visib2 <- cut(geomonit.trans$t_visib, breaks = seq(0, max(geomonit.trans$t_visib), by = 3), right = TRUE)
+levels(t_visib2) <- c("0-3", "3-6", "6-9", "9-10", "10-13", "13-15")
+print(t_visib2)
 
 geomonit.trans$t_visib2 <- t_visib2
 
@@ -249,138 +242,168 @@ legend("topright", legend = c("gc", "lg", "mp", "rpm", "tf"),
 controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
                            optCtrl=list(iter.max=1e3,eval.max=1e3))
 
-modelo <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
+modelo <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
                  data = geomonit.trans, control=controle, 
                  family = poisson)
 
 
-modelocp <- glmmTMB(t_detections ~ mp + gc + lg + (mp|localidade) + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
-                  data = geomonit.trans, control=controle, 
-                  family = compois)
+#modelocp <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
+                  #data = geomonit.trans, control=controle, 
+                  #family = compois)
 
 
-modelo1 <- glmmTMB(t_detections ~ mp + gc + lg + (mp|localidade) + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
+modelo1 <- glmmTMB(t_detections ~mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
                       data = geomonit.trans, control=controle,
                       family = nbinom1)
 
-modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + (mp|localidade) + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
+modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
                      data = geomonit.trans, control=controle,
                      family = nbinom2)
 
 ### selecionando o melhor modelo a depender da distribuição
-ICtab(modelo, modelocp, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #menor AICc, melhor modelo
 #diferença maior que 2 para serem 'diferentes'
 
+res.modelo1 <- simulateResiduals(fittedModel=modelo1, n=1000)
+windows(12,8)
+plot(res.modelo1)
+
+res.modelo2 <- simulateResiduals(fittedModel=modelo2, n=1000)
+windows(12,8)
+plot(res.modelo2)
+
 ### comparando os modelos mais completos com os mais simples
 
-modelo.1a <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|faixa_bat),
-                               data = geomonit.trans, control=controle, 
-                               family = poisson)
+modelo1.a <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
 
-modelo.1b <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade) + (1|min.div2),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
+modelo1.b <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
 
-modelo.1c <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|faixa_bat) + (1|min.div2),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
-modelo.1d <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|faixa_bat) + (1|min.div2),
-                    data = geomonit.trans, control=controle, 
-                    family = poisson)
-
-modelo.1e <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|min.div2) + (1|faixa_bat),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
-
-ICtab(modelo, modelo.1a,  modelo.1b, modelo.1c, modelo.1d, modelo.1e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo1, modelo1.a,  modelo1.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #ver o melhor modelo e seguir comparando o mais completo com o mais simples
 
-
-res.modelo.1b <- simulateResiduals(fittedModel=modelo.1b, n=1000)
+res.modelo1.a <- simulateResiduals(fittedModel=modelo1.a, n=1000)
 windows(12,8)
-plot(res.modelo.1b)
+plot(res.modelo1.a)
 
-res.modelo.1d <- simulateResiduals(fittedModel=modelo.1d, n=1000)
+res.modelo1.b <- simulateResiduals(fittedModel=modelo1.b, n=1000)
 windows(12,8)
-plot(res.modelo.1d)
-
-res.modelo.1a <- simulateResiduals(fittedModel=modelo.1a, n=1000)
-windows(12,8)
-plot(res.modelo.1a)
-#1b melhor validação
-
-modelo.1ba <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|localidade),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
-modelo.1bb <- glmmTMB(t_detections ~ mp + gc + lg + (1|t_visib2) + (1|min.div2),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
-modelo.1bc <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade) + (1|min.div2),
-                     data = geomonit.trans, control=controle, 
-                     family = poisson)
-
-
-ICtab(modelo.1b, modelo.1ba, modelo.1bb, modelo.1bc, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
-res.modelo.1bc <- simulateResiduals(fittedModel=modelo.1bc, n=1000)
-windows(12,8)
-plot(res.modelo.1bc)
-
-res.modelo.1ba <- simulateResiduals(fittedModel=modelo.1ba, n=1000)
-windows(12,8)
-plot(res.modelo.1ba)
-#1bc melhor validação
-
-modelo.1bc.a <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
-
-modelo.1bc.b <- glmmTMB(t_detections ~ mp + gc + lg + + (1|min.div2),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
-
-ICtab(modelo.1bc, modelo.1bc.a, modelo.1bc.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
+plot(res.modelo1.b)
 
 ## avaliando o efeito fixo
 
-modelo.1bc.aa <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo1.ba <- glmmTMB(t_detections ~ gc + lg + rpm + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
 
-modelo.1bc.ab <- glmmTMB(t_detections ~ mp + lg + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo1.bb <- glmmTMB(t_detections ~ mp + lg + rpm + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
 
-modelo.1bc.ac <- glmmTMB(t_detections ~ gc + lg + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo1.bc <- glmmTMB(t_detections ~ mp + gc + rpm + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
+
+modelo1.bd <- glmmTMB(t_detections ~ mp + gc + lg + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
+
+modelo1.be <- glmmTMB(t_detections ~ mp + gc + lg + rpm + (1|min.div2),
+                     data = geomonit.trans, control=controle,
+                     family = nbinom1)
 
 
-ICtab(modelo.1bc.a, modelo.1bc.aa, modelo.1bc.ab, modelo.1bc.ac, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo1.b, modelo1.ba, modelo1.bb, modelo1.bc, modelo1.bd, modelo1.be, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.modelo.1bc.aa <- simulateResiduals(fittedModel=modelo.1bc.aa, n=1000)
+res.modelo1.ba <- simulateResiduals(fittedModel=modelo1.ba, n=1000)
 windows(12,8)
-plot(res.modelo.1bc.aa)
+plot(res.modelo1.ba)
 
-res.modelo.1bc.a <- simulateResiduals(fittedModel=modelo.1bc.a, n=1000)
+res.modelo1.bb <- simulateResiduals(fittedModel=modelo1.bb, n=1000)
 windows(12,8)
-plot(res.modelo.1bc.a)
+plot(res.modelo1.bb)
 
-modelo.1bc.aaa <- glmmTMB(t_detections ~ mp + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
+res.modelo1.bc <- simulateResiduals(fittedModel=modelo1.bc, n=1000)
+windows(12,8)
+plot(res.modelo1.bc)
 
-modelo.1bc.aab <- glmmTMB(t_detections ~ gc + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
+res.modelo1.bd <- simulateResiduals(fittedModel=modelo1.bd, n=1000)
+windows(12,8)
+plot(res.modelo1.bd)
 
-ICtab(modelo.1bc.aa, modelo.1bc.aaa, modelo.1bc.aab, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+res.modelo1.be <- simulateResiduals(fittedModel=modelo1.be, n=1000)
+windows(12,8)
+plot(res.modelo1.be)
+
+
+modelo1.bd.a <- glmmTMB(t_detections ~ gc + lg + tf + (1|min.div2),
+                      data = geomonit.trans, control=controle,
+                      family = nbinom1)
+
+modelo1.bd.b <- glmmTMB(t_detections ~ mp + lg + tf + (1|min.div2),
+                      data = geomonit.trans, control=controle,
+                      family = nbinom1) 
+
+modelo1.bd.c <- glmmTMB(t_detections ~ mp + gc + tf + (1|min.div2),
+                      data = geomonit.trans, control=controle,
+                      family = nbinom1)
+
+modelo1.bd.d <- glmmTMB(t_detections ~ mp + gc + lg + (1|min.div2),
+                      data = geomonit.trans, control=controle,
+                      family = nbinom1)
+
+ICtab(modelo1.bd, modelo1.bd.a, modelo1.bd.b, modelo1.bd.c, modelo1.bd.d, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo1.bd.d <- simulateResiduals(fittedModel=modelo1.bd.d, n=1000)
+windows(12,8)
+plot(res.modelo1.bd.d)
+
+res.modelo1.bd.b <- simulateResiduals(fittedModel=modelo1.bd.b, n=1000)
+windows(12,8)
+plot(res.modelo1.bd.b)
+
+res.modelo1.bd.c <- simulateResiduals(fittedModel=modelo1.bd.c, n=1000)
+windows(12,8)
+plot(res.modelo1.bd.c)
+
+modelo1.bd.ba <- glmmTMB(t_detections ~ lg + tf + (1|min.div2),
+                        data = geomonit.trans, control=controle,
+                        family = nbinom1)
+
+modelo1.bd.bb <- glmmTMB(t_detections ~ mp + tf + (1|min.div2),
+                         data = geomonit.trans, control=controle,
+                         family = nbinom1)
+
+modelo1.bd.bc <- glmmTMB(t_detections ~ mp + lg + (1|min.div2),
+                         data = geomonit.trans, control=controle,
+                         family = nbinom1)
+
+ICtab(modelo1.bd.b, modelo1.bd.ba, modelo1.bd.bb, modelo1.bd.bc, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo1.bd.bc <- simulateResiduals(fittedModel=modelo1.bd.bc, n=1000)
+windows(12,8)
+plot(res.modelo1.bd.bc)
+
+res.modelo1.bd.bb <- simulateResiduals(fittedModel=modelo1.bd.bb, n=1000)
+windows(12,8)
+plot(res.modelo1.bd.bb)
+
+modelo1.bd.bb.a <- glmmTMB(t_detections ~ tf + (1|min.div2),
+                         data = geomonit.trans, control=controle,
+                         family = nbinom1)
+
+modelo1.bd.bb.b <- glmmTMB(t_detections ~ mp + (1|min.div2),
+                         data = geomonit.trans, control=controle,
+                         family = nbinom1)
+
+ICtab(modelo1.bd.bb, modelo1.bd.bb.a, modelo1.bd.bb.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+
+
 
 modelo.final <- modelo.1bc.aa
   
