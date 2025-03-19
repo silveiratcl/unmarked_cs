@@ -51,8 +51,9 @@ print(dfmonit_filt)
 
 int.monit <- dfmonit_filt[ ,c("localidade", "data", "n_trans_vis", "dafor", "n_divers", "geo_id")] %>%
   group_by(geo_id, localidade, data) %>%
-  reframe(total_min/id = max(n_trans_vis),
-          total_dafor/id = sum(dafor)) %>%
+  reframe(total_min = max(n_trans_vis),
+          total_dafor = sum(dafor),
+          divers = max(n_divers)) %>%
   arrange(geo_id)
 
 print(int.monit, n = 95)
@@ -94,7 +95,7 @@ print(int.geo, n = 185)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
-int.geo2 <- geo.trans[ ,c("geo_id", "localidade", "visibilidade", "geo_cat", "iar_geo")] %>%
+int.geo2 <- int.geo[ ,c("geo_id", "localidade", "visibilidade", "geo_cat", "iar_geo")] %>%
   group_by(geo_id, localidade, geo_cat) %>%
   summarise(t_visib = max(visibilidade),
             iar_geo = mean(sum(iar_geo))) %>%
@@ -196,68 +197,88 @@ plot(res.nb1.b)
 
 ## avaliando o efeito fixo
 
-nb1.b.a <- glmmTMB(total_dafor  ~ gc + lg + rpm + tf + offset(log(total_min)) + (1|localidade),
+nb1.b1 <- glmmTMB(total_dafor  ~ gc + lg + rpm + tf + offset(log(total_min)) + (1|localidade),
                  data = int.geomonit, control=controle, 
                  family = nbinom1)
 
-nb1.b.b <- glmmTMB(total_dafor  ~ mp + lg + rpm + tf + offset(log(total_min)) + (1|localidade),
+nb1.b2 <- glmmTMB(total_dafor  ~ mp + lg + rpm + tf + offset(log(total_min)) + (1|localidade),
                  data = int.geomonit, control=controle, 
                  family = nbinom1)
 
-nb1.b.c <- glmmTMB(total_dafor  ~ mp + gc + rpm + tf + offset(log(total_min)) + (1|localidade),
+nb1.b3 <- glmmTMB(total_dafor  ~ mp + gc + rpm + tf + offset(log(total_min)) + (1|localidade),
                  data = int.geomonit, control=controle, 
                  family = nbinom1)
 
-nb1.b.d <- glmmTMB(total_dafor  ~ mp + gc + lg + tf + offset(log(total_min)) + (1|localidade),
+nb1.b4 <- glmmTMB(total_dafor  ~ mp + gc + lg + tf + offset(log(total_min)) + (1|localidade),
                  data = int.geomonit, control=controle, 
                  family = nbinom1)
 
-nb1.b.e <- glmmTMB(total_dafor  ~ mp + gc + lg + rpm + offset(log(total_min)) + (1|localidade),
+nb1.b5 <- glmmTMB(total_dafor  ~ mp + gc + lg + rpm + offset(log(total_min)) + (1|localidade),
                  data = int.geomonit, control=controle, 
                  family = nbinom1)
 
-ICtab(nb1.b, nb1.b.a, nb1.b.b, nb1.b.c, nb1.b.d, nb1.b.e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(nb1.b, nb1.b1,  nb1.b2, nb1.b3, nb1.b4, nb1.b5, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
 
-res.nb1.b.c <- simulateResiduals(fittedModel=nb1.b.c, n=1000)
-windows(12,8)
-plot(res.nb1.b.c)
-#melhor
+nb1.b6 <- glmmTMB(total_dafor  ~ mp + rpm + offset(log(total_min)) + (1|localidade),
+                  data = int.geomonit, control=controle, 
+                  family = nbinom1)
 
-res.nb1.b.b <- simulateResiduals(fittedModel=nb1.b.b, n=1000)
-windows(12,8)
-plot(res.nb1.b.b)
+nb1.b7 <- glmmTMB(total_dafor  ~ gc + lg + tf + offset(log(total_min)) + (1|localidade),
+                  data = int.geomonit, control=controle, 
+                  family = nbinom1)
 
-res.nb1.b.e <- simulateResiduals(fittedModel=nb1.b.e, n=1000)
-windows(12,8)
-plot(res.nb1.b.e)
-#ruim
-
-res.nb1.b.d <- simulateResiduals(fittedModel=nb1.b.d, n=1000)
-windows(12,8)
-plot(res.nb1.b.d)
-#ruim
-
-res.nb1.b.a <- simulateResiduals(fittedModel=nb1.b.a, n=1000)
-windows(12,8)
-plot(res.nb1.b.a)
-
-
-nb1.b.c1 <- glmmTMB(total_dafor ~ gc + rpm + tf + offset(log(total_min)) + (1|localidade),
+nb1.b8 <-  glmmTMB(total_dafor  ~ mp + gc + offset(log(total_min)) + (1|localidade),
                    data = int.geomonit, control=controle, 
                    family = nbinom1)
 
-nb1.b.c2 <- glmmTMB(total_dafor  ~ mp + rpm + tf + offset(log(total_min)) + (1|localidade),
-                   data = int.geomonit, control=controle, 
-                   family = nbinom1)
+ICtab(nb1.b6, nb1.b7, nb1.b8, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-nb1.b.c3 <- glmmTMB(total_dafor  ~ mp + gc + tf + offset(log(total_min)) + (1|localidade),
-                   data = int.geomonit, control=controle, 
-                   family = nbinom1)
+res.nb1.b6 <- simulateResiduals(fittedModel=nb1.b6, n=1000)
+windows(12,8)
+plot(res.nb1.b6)
 
-nb1.b.c4 <- glmmTMB(total_dafor  ~ mp + gc + rpm + offset(log(total_min)) + (1|localidade),
-                   data = int.geomonit, control=controle, 
-                   family = nbinom1)
+par(mfrow = c(1,2))
+plotResiduals(res.nb1.b6, int.geomonit$mp)
+plotResiduals(res.nb1.b6, int.geomonit$rpm)
 
-ICtab(nb1.b.c, nb1.b.c1, nb1.b.c2, nb1.b.c3, nb1.b.c4, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
+res.nb1.b8 <- simulateResiduals(fittedModel=nb1.b8, n=1000)
+windows(12,8)
+plot(res.nb1.b8)
+
+par(mfrow = c(1,2))
+plotResiduals(res.nb1.b8, int.geomonit$mp)
+plotResiduals(res.nb1.b8, int.geomonit$gc)
+
+nb1.b6.a <- glmmTMB(total_dafor  ~ mp + offset(log(total_min)) + (1|localidade),
+                  data = int.geomonit, control=controle, 
+                  family = nbinom1)
+
+nb1.b6.b <- glmmTMB(total_dafor  ~ rpm + offset(log(total_min)) + (1|localidade),
+                  data = int.geomonit, control=controle, 
+                  family = nbinom1)
+
+ICtab(nb1.b6, nb1.b6.a, nb1.b6.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.nb1.b6.a <- simulateResiduals(fittedModel=nb1.b6.a, n=1000)
+windows(12,8)
+plot(res.nb1.b6.a)
+
+#pelos residuos, o melhor modelo é o 6
+
+## avaliando a variavel relacionada a inflação por zero
+
+nb1.b6.zi <- glmmTMB(total_dafor  ~ mp + rpm + offset(log(total_min)) + (1|localidade),
+                  data = int.geomonit, ziformula = ~divers, control=controle, 
+                  family = nbinom1)
+
+ICtab(nb1.b6, nb1.b6.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.nb1.b6.zi <- simulateResiduals(fittedModel=nb1.b6.zi, n=1000)
+windows(12,8)
+plot(res.nb1.b6.zi)
+
+int.model <- nb1.b6
+
+summary(int.model)
