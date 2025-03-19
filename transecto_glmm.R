@@ -247,9 +247,9 @@ modelo <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min
                  family = poisson)
 
 
-#modelocp <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
-                  #data = geomonit.trans, control=controle, 
-                  #family = compois)
+modelocp <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
+                  data = geomonit.trans, control=controle, 
+                  family = compois)
 
 
 modelo1 <- glmmTMB(t_detections ~mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
