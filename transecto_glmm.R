@@ -247,41 +247,43 @@ modelo <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min
                  family = poisson)
 
 
-modelocp <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
+modelo.gp <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
                   data = geomonit.trans, control=controle, 
-                  family = compois)
+                  family = genpois)
 
 
-modelo1 <- glmmTMB(t_detections ~mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
+modelo.nb1 <- glmmTMB(t_detections ~mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
                       data = geomonit.trans, control=controle,
                       family = nbinom1)
 
-modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
+modelo.nb2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
                      data = geomonit.trans, control=controle,
                      family = nbinom2)
 
 ### selecionando o melhor modelo a depender da distribuição
-ICtab(modelo, modelo1, modelo2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo, modelo.gp, modelo.nb1, modelo.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #menor AICc, melhor modelo
 #diferença maior que 2 para serem 'diferentes'
 
-res.modelo1 <- simulateResiduals(fittedModel=modelo1, n=1000)
+res.modelo.gp <- simulateResiduals(fittedModel=modelo.gp, n=1000)
 windows(12,8)
-plot(res.modelo1)
+plot(res.modelo.gp)
 
-res.modelo2 <- simulateResiduals(fittedModel=modelo2, n=1000)
+res.modelo.nb1 <- simulateResiduals(fittedModel=modelo.nb1, n=1000)
 windows(12,8)
-plot(res.modelo2)
+plot(res.modelo.nb1)
+#gp melhor
+
 
 ### comparando os modelos mais completos com os mais simples
 
-modelo1.a <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2),
-                     data = geomonit.trans, control=controle,
-                     family = nbinom1)
+modelo.gp1 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = genpois)
 
-modelo1.b <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div2),
-                     data = geomonit.trans, control=controle,
-                     family = nbinom1)
+modelo.gp2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div2),
+                     data = geomonit.trans, control=controle, 
+                     family = genpois)
 
 ICtab(modelo1, modelo1.a,  modelo1.b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #ver o melhor modelo e seguir comparando o mais completo com o mais simples
