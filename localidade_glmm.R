@@ -421,4 +421,4 @@ summary(locality.glmm)
 
 
 plotResiduals(res.model, geomonit2$mp)
-plotResiduals(res.model, geomonit2$gc)
+plotResiduals(res.model, geomonit2$lg)
