@@ -1,5 +1,5 @@
 # load localidade centroid
-# to extract distace values from raster
+# to extract distance values from raster
 
 library("tidyverse")
 library("raster")

@@ -81,9 +81,8 @@ df_localidade$comp_m/1
 
 df_monit_effort <- df_monit  %>% 
   group_by(localidade, data, faixa_bat) %>%
-  filter(obs != "estimado dos dados do ICMBio") %>% 
-  mutate(faixa_bat = str_to_title(str_replace_all(faixa_bat, "entremare", "entremaré")),
-         localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat != "Na") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
   summarise(max_trsct_vis = sum(max(n_trans_vis)),
             n_detection = max(n_trans_pres),
             n_divers = max(n_divers),
@@ -93,12 +92,30 @@ df_monit_effort
 print(df_monit_effort, n=86)
 
 
+
+table(df_monit_effort$faixa_bat)
+
+
+
 #### TESTE
 
 #df_monit %>% 
  
 # filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
  # print( n=63)
+
+df_monit_effort %>% 
+
+ filter(obs == "estimado dos dados do ICMBio") 
+
+
+df_monit_effort %>% 
+  
+  filter(faixa_bat != "Na") 
+
+df_monit_effort %>% 
+  
+  filter(faixa_bat == "Na") 
 
 
 
@@ -119,16 +136,19 @@ library(RColorBrewer)
 library(hrbrthemes)
 
 # Positive instead DAFOR
-# Geting the numbers
+# Getting the numbers
 
-df_monit_dafor
-table(df_monit_dafor$dafor_DAFOR)
-length(df_monit_dafor$dafor_DAFOR)
+#df_monit_dafor
+#table(df_monit_dafor$dafor_DAFOR)
+#length(df_monit_dafor$dafor_DAFOR)
 
 df_monit
 table(df_monit$dafor)
 length(df_monit$dafor)
 
+
+table(df_monit_effort$localidade)
+table(df_monit_effort$faixa_bat)
 
 
 # n detections minutes
@@ -136,7 +156,7 @@ length(df_monit$dafor)
 plot_detec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, n_detection, sum)) %>% 
   filter(n_detection > 0)  %>% 
-  ggplot(aes(fill=factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=n_detection)) +
+  ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=n_detection)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
@@ -167,7 +187,7 @@ ggsave("plots/detec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 plot_transec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, max_trsct_vis, sum)) %>% 
-  ggplot(aes(fill=factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=max_trsct_vis)) +
+  ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=max_trsct_vis)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
@@ -204,21 +224,23 @@ df_monit_effort_dpue <- df_monit %>%
   
   group_by(localidade, data, faixa_bat) %>%
   filter(obs != "estimado dos dados do ICMBio") %>% 
-  mutate(faixa_bat = str_to_title(str_replace_all(faixa_bat, "entremare", "entremaré")),
-         localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
   summarise(max_trsct_vis = sum(max(n_trans_vis)),
             n_detection = max(n_trans_pres),
             dpue = n_detection/(sum(max(max_trsct_vis)/60))) %>%
   ungroup()
 print(df_monit_effort_dpue, n= 86)
 
+df_monit_effort_dpue 
+
 ### sum faixa bat
 
 plot_dpue_strata <- df_monit_effort_dpue %>% 
   filter(n_detection > 0)  %>% 
   mutate(localidade = fct_reorder(localidade, dpue, sum)) %>% 
-  ggplot(aes(fill = factor(faixa_bat,levels=c("Entremaré", "Raso", "Fundo")), y=localidade, x=dpue)) +
-  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99')) +
+  ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue)) +
+  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
+                    labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("DPUE - Detecções/60mim ") +
