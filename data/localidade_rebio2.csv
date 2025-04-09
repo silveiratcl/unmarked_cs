@@ -19,7 +19,7 @@ id;localidade;loc_mapa;comp_m
 18;baia_das_tartarugas;Baia das Tartarugas;470,878
 19;engenho;Saco do Engenho;430,834
 20;ponta_do_meio;Ponta do Meio;314,530
-21;baia_farol;Baía do Farol;561,107
+21;farol;Baía do Farol;561,107
 22;vidal;Saco do Vidal;391,929
 23;saco_das_balas;Saco das Balas;688,834
 24;pedra_do_elefante;Pedra do Elefante;265,827
@@ -28,7 +28,7 @@ id;localidade;loc_mapa;comp_m
 27;aranhas_leste;Ilha das Aranhas Leste;479,368
 28;mata_fome;Ilha Mata Fome;409,243
 29;tamboretes_sul;Tamboretes Sul;942,781
-30;ilha_do_macuco;Ilha do Macuco;955,613
+30;macuco;Ilha do Macuco;955,613
 31;sepultura;Sepultura;478,633
 32;estaleiro_1;Estaleiro 1;801,763
 33;estaleiro_2;Estaleiro 2;662,461

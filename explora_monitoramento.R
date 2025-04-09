@@ -7,6 +7,7 @@ library("tidyr")
 library("stringr")
 library("hb")
 library("dplyr")
+library("lubridate")
 
 ## data
 
@@ -59,14 +60,27 @@ df_geo
 
 # localities
 
-df_localidade = read_delim("data/localidade_rebio.csv", delim = ";", 
-                           col_types = c("d","c","d"))
+df_localidade = read_delim("data/localidade_rebio2.csv", delim = ";", 
+                           col_types = c("i","c","c","d"))
 df_localidade
-print(df_localidade, n = 41)
+print(df_localidade, n = 48)
 
+
+df_localidade = df_localidade %>% 
+mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")))
+
+df_localidade
 
 df_localidade$comp_m = df_localidade$comp_m/1000
 df_localidade$comp_m/1
+
+
+
+
+
+
+
+
 
 
 # Aggregate by locality 
@@ -77,7 +91,7 @@ df_localidade$comp_m/1
 
 # Obtaining the detection and effort df
 # detection is presence/absence by locality by each monitoring strata
-# effort is the number of visual transects wheer cs were detected
+# effort is the number of visual transects where cs were detected
 
 df_monit_effort <- df_monit  %>% 
   group_by(localidade, data, faixa_bat) %>%
@@ -92,8 +106,28 @@ df_monit_effort
 print(df_monit_effort, n=86)
 
 
+df_monit_effort$localidade
 
-table(df_monit_effort$faixa_bat)
+
+
+
+
+
+# left_join distance
+df_monit_effort <- df_monit_effort %>% 
+  left_join(
+    df_localidade %>% dplyr::select(localidade, comp_m), 
+    by = "localidade"
+  )
+
+
+
+
+print(df_monit_effort, n= 140
+      )
+
+
+
 
 
 
@@ -104,18 +138,18 @@ table(df_monit_effort$faixa_bat)
 # filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
  # print( n=63)
 
-df_monit_effort %>% 
+#df_monit_effort %>% 
 
- filter(obs == "estimado dos dados do ICMBio") 
+ #filter(obs == "estimado dos dados do ICMBio") 
 
 
-df_monit_effort %>% 
+#df_monit_effort %>% 
   
-  filter(faixa_bat != "Na") 
+  #filter(faixa_bat != "Na") 
 
-df_monit_effort %>% 
+#df_monit_effort %>% 
   
-  filter(faixa_bat == "Na") 
+  #filter(faixa_bat == "Na") 
 
 
 
@@ -215,35 +249,46 @@ ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 
 # CPUE #########################################################################
-# Creating dpue colunm ######## VERIFY THE SUM TO OBTAIM MAX MINUTES BY LOCALITY
-# Dont use this script for dpue, bacause the dpue is calculated before 
-# and then summed, overestimating the detections.
-# The script index_monitoring is correct
+# weight by mim max normalization of localit lenght
 
-df_monit_effort_dpue <- df_monit %>% 
+###
+df_monit_effort_dpue <- df_monit_effort %>% 
+  # Min-Max scaling: comp_m -> 0.1 to 1.0
+  mutate(
+    comp_m_scaled = 0.1 + 0.9 * (comp_m - min(comp_m, na.rm = TRUE)) / 
+      (max(comp_m, na.rm = TRUE) - min(comp_m, na.rm = TRUE))
+  ) %>%
   
+  # Group and summarize
   group_by(localidade, data, faixa_bat) %>%
-  filter(obs != "estimado dos dados do ICMBio") %>% 
-  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
-  summarise(max_trsct_vis = sum(max(n_trans_vis)),
-            n_detection = max(n_trans_pres),
-            dpue = n_detection/(sum(max(max_trsct_vis)/60))) %>%
+  summarise(
+    comp_m = first(comp_m),              # Keep original comp_m (optional)
+    comp_m_scaled = first(comp_m_scaled), # Keep scaled value
+    max_trsct_vis = sum(max(max_trsct_vis)), # Total effort (sum of max transects)
+    n_detection = sum(n_detection),      # Sum detections across groups
+    dpue_raw = n_detection / (max_trsct_vis / 60), # Classic DPUE (detections/hour)
+    dpue_scaled = n_detection / ((max_trsct_vis / 60) * comp_m_scaled) # Size-adjusted DPUE
+  ) %>%
   ungroup()
+
 print(df_monit_effort_dpue, n= 86)
 
-df_monit_effort_dpue 
+####
+
+
+
 
 ### sum faixa bat
 
 plot_dpue_strata <- df_monit_effort_dpue %>% 
   filter(n_detection > 0)  %>% 
-  mutate(localidade = fct_reorder(localidade, dpue, sum)) %>% 
-  ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue)) +
+  mutate(localidade = fct_reorder(localidade, dpue_scaled, sum)) %>% 
+  ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue_scaled)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("DPUE - Detecções/60mim ") +
+  ggtitle("DPUE - Detecções/60mim * comp_local_weight ") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -262,6 +307,60 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
+
+
+
+
+## Detection through the years ##############################
+
+# First get localities with sampling in more than one year
+multi_year_localities <- df_monit_effort_dpue %>%
+  filter(n_detection > 0) %>%
+  mutate(year = year(data)) %>%
+  distinct(localidade, year) %>%  # Get unique year-locality combinations
+  group_by(localidade) %>%
+  filter(n() > 1) %>%  # Keep only localities with >1 year
+  ungroup() %>%
+  pull(localidade) %>%
+  unique()
+
+# Filter the detection summary for only these localities
+detection_summary_filtered <- df_monit_effort_dpue %>%
+  filter(n_detection > 0,
+         localidade %in% multi_year_localities) %>% 
+  mutate(year = year(data)) %>%
+  group_by(year, localidade) %>%
+  summarise(
+    total_detections = sum(n_detection, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Plot for filtered localities
+ggplot(detection_summary_filtered, aes(x = year, y = total_detections, color = localidade)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Detections by Locality (Multi-Year Sampling)",
+    subtitle = "Only showing localities with detections in >1 year",
+    x = "Year", 
+    y = "Number of Detections",
+    color = "Locality"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(breaks = unique(detection_summary_filtered$year)) +
+  theme(legend.position = "bottom",
+        legend.text = element_text(size = 8)) +  # Adjust legend text size
+  guides(color = guide_legend(nrow = 3))  # Wrap legend into multiple rows if needed
+
+
+
+
+
+
+
+
+
+
 
 
 ############ !!!!!!!!!!!!!!!!!!!!!! ############################################
