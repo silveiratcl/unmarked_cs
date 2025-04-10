@@ -447,3 +447,94 @@ plot(res.modelo3b.e4)
 
 transect.glmm <- modelo3b.e4
 summary(transect.glmm)
+
+# figures
+
+pred_transect.glmmf <- ggpredict(transect.glmm, terms=c("mp"), type = "fixed")
+pred_transect.glmmr <- ggpredict(transect.glmm, terms=c("mp","localidade"), type = "random")
+df_pred_transect.glmmf <- data.frame(x=pred_transect.glmmf$x,
+                                      predict=pred_transect.glmmf$predicted,
+                                      conf.low=pred_transect.glmmf$conf.low,
+                                      conf.high=pred_transect.glmmf$conf.high)
+
+g_transect.glmm <- plot(pred_transect.glmmr, facets=F, show_title=F, show_ci=F) + 
+  geom_ribbon(data=df_pred_transect.glmmf, aes(x=x, ymin=conf.low, ymax=conf.high),
+              alpha=0.2, inherit.aes=F) +
+  geom_line(data=df_pred_transect.glmmf, aes(x=x, y=predict), 
+            color="black", linewidth=1.5, inherit.aes=F) +
+  theme_bw() + xlab("Média de MP") + labs(color="localidade") +
+  ylab("Variância da localidade") +
+  scale_color_manual(values=c("coral","indianred","gold2","darkolivegreen3","forestgreen",
+                              "violet","purple","rosybrown", "seashell3", "peachpuff1",
+                              "bisque3", "chocolate3", "burlywood2", "lightskyblue1",
+                              "magenta2", "mediumpurple", "olivedrab4", "thistle", "firebrick",
+                              "yellow2", "tomato", "plum1", "palevioletred", "orchid",
+                              "midnightblue", "moccasin", "cornsilk2", "mistyrose", "chartreuse3",
+                              "lemonchiffon", "khaki3", "lightblue","royalblue","gray60","black")) +
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        axis.text.y=element_text(size=12),axis.title=element_text(size=14),
+        axis.text.x=element_text(size=12),
+        legend.position="right", legend.text=element_text(size=12),
+        legend.background=element_rect(fill="transparent",color="transparent"),
+        legend.title=element_text(size=12, face="bold"))
+g_transect.glmm
+
+pred_transect.glmm.gcf<- ggpredict(transect.glmm, terms=c("gc"), type = "fixed")
+pred_transect.glmm.gcr <- ggpredict(transect.glmm, terms=c("gc","localidade"), type = "random")
+df_pred_transect.glmm.gcf <- data.frame(x=pred_transect.glmm.gcf$x,
+                                     predict=pred_transect.glmm.gcf$predicted,
+                                     conf.low=pred_transect.glmm.gcf$conf.low,
+                                     conf.high=pred_transect.glmm.gcf$conf.high)
+
+g_transect.glmm.gc <- plot(pred_transect.glmm.gcr, facets=F, show_title=F, show_ci=F) + 
+  geom_ribbon(data=df_pred_transect.glmm.gcf, aes(x=x, ymin=conf.low, ymax=conf.high),
+              alpha=0.2, inherit.aes=F) +
+  geom_line(data=df_pred_transect.glmm.gcf, aes(x=x, y=predict), 
+            color="black", linewidth=1.5, inherit.aes=F) +
+  theme_bw() + xlab("Média de GC") + labs(color="localidade") +
+  ylab("Variância da localidade") +
+  scale_color_manual(values=c("coral","indianred","gold2","darkolivegreen3","forestgreen",
+                              "violet","purple","rosybrown", "seashell3", "peachpuff1",
+                              "bisque3", "chocolate3", "burlywood2", "lightskyblue1",
+                              "magenta2", "mediumpurple", "olivedrab4", "thistle", "firebrick",
+                              "yellow2", "tomato", "plum1", "palevioletred", "orchid",
+                              "midnightblue", "moccasin", "cornsilk2", "mistyrose", "chartreuse3",
+                              "lemonchiffon", "khaki3", "lightblue","royalblue","gray60","black")) +
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        axis.text.y=element_text(size=12),axis.title=element_text(size=14),
+        axis.text.x=element_text(size=12),
+        legend.position="right", legend.text=element_text(size=12),
+        legend.background=element_rect(fill="transparent",color="transparent"),
+        legend.title=element_text(size=12, face="bold"))
+g_transect.glmm.gc
+
+pred_transect.glmm.lgf<- ggpredict(transect.glmm, terms=c("lg"), type = "fixed")
+pred_transect.glmm.lgr <- ggpredict(transect.glmm, terms=c("lg","localidade"), type = "random")
+df_pred_transect.glmm.lgf <- data.frame(x=pred_transect.glmm.lgf$x,
+                                        predict=pred_transect.glmm.lgf$predicted,
+                                        conf.low=pred_transect.glmm.lgf$conf.low,
+                                        conf.high=pred_transect.glmm.lgf$conf.high)
+
+g_transect.glmm.lg <- plot(pred_transect.glmm.lgr, facets=F, show_title=F, show_ci=F) + 
+  geom_ribbon(data=df_pred_transect.glmm.lgf, aes(x=x, ymin=conf.low, ymax=conf.high),
+              alpha=0.2, inherit.aes=F) +
+  geom_line(data=df_pred_transect.glmm.lgf, aes(x=x, y=predict), 
+            color="black", linewidth=1.5, inherit.aes=F) +
+  theme_bw() + xlab("Média de LG") + labs(color="localidade") +
+  ylab("Variância da localidade") +
+  scale_color_manual(values=c("coral","indianred","gold2","darkolivegreen3","forestgreen",
+                              "violet","purple","rosybrown", "seashell3", "peachpuff1",
+                              "bisque3", "chocolate3", "burlywood2", "lightskyblue1",
+                              "magenta2", "mediumpurple", "olivedrab4", "thistle", "firebrick",
+                              "yellow2", "tomato", "plum1", "palevioletred", "orchid",
+                              "midnightblue", "moccasin", "cornsilk2", "mistyrose", "chartreuse3",
+                              "lemonchiffon", "khaki3", "lightblue","royalblue","gray60","black")) +
+  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
+        axis.text.y=element_text(size=12),axis.title=element_text(size=14),
+        axis.text.x=element_text(size=12),
+        legend.position="right", legend.text=element_text(size=12),
+        legend.background=element_rect(fill="transparent",color="transparent"),
+        legend.title=element_text(size=12, face="bold"))
+g_transect.glmm.lg
+
+colours()

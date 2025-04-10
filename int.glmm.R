@@ -167,6 +167,10 @@ res.int.model.nb1 <- simulateResiduals(fittedModel=int.model.nb1, n=1000)
 windows(12,8)
 plot(res.int.model.nb1)
 
+res.int.model.gp <- simulateResiduals(fittedModel=int.model.gp, n=1000)
+windows(12,8)
+plot(res.int.model.gp)
+
 nb1 <- int.model.nb1
 
 ### comparando os modelos mais completos com os mais simples
@@ -215,13 +219,13 @@ nb1.b5 <- glmmTMB(total_dafor  ~ mp + gc + lg + rpm + offset(log(total_min)) + (
 
 ICtab(nb1.b, nb1.b1,  nb1.b2, nb1.b3, nb1.b4, nb1.b5, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.nb1.b3 <- simulateResiduals(fittedModel=nb1.b3, n=1000)
-windows(12,8)
-plot(res.nb1.b3)
-
 res.nb1.b2 <- simulateResiduals(fittedModel=nb1.b2, n=1000)
 windows(12,8)
 plot(res.nb1.b2)
+
+res.nb1.b3 <- simulateResiduals(fittedModel=nb1.b3, n=1000)
+windows(12,8)
+plot(res.nb1.b3)
 
 res.nb1.b5 <- simulateResiduals(fittedModel=nb1.b5, n=1000)
 windows(12,8)
@@ -229,7 +233,7 @@ plot(res.nb1.b5)
 
 res.nb1.b4 <- simulateResiduals(fittedModel=nb1.b4, n=1000)
 windows(12,8)
-plot(res.nb1.b)
+plot(res.nb1.b4)
 
 res.nb1.b1 <- simulateResiduals(fittedModel=nb1.b1, n=1000)
 windows(12,8)
@@ -265,42 +269,42 @@ plot(res.nb1.b2d)
 res.nb1.b2c <- simulateResiduals(fittedModel=nb1.b2c, n=1000)
 windows(12,8)
 plot(res.nb1.b2c)
-#nb1.b2b
+#nb1.b2d
 
-nb1.b2b1 <- glmmTMB(total_dafor  ~ rpm + tf + offset(log(total_min)) + (1|localidade),
-                   data = int.geomonit, control=controle, 
-                   family = nbinom1)
+nb1.b2d1 <- glmmTMB(total_dafor  ~ lg + rpm + offset(log(total_min)) + (1|localidade),
+                    data = int.geomonit, control=controle, 
+                    family = nbinom1)
 
-nb1.b2b2 <- glmmTMB(total_dafor  ~ mp + tf + offset(log(total_min)) + (1|localidade),
-                   data = int.geomonit, control=controle, 
-                   family = nbinom1)
+nb1.b2d2 <- glmmTMB(total_dafor  ~ mp + rpm + offset(log(total_min)) + (1|localidade),
+                 data = int.geomonit, control=controle, 
+                 family = nbinom1)
 
-nb1.b2b3 <- glmmTMB(total_dafor  ~ mp + rpm + offset(log(total_min)) + (1|localidade),
-                   data = int.geomonit, control=controle, 
-                   family = nbinom1)
+nb1.b2d3 <- glmmTMB(total_dafor  ~ mp + lg + offset(log(total_min)) + (1|localidade),
+                    data = int.geomonit, control=controle, 
+                    family = nbinom1)
 
-ICtab(nb1.b2b, nb1.b2b1, nb1.b2b2, nb1.b2b3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(nb1.b2d, nb1.b2d1, nb1.b2d2, nb1.b2d3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.nb1.b2b3 <- simulateResiduals(fittedModel=nb1.b2b3, n=1000)
+res.nb1.b2d2 <- simulateResiduals(fittedModel=nb1.b2d2, n=1000)
 windows(12,8)
-plot(res.nb1.b2b3)
+plot(res.nb1.b2d2)
 
-res.nb1.b2b2 <- simulateResiduals(fittedModel=nb1.b2b2, n=1000)
+res.nb1.b2d3 <- simulateResiduals(fittedModel=nb1.b2d3, n=1000)
 windows(12,8)
-plot(res.nb1.b2b2)
-#pelos residuos, o melhor modelo é o nb1.b2b3
+plot(res.nb1.b2d3)
+#pelos residuos, o melhor modelo é o nb1.b2d3
 
 ## avaliando a variavel relacionada a inflação por zero
 
-nb1.b2b3.zi <- glmmTMB(total_dafor  ~ mp + rpm + offset(log(total_min)) + (1|localidade),
-                  data = int.geomonit, ziformula = ~divers, control=controle, 
-                  family = nbinom1)
+nb1.b2d3.zi <- glmmTMB(total_dafor  ~ mp + lg + offset(log(total_min)) + (1|localidade),
+                                  data = int.geomonit, control=controle, 
+                                  ziformula = ~divers, family = nbinom1)
 
-ICtab(nb1.b2b3, nb1.b2b3.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(nb1.b2d, nb1.b2d.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.zi <- simulateResiduals(fittedModel=nb1.b2b3.zi, n=1000)
+res.zi <- simulateResiduals(fittedModel=nb1.b2d.zi, n=1000)
 windows(12,8)
 plot(res.zi)
 
-intensity.glmm <- nb1.b2b3
+intensity.glmm <- nb1.b2d3
 summary(intensity.glmm)
