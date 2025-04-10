@@ -8,8 +8,9 @@ library("stringr")
 library("hb")
 library("dplyr")
 library("lubridate")
+library("sf")
 
-## data
+#### Data ####
 
 # monitoring
 df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
@@ -75,20 +76,18 @@ df_localidade$comp_m = df_localidade$comp_m/1000
 df_localidade$comp_m/1
 
 
+# Shapefile localities
 
 
+shp_localidades = st_read("data/localidades_shapefile.shp")
+shp_localidades
 
 
-
-
-
+### Data processing ### 
 
 # Aggregate by locality 
 # total time
 # total detections 
-# number of observers
-
-
 # Obtaining the detection and effort df
 # detection is presence/absence by locality by each monitoring strata
 # effort is the number of visual transects where cs were detected
@@ -109,11 +108,8 @@ print(df_monit_effort, n=86)
 df_monit_effort$localidade
 
 
+# left_join distance of localities
 
-
-
-
-# left_join distance
 df_monit_effort <- df_monit_effort %>% 
   left_join(
     df_localidade %>% dplyr::select(localidade, comp_m), 
@@ -121,49 +117,33 @@ df_monit_effort <- df_monit_effort %>%
   )
 
 
-
-
 print(df_monit_effort, n= 140
       )
 
 
-
-
-
-
-#### TESTE
+#### TEST df
 
 #df_monit %>% 
- 
 # filter(dafor > 0 , metodo == "scuba", obs != "estimado dos dados do ICMBio", obs != "Sem geo" ) %>% 
  # print( n=63)
 
 #df_monit_effort %>% 
-
  #filter(obs == "estimado dos dados do ICMBio") 
 
 
 #df_monit_effort %>% 
-  
   #filter(faixa_bat != "Na") 
 
 #df_monit_effort %>% 
-  
   #filter(faixa_bat == "Na") 
-
-
 
 ####
 
 
 
 
+#### Charting by bathimetry strata ############################################### 
 
-################################################################################
-
-#### graph by bathimetric strata ############################################### 
-
-################################################################################
 
 library(ggplot2)
 library(RColorBrewer)
@@ -171,7 +151,6 @@ library(hrbrthemes)
 
 # Positive instead DAFOR
 # Getting the numbers
-
 #df_monit_dafor
 #table(df_monit_dafor$dafor_DAFOR)
 #length(df_monit_dafor$dafor_DAFOR)
@@ -216,8 +195,7 @@ plot_detec_strata <- df_monit_effort %>%
 plot_detec_strata 
 ggsave("plots/detec_batimetria.png", width = 10, height = 5, dpi = 300)
 
-
-# n transects
+# n transects by locality
 
 plot_transec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, max_trsct_vis, sum)) %>% 
@@ -248,47 +226,45 @@ ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 
 
-# CPUE #########################################################################
-# weight by mim max normalization of localit lenght
+#### CPUE #########################################################################
+# Detections/60min/100m
 
-###
 df_monit_effort_dpue <- df_monit_effort %>% 
-  # Min-Max scaling: comp_m -> 0.1 to 1.0
+  # Calculate DPUE per 60min per 100m
   mutate(
-    comp_m_scaled = 0.1 + 0.9 * (comp_m - min(comp_m, na.rm = TRUE)) / 
-      (max(comp_m, na.rm = TRUE) - min(comp_m, na.rm = TRUE))
+    effort_hours = max_trsct_vis / 60,  # Convert minutes to hours
+    locality_100m = comp_m / 100,       # Convert meters to 100m units
+    dpue_standard = n_detection / (effort_hours * locality_100m)
   ) %>%
   
-  # Group and summarize
+  # Group and summarize (if needed)
   group_by(localidade, data, faixa_bat) %>%
   summarise(
-    comp_m = first(comp_m),              # Keep original comp_m (optional)
-    comp_m_scaled = first(comp_m_scaled), # Keep scaled value
-    max_trsct_vis = sum(max(max_trsct_vis)), # Total effort (sum of max transects)
-    n_detection = sum(n_detection),      # Sum detections across groups
-    dpue_raw = n_detection / (max_trsct_vis / 60), # Classic DPUE (detections/hour)
-    dpue_scaled = n_detection / ((max_trsct_vis / 60) * comp_m_scaled) # Size-adjusted DPUE
+    comp_m = first(comp_m),
+    total_effort_hours = sum(effort_hours),
+    total_detections = sum(n_detection),
+    dpue_standard = sum(n_detection) / (sum(effort_hours) * first(locality_100m)),
+    .groups = "drop"
   ) %>%
-  ungroup()
-
-print(df_monit_effort_dpue, n= 86)
-
-####
+  
+  # Round for readability
+  mutate(across(where(is.numeric), ~round(., 2)))
 
 
+print(df_monit_effort_dpue, n= 140)
 
 
 ### sum faixa bat
 
 plot_dpue_strata <- df_monit_effort_dpue %>% 
-  filter(n_detection > 0)  %>% 
-  mutate(localidade = fct_reorder(localidade, dpue_scaled, sum)) %>% 
-  ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue_scaled)) +
+  filter(total_detections > 0)  %>% 
+  mutate(localidade = fct_reorder(localidade, dpue_standard, sum)) %>% 
+  ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue_standard)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
                     labels = c("0-3m", "3-8m", "8m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("DPUE - Detecções/60mim * comp_local_weight ") +
+  ggtitle("DPUE - Detecções/H/100m ") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -308,6 +284,129 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
+####
+
+#### Map #### 
+library(leaflet)
+library(stringi) # For string manipulation
+
+
+
+# 1. LOAD REQUIRED LIBRARIES
+library(sf)
+library(tidyverse)
+library(leaflet)
+library(stringi)
+
+# 2. PREPARE DPUE DATA
+df_dpue <- df_monit_effort_dpue %>%
+  group_by(localidade) %>%
+  summarise(
+    mean_dpue = mean(dpue_standard, na.rm = TRUE),
+    max_dpue = max(dpue_standard, na.rm = TRUE),
+    total_detections = sum(total_detections),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    localidade_clean = tolower(localidade) %>%
+      stringi::stri_trans_general("Latin-ASCII") %>%
+      str_replace_all("\\s+", "_")
+  )
+
+# 3. PREPARE SHAPEFILE DATA
+shp_data <- shp_localidades %>%
+  mutate(
+    localidade_clean = tolower(localidade)
+  )
+
+# 4. JOIN DATASETS
+map_data <- shp_data %>% 
+  left_join(df_dpue, by = "localidade_clean")
+
+# 5. CREATE ENHANCED COLOR SCALE
+# New improved color palette with better visual distinction
+color_palette <- c("#D3D3D3",  # Light grey for 0 values
+                   "#A3D699",  # Light green for very low
+                   "#2ECC71",  # Green for low
+                   "#F1C40F",  # Yellow for medium-low
+                   "#F39C12",  # Orange for medium-high
+                   "#E74C3C")  # Red for high values
+
+# Calculate breaks - now with more categories for better resolution
+dpue_values <- map_data$mean_dpue[!is.na(map_data$mean_dpue)]
+if(length(unique(dpue_values)) <= 4) {
+  breaks <- sort(unique(c(0, dpue_values)))
+} else {
+  # More break points for better gradient
+  breaks <- c(0, 
+              quantile(dpue_values[dpue_values > 0], 
+                       probs = seq(0.2, 0.8, by = 0.2), 
+                       na.rm = TRUE),
+              max(dpue_values, na.rm = TRUE))
+  breaks <- unique(round(breaks, 2))
+  # Ensure at least 4 breaks for the color palette
+  if(length(breaks) < 4) {
+    breaks <- seq(0, max(breaks), length.out = 4)
+  }
+}
+
+# Create color function with new palette
+pal <- colorBin(
+  palette = color_palette,
+  domain = map_data$mean_dpue,
+  bins = breaks,
+  na.color = "#808080",  # Darker grey for NA values
+  pretty = FALSE
+)
+
+# 6. CREATE MAP
+dpue_map <- leaflet(map_data) %>%
+  # Base map tiles
+  addTiles() %>%  # Default OpenStreetMap tiles as fallback
+  #addProviderTiles(providers$OpenStreetMap, group = "OpenStreetMap") %>%
+  addProviderTiles(providers$Esri.WorldImagery, group = "Satellite") %>%
+  #addProviderTiles(providers$CartoDB.Positron, group = "Light") %>%
+  
+  # Add monitoring lines with new color scale
+  addPolylines(
+    color = ~pal(mean_dpue),
+    weight = 6,
+    opacity = 1,
+    label = ~sprintf(
+      "<strong>%s</strong><br>
+       Mean DPUE: %.3f<br>
+       Max DPUE: %.3f<br>
+       Total Detections: %d",
+      localidade.x,
+      round(mean_dpue, 3),
+      round(max_dpue, 3),
+      total_detections
+    ) %>% lapply(htmltools::HTML),
+    highlightOptions = highlightOptions(
+      weight = 6,
+      color = "#666",
+      bringToFront = TRUE
+    )
+  ) %>%
+  
+  # Add  legend
+  addLegend(
+    pal = pal,
+    values = ~mean_dpue,
+    title = "DPUE Detecções/H/100m",
+    position = "bottomright",
+    labFormat = labelFormat(digits = 3),  # More decimal places
+    na.label = "No data",
+    opacity = 1
+  ) %>%
+  
+  # Add scale bar
+  addScaleBar(position = "bottomleft")
+
+# 7. DISPLAY MAP
+dpue_map
+
+
 
 
 
@@ -315,7 +414,7 @@ ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
 # First get localities with sampling in more than one year
 multi_year_localities <- df_monit_effort_dpue %>%
-  filter(n_detection > 0) %>%
+  #filter(total_detections > 0) %>%
   mutate(year = year(data)) %>%
   distinct(localidade, year) %>%  # Get unique year-locality combinations
   group_by(localidade) %>%
@@ -326,12 +425,12 @@ multi_year_localities <- df_monit_effort_dpue %>%
 
 # Filter the detection summary for only these localities
 detection_summary_filtered <- df_monit_effort_dpue %>%
-  filter(n_detection > 0,
+  filter(total_detections > 0,
          localidade %in% multi_year_localities) %>% 
   mutate(year = year(data)) %>%
   group_by(year, localidade) %>%
   summarise(
-    total_detections = sum(n_detection, na.rm = TRUE),
+    total_detections = sum(total_detections, na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -356,15 +455,13 @@ ggplot(detection_summary_filtered, aes(x = year, y = total_detections, color = l
 
 
 
-
-
-
-
-
-
-
 ############ !!!!!!!!!!!!!!!!!!!!!! ############################################
 ################################################################################
+
+
+
+
+
 
 
 # Geomorfolgia total
@@ -427,6 +524,10 @@ bp_all_local = df_geo_local  %>%
 
 bp_all_local
 ggsave("plots/geo_local.png", width = 10, height = 5, dpi = 300)
+
+
+
+
 
 
 
