@@ -76,8 +76,29 @@ df_localidade$comp_m = df_localidade$comp_m/1000
 df_localidade$comp_m/1
 
 
-# Shapefile localities
+# management data from "modeling_weight_class.R" 
 
+df_manag_mass = read_delim("data/data_mass_class_pred.csv",
+                           col_types = list(Local_1 = col_character(),
+                                            Local_2 = col_character(),
+                                            Local_3 = col_character(),
+                                            Data = col_date(format = "%d/%m/%Y"),
+                                            class_1 = col_double(),
+                                            class_2 = col_double(),
+                                            class_3 = col_double(),
+                                            class_4 = col_double(),
+                                            class_5 = col_double(),
+                                            total = col_double(),
+                                            pred_mass = col_double()
+                                            ))
+
+print(df_manag_mass, n = 160)
+
+
+
+
+
+# Shapefile localities
 
 shp_localidades = st_read("data/localidades_shapefile.shp")
 shp_localidades
@@ -138,6 +159,8 @@ print(df_monit_effort, n= 140
   #filter(faixa_bat == "Na") 
 
 ####
+
+
 
 
 
@@ -284,12 +307,34 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
-####
+
+###################
+###################
+# Dafor (RAI das localidades)
+
+filtered_df <- df_monit %>%
+  group_by(dafor_id) %>%
+  filter(any(dafor > 0)) %>%
+  ungroup()
+
+# Create density plot
+ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "DAFOR Value", 
+       y = "Density",
+       title = "Density Distribution of DAFOR Values by Locality",
+       subtitle = "Only including sampling units (dafor_id) with at least one non-zero observation",
+       fill = "Locality") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  scale_x_continuous(limits = c(0, max(filtered_df$dafor)))  # Start at 0 since DAFOR can't be negative
+
+######################
+######################
 
 #### Map #### 
 library(leaflet)
 library(stringi) # For string manipulation
-
 
 
 # 1. LOAD REQUIRED LIBRARIES
@@ -407,18 +452,15 @@ dpue_map <- leaflet(map_data) %>%
 dpue_map
 
 
-
-
-
 ## Detection through the years ##############################
 
 # First get localities with sampling in more than one year
 multi_year_localities <- df_monit_effort_dpue %>%
   #filter(total_detections > 0) %>%
   mutate(year = year(data)) %>%
-  distinct(localidade, year) %>%  # Get unique year-locality combinations
+  #distinct(localidade, year) %>%  # Get unique year-locality combinations
   group_by(localidade) %>%
-  filter(n() > 1) %>%  # Keep only localities with >1 year
+  #filter(n() > 1) %>%  # Keep only localities with >1 year
   ungroup() %>%
   pull(localidade) %>%
   unique()
@@ -439,23 +481,86 @@ ggplot(detection_summary_filtered, aes(x = year, y = total_detections, color = l
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
   labs(
-    title = "Detections by Locality (Multi-Year Sampling)",
-    subtitle = "Only showing localities with detections in >1 year",
-    x = "Year", 
-    y = "Number of Detections",
-    color = "Locality"
+    title = "Detecções por Localidade (2022-2025) ",
+    #subtitle = "Only showing localities with detections in >1 year",
+    x = "Ano", 
+    y = "Numero de Detecções",
+    color = "Localidade"
   ) +
-  theme_minimal() +
+  #theme_minimal() +
+  theme(legend.position = "right",
+        panel.background = element_blank(),
+        plot.title = element_text(size = 18, color ="#284b80"),
+        axis.ticks.length.x = unit(0.2, "cm"),
+        axis.line.x = element_line(colour = "grey",
+                                   linewidth = 0.8, linetype = "solid"),
+        axis.line.y = element_line(colour = "grey",
+                                   linewidth = 0.8, linetype = "solid"))
   scale_x_continuous(breaks = unique(detection_summary_filtered$year)) +
   theme(legend.position = "bottom",
         legend.text = element_text(size = 8)) +  # Adjust legend text size
   guides(color = guide_legend(nrow = 3))  # Wrap legend into multiple rows if needed
 
+ggsave("plots/detec_years.png", width = 10, height = 5, dpi = 300)
+  
+
+#  mass managed by locality (mass by model) through yearsD
+
+df_manag_mass
+
+df_manag_mass =  df_manag_mass  %>% 
+  filter(pred_mass != "Na") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(Local_3, "_", " "))) %>%
+  group_by(localidade, Data) %>%
+  ungroup()
+df_manag_mass
+
+
+df_manag_mass_years = df_manag_mass %>% 
+  filter(pred_mass != "Na") %>% 
+  mutate(year = year(Data)) %>%
+  group_by(localidade, year) %>% 
+  ungroup()
+  
+
+# 1. Calculate cumulative mass per localidade and year
+df_cumulative <- df_manag_mass_years %>%
+  arrange(localidade, year) %>%  # Ensure chronological order
+  group_by(localidade) %>%
+  mutate(cumulative_mass = cumsum(pred_mass)) %>%  # Cumulative sum
+  ungroup()
+
+# 2. Plot cumulative mass over time
+ggplot(df_cumulative, aes(x = year, y = cumulative_mass, color = localidade)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  labs(
+    title = "Mass Manejada Acumulada (2012-2025)",
+    x = "Ano", 
+    y = "Massa Manejada Acumulada (g)",
+    color = "Localidade"
+  ) +
+  scale_x_continuous(breaks = unique(df_cumulative$year)) +
+  theme(
+    legend.position = "bottom",
+    panel.background = element_blank(),
+    plot.title = element_text(size = 18, color = "#284b80"),
+    axis.ticks.length.x = unit(0.2, "cm"),
+    axis.line.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    axis.line.y = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    legend.text = element_text(size = 8)
+  ) +
+  guides(color = guide_legend(nrow = 3))
+
+
+ggsave("plots/mass_years.png", width = 10, height = 5, dpi = 300)
 
 
 
 
-############ !!!!!!!!!!!!!!!!!!!!!! ############################################
+
+
+################################################################################
 ################################################################################
 
 
