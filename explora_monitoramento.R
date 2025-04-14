@@ -128,6 +128,9 @@ print(df_monit_effort, n=86)
 
 df_monit_effort$localidade
 
+df_monit_effort %>% 
+filter(localidade == "BAIA DAS TARTARUGAS")
+
 
 # left_join distance of localities
 
@@ -181,7 +184,7 @@ library(hrbrthemes)
 df_monit
 table(df_monit$dafor)
 length(df_monit$dafor)
-
+length(df_monit$dafor)/60
 
 table(df_monit_effort$localidade)
 table(df_monit_effort$faixa_bat)
@@ -194,10 +197,10 @@ plot_detec_strata <- df_monit_effort %>%
   filter(n_detection > 0)  %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=n_detection)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("0-3m", "3-8m", "8m-Interface")) +
+                    labels = c("0-2m", "3-6m", "7m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Total de transectos(1m) com presença de coral-sol") +
+  ggtitle("Total de transectos (1 min.) com presença de coral-sol") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -224,10 +227,10 @@ plot_transec_strata <- df_monit_effort %>%
   mutate(localidade = fct_reorder(localidade, max_trsct_vis, sum)) %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=max_trsct_vis)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("0-3m", "3-8m", "8m-Interface")) +
+                    labels = c("0-2m", "3-6m", "7m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Total de Transectos (1min) por localidade") +
+  ggtitle("Total de Transectos (1 min.) por localidade") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -284,10 +287,10 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
   mutate(localidade = fct_reorder(localidade, dpue_standard, sum)) %>% 
   ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue_standard)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("0-3m", "3-8m", "8m-Interface")) +
+                    labels = c("0-2m", "3-6m", "7m-Interface")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("DPUE - Detecções/H/100m ") +
+  ggtitle("Detecções por Unidade de Esforço - Detecções/H/100m ") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -320,14 +323,16 @@ filtered_df <- df_monit %>%
 # Create density plot
 ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
   geom_density(alpha = 0.5) +
-  labs(x = "DAFOR Value", 
-       y = "Density",
-       title = "Density Distribution of DAFOR Values by Locality",
-       subtitle = "Only including sampling units (dafor_id) with at least one non-zero observation",
-       fill = "Locality") +
+  labs(x = "IAR (DAFOR)", 
+       y = "Densidade",
+       title = "Distribuição da densidade IAR por Localidade",
+       subtitle = "Somente localidade com IAR positivo",
+       fill = "Localidade") +
   theme_minimal() +
   theme(legend.position = "bottom") +
   scale_x_continuous(limits = c(0, max(filtered_df$dafor)))  # Start at 0 since DAFOR can't be negative
+
+ggsave("plots/density_IAR.png", width = 10, height = 5, dpi = 300)
 
 ######################
 ######################
@@ -441,7 +446,7 @@ dpue_map <- leaflet(map_data) %>%
     title = "DPUE Detecções/H/100m",
     position = "bottomright",
     labFormat = labelFormat(digits = 3),  # More decimal places
-    na.label = "No data",
+    na.label = "Não amostrado",
     opacity = 1
   ) %>%
   
@@ -454,107 +459,197 @@ dpue_map
 
 ## Detection through the years ##############################
 
-# First get localities with sampling in more than one year
-multi_year_localities <- df_monit_effort_dpue %>%
-  #filter(total_detections > 0) %>%
-  mutate(year = year(data)) %>%
-  #distinct(localidade, year) %>%  # Get unique year-locality combinations
-  group_by(localidade) %>%
-  #filter(n() > 1) %>%  # Keep only localities with >1 year
-  ungroup() %>%
-  pull(localidade) %>%
-  unique()
-
-# Filter the detection summary for only these localities
+# 1. Process the data with seasonal grouping
 detection_summary_filtered <- df_monit_effort_dpue %>%
   filter(total_detections > 0,
          localidade %in% multi_year_localities) %>% 
-  mutate(year = year(data)) %>%
-  group_by(year, localidade) %>%
+  mutate(
+    # Create seasonal periods
+    season = case_when(
+      month(data) %in% c(11, 12, 1) ~ "Nov-Jan",
+      month(data) %in% c(2, 3, 4) ~ "Fev-Abr",
+      month(data) %in% c(5, 6, 7) ~ "Mai-Jul",
+      month(data) %in% c(8, 9, 10) ~ "Ago-Out",
+      TRUE ~ "Other"
+    ),
+    
+    # Adjust year for December to group with following Jan
+    season_year = if_else(month(data) == 12, year(data) + 1, year(data)),
+    
+    # Create complete season label
+    season_label = paste(season, season_year),
+    
+    # Create numeric ordering for plotting
+    season_num = case_when(
+      season == "Nov-Jan" ~ 1,
+      season == "Fev-Abr" ~ 2,
+      season == "Mai-Jul" ~ 3,
+      season == "Ago-Out" ~ 4
+    ) + (season_year - min(season_year)) * 4
+  ) %>%
+  group_by(season_num, season_label, localidade) %>%
   summarise(
     total_detections = sum(total_detections, na.rm = TRUE),
     .groups = "drop"
   )
 
-# Plot for filtered localities
-ggplot(detection_summary_filtered, aes(x = year, y = total_detections, color = localidade)) +
+# 2. Create the plot with connected lines
+ggplot(detection_summary_filtered, 
+       aes(x = season_num, 
+           y = total_detections, 
+           color = localidade,
+           group = localidade)) +
   geom_line(linewidth = 1) +
   geom_point(size = 2) +
+  
+  scale_x_continuous(
+    breaks = unique(detection_summary_filtered$season_num),
+    labels = unique(detection_summary_filtered$season_label)
+  ) +
   labs(
-    title = "Detecções por Localidade (2022-2025) ",
-    #subtitle = "Only showing localities with detections in >1 year",
-    x = "Ano", 
-    y = "Numero de Detecções",
+    title = "Detecções por Localidade (2022-2025)",
+    x = "Período", 
+    y = "Número de Detecções",
     color = "Localidade"
   ) +
-  #theme_minimal() +
-  theme(legend.position = "right",
-        panel.background = element_blank(),
-        plot.title = element_text(size = 18, color ="#284b80"),
-        axis.ticks.length.x = unit(0.2, "cm"),
-        axis.line.x = element_line(colour = "grey",
-                                   linewidth = 0.8, linetype = "solid"),
-        axis.line.y = element_line(colour = "grey",
-                                   linewidth = 0.8, linetype = "solid"))
-  scale_x_continuous(breaks = unique(detection_summary_filtered$year)) +
-  theme(legend.position = "bottom",
-        legend.text = element_text(size = 8)) +  # Adjust legend text size
-  guides(color = guide_legend(nrow = 3))  # Wrap legend into multiple rows if needed
-
-ggsave("plots/detec_years.png", width = 10, height = 5, dpi = 300)
-  
-
-#  mass managed by locality (mass by model) through yearsD
-
-df_manag_mass
-
-df_manag_mass =  df_manag_mass  %>% 
-  filter(pred_mass != "Na") %>% 
-  mutate(localidade = str_to_upper(str_replace_all(Local_3, "_", " "))) %>%
-  group_by(localidade, Data) %>%
-  ungroup()
-df_manag_mass
-
-
-df_manag_mass_years = df_manag_mass %>% 
-  filter(pred_mass != "Na") %>% 
-  mutate(year = year(Data)) %>%
-  group_by(localidade, year) %>% 
-  ungroup()
-  
-
-# 1. Calculate cumulative mass per localidade and year
-df_cumulative <- df_manag_mass_years %>%
-  arrange(localidade, year) %>%  # Ensure chronological order
-  group_by(localidade) %>%
-  mutate(cumulative_mass = cumsum(pred_mass)) %>%  # Cumulative sum
-  ungroup()
-
-# 2. Plot cumulative mass over time
-ggplot(df_cumulative, aes(x = year, y = cumulative_mass, color = localidade)) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  labs(
-    title = "Mass Manejada Acumulada (2012-2025)",
-    x = "Ano", 
-    y = "Massa Manejada Acumulada (g)",
-    color = "Localidade"
-  ) +
-  scale_x_continuous(breaks = unique(df_cumulative$year)) +
+  theme_minimal() +
   theme(
     legend.position = "bottom",
     panel.background = element_blank(),
     plot.title = element_text(size = 18, color = "#284b80"),
-    axis.ticks.length.x = unit(0.2, "cm"),
-    axis.line.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
-    axis.line.y = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.line.x = element_line(color = "grey", linewidth = 0.8),
+    axis.line.y = element_line(color = "grey", linewidth = 0.8),
     legend.text = element_text(size = 8)
   ) +
   guides(color = guide_legend(nrow = 3))
 
+# 3. Save the plot
+ggsave("plots/detec_years.png", width = 10, height = 6, dpi = 300)
+################################################################################
+library(ggrepel)
+library(viridis)
+
+# 1. Process the data with seasonal grouping (unchanged)
+detection_summary_filtered <- df_monit_effort_dpue %>%
+  #filter(localidade == "BAIA DAS TARTARUGAS") %>% 
+  filter(total_detections > 0,
+         localidade %in% multi_year_localities) %>% 
+  mutate(
+    season = case_when(
+      month(data) %in% c(11, 12, 1) ~ "Nov-Jan",
+      month(data) %in% c(2, 3, 4) ~ "Fev-Abr",
+      month(data) %in% c(5, 6, 7) ~ "Mai-Jul",
+      month(data) %in% c(8, 9, 10) ~ "Ago-Out",
+      TRUE ~ "Other"
+    ),
+    season_year = if_else(month(data) == 12, year(data) + 1, year(data)),
+    season_label = paste(season, season_year),
+    season_num = case_when(
+      season == "Nov-Jan" ~ 1,
+      season == "Fev-Abr" ~ 2,
+      season == "Mai-Jul" ~ 3,
+      season == "Ago-Out" ~ 4
+    ) + (season_year - min(season_year)) * 4
+  ) %>%
+  group_by(season_num, season_label, localidade) %>%
+  summarise(
+    total_detections = sum(total_detections, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# 2. Create the improved plot
+ggplot(detection_summary_filtered, 
+            aes(x = season_num, 
+                y = total_detections, 
+                color = localidade,
+                group = localidade)) +
+  geom_line(linewidth = 1, alpha = 0.8) +
+  geom_point(size = 3) +
+  geom_text_repel(
+    data = . %>% group_by(localidade) %>% filter(season_num == max(season_num)),
+    aes(label = localidade),
+    size = 3.5,
+    direction = "y",
+    xlim = c(max(detection_summary_filtered$season_num) + 1, NA),
+    segment.color = 'grey50',
+    min.segment.length = 0
+  ) +
+  scale_color_viridis_d(option = "D", end = 0.9) +
+  scale_x_continuous(
+    breaks = unique(detection_summary_filtered$season_num),
+    labels = unique(detection_summary_filtered$season_label),
+    limits = c(min(detection_summary_filtered$season_num), 
+               max(detection_summary_filtered$season_num) + 3)
+  ) +
+  labs(
+    title = "Detecções por Localidade (2022-2025)",
+    x = "Período", 
+    y = "Número de Detecções"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.background = element_blank(),
+    plot.title = element_text(size = 16, face = "bold", color = "#284b80"),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.line.x = element_line(color = "grey", linewidth = 0.8),
+    axis.line.y = element_line(color = "grey", linewidth = 0.8),
+    plot.margin = unit(c(1, 5, 1, 1), "lines")  # Extra right margin for labels
+  ) +
+
+# 3. Render plot with proper clipping
+coord_cartesian(clip = 'off')
+
+# 4. Save the plot
+ggsave("plots/detec_years_improved.png", width = 12, height = 7, dpi = 300)
+
+#################################################################################
+
+#  mass managed by locality (mass by model) through years
+library(ggrepel)
+library(viridis)
+
+# Create plot
+ggplot(df_cumulative_max, aes(x = year, y = cumulative_mass/1000, 
+                                   color = localidade, group = localidade)) +
+  geom_line(linewidth = 1, alpha = 0.7) +
+  geom_point(size = 3) +
+  geom_text_repel(
+    data = . %>% group_by(localidade) %>% filter(year == max(year)),
+    aes(label = localidade),
+    size = 4,
+    direction = "y",
+    xlim = c(max(df_cumulative_max$year) + 0.5, NA),
+    segment.color = 'grey50'
+  ) +
+  scale_color_viridis_d(option = "D", end = 0.9) +
+  scale_x_continuous(
+    breaks = unique(df_cumulative_max$year),
+    limits = c(min(df_cumulative_max$year), max(df_cumulative_max$year) + 2)
+  ) +
+  labs(
+    title = "Massa Manejada Acumulada (2012-2025)",
+    x = "Ano", 
+    y = "Massa Manejada Acumulada (Kg)"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.grid.minor = element_blank(),
+    
+    plot.title = element_text(size = 18, color = "#284b80"),
+    axis.line.x = element_line(color = "grey", linewidth = 0.8),
+    axis.line.y = element_line(color = "grey", linewidth = 0.8),
+    
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  ) +
+
+# Adjust plot margins to accommodate labels
+coord_cartesian(clip = 'off') + 
+  theme(plot.margin = unit(c(1, 8, 1, 1), "lines"))
 
 ggsave("plots/mass_years.png", width = 10, height = 5, dpi = 300)
-
 
 
 

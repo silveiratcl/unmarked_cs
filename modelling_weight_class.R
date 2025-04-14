@@ -67,11 +67,6 @@ counting_data <- counting_data %>%
 if (!require(ggpmisc)) install.packages("ggpmisc")
 if (!require(viridis)) install.packages("viridis")
 
-# Load libraries
-library(ggplot2)
-library(dplyr)
-library(ggpmisc) # For stat_poly_eq
-library(viridis) # For color scales
 
 # Prepare class sample size annotations
 class_n <- mass_data %>%
@@ -101,19 +96,28 @@ ggplot(counting_data, aes(x = total, y = pred_mass)) +
   # 1:1 reference line
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "blue") +
   
-  # Class sample size annotations
-  geom_text(data = class_n,
-            aes(x = x_pos, y = y_pos, label = label),
-            hjust = 0, size = 3.5, color = "darkgreen") +
+
   
   # Customization
   scale_color_viridis(name = "Incerteza\nRelativa", option = "plasma") +
   labs(title = "Predição de Massa de Coral-sol com Classes de Tamanho",
-       subtitle = "Vermelho: Regressão Linear | Azul: 1:1 referencia",
+       subtitle = "Vermelho: Regressão Linear | Azul: 1:1 referencia | n = c1-30, c2-39, c3-46, c4-35, c5-10",
        x = "Contagem de Colônias",
        y = "Predição de Massa (g)",
        caption = "Barras indicam o intervalo de confiança de  95%") +
-  theme_minimal() +
+  #theme_minimal() +
   theme(legend.position = "right",
-        plot.title = element_text(face = "bold"))
+        panel.background = element_blank(),
+        plot.title = element_text(size = 18, color ="#284b80"),
+        axis.ticks.length.x = unit(0.2, "cm"),
+        axis.line.x = element_line(colour = "grey",
+                                   linewidth = 0.8, linetype = "solid"),
+        axis.line.y = element_line(colour = "grey",
+                                   linewidth = 0.8, linetype = "solid"))
 
+
+ggsave("plots/counting_mass.png", width = 10, height = 5, dpi = 300)        
+        
+### Return Final data frame
+counting_data
+write.csv(counting_data, file = "data/counting_data_pred.csv", row.names = FALSE)
