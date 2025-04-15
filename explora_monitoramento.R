@@ -38,6 +38,24 @@ df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
 spec(df_monit)
 df_monit[2000,]
 
+# add colunm localidade_rebio
+
+unique(df_monit$localidade)
+
+
+
+###################!!!!!!!!!!!!!!!!!!!!!
+
+df_monit <- df_monit %>%
+  mutate(localidade_rebio = if_else(localidade %in% c("rancho_norte",
+                                                      "letreiro",
+                                                      "pedra_do_elefante",
+                                                      ), "rebio", 
+                                    if_else(localidade %in% c( "baia_das_tartarugas", 
+                                                               "saco_do_batismo"), "entorno_imediato", "entorno")))
+##################!!!!!!!!!!!!!!!!!!!!!!
+
+
 # geomophology
 
 df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv", 
@@ -197,7 +215,7 @@ plot_detec_strata <- df_monit_effort %>%
   filter(n_detection > 0)  %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=n_detection)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("0-2m", "3-6m", "7m-Interface")) +
+                    labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("Total de transectos (1 min.) com presença de coral-sol") +
@@ -227,7 +245,7 @@ plot_transec_strata <- df_monit_effort %>%
   mutate(localidade = fct_reorder(localidade, max_trsct_vis, sum)) %>% 
   ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=max_trsct_vis)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("0-2m", "3-6m", "7m-Interface")) +
+                    labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("Total de Transectos (1 min.) por localidade") +
@@ -260,7 +278,7 @@ df_monit_effort_dpue <- df_monit_effort %>%
   mutate(
     effort_hours = max_trsct_vis / 60,  # Convert minutes to hours
     locality_100m = comp_m / 100,       # Convert meters to 100m units
-    dpue_standard = n_detection / (effort_hours * locality_100m)
+    dpue_standard = n_detection / (effort_hours / locality_100m)
   ) %>%
   
   # Group and summarize (if needed)
@@ -287,7 +305,7 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
   mutate(localidade = fct_reorder(localidade, dpue_standard, sum)) %>% 
   ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue_standard)) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("0-2m", "3-6m", "7m-Interface")) +
+                    labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   ggtitle("Detecções por Unidade de Esforço - Detecções/H/100m ") +
@@ -317,7 +335,7 @@ ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
 filtered_df <- df_monit %>%
   group_by(dafor_id) %>%
-  filter(any(dafor > 0)) %>%
+  filter(any(localidade)) %>% # wait by entorno, entorno imediato...
   ungroup()
 
 # Create density plot
