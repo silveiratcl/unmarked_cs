@@ -1,14 +1,16 @@
 ## 
 # Indicadores Monitoramento
 
-library("tidyverse")
-library("readr")
-library("tidyr")
-library("stringr")
-library("hb")
-library("dplyr")
-library("lubridate")
-library("sf")
+library(tidyverse)
+library(readr)
+library(tidyr)
+library(stringr)
+library(hb)
+library(dplyr)
+library(lubridate)
+library(sf)
+library(ggplot2)
+library(patchwork)
 
 #### Data ####
 
@@ -360,45 +362,30 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
-
 ###################
-###################
-# Dafor (RAI das localidades)
+# Dafor Density plot (IAR of localidades)
 
-filtered_df <- df_monit %>%
-  group_by(localidade_rebio, localidade, year(data))
-  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "),
-         localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " ")                         ),
-         n_trans_count =  )) %>% 
-  filter(localidade_rebio == "rebio") 
-  ungroup()
-
-#################################################
-  
 filtered_df <- df_monit %>%
   mutate(
     localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
     localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " ")),
     year = year(data)  # Extract year from 'data'
   ) %>%
-  filter(localidade_rebio == "REBIO") %>% 
+  filter(localidade_rebio != c("ENTORNO")) %>% 
   # Add a column counting rows per locality-year group (keeps all original data)
   add_count(localidade, year, name = "n_trans_count") %>%
   ungroup()
 
 filtered_df    
 
-#################################################
-  
-  
 
 # Create density plot general
 ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
   geom_density(alpha = 0.5) +
-  labs(x = "IAR (DAFOR)", 
+  labs(x = "IAR", 
        y = "Densidade",
-       title = "Distribuição da densidade IAR por Localidade",
-       subtitle = "Somente localidade com IAR positivo",
+       title = "Distribuição da Densidade IAR por Localidade",
+       subtitle = "REBIO Arvoredo e Entorno Imediato",
        fill = "Localidade") +
   theme_minimal() +
   theme(legend.position = "bottom") +
@@ -407,43 +394,26 @@ ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
 ggsave("plots/density_IAR.png", width = 10, height = 5, dpi = 300)
 
 
-
 # Create density plot by locality
-# compares the dafor by two date older an newer
-# paste the number of visual transects
-
-ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
-  geom_density(alpha = 0.5) +
-  labs(x = "IAR", 
-       y = "Densidade",
-       title = "Distribuição da densidade IAR por Localidade",
-       subtitle = "Somente localidade com IAR positivo",
-       fill = "Localidade") +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  scale_x_continuous(limits = c(0, max(filtered_df$dafor)))  # Start at 0 since DAFOR can't be negative
-
+# Compares the DAFOR between oldest and newest years
+# Displays number of visual transects (n=) in each year label
 
 ##############################
+### 1. Prepare and check data
 ##############################
-library(dplyr)
-library(lubridate)
-library(ggplot2)
-library(patchwork)
-
-# 1. Prepare the data - with explicit checks
-rancho_data <- df_monit %>%
+data <- df_monit %>%
   mutate(
     localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+    localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " ")                           ),
     year = year(data)
   ) %>%
-  filter(localidade == "RANCHO NORTE",
+  filter(localidade_rebio != "ENTORNO",
          obs != "estimado dos dados do ICMBio")
 
 # Check if data exists
-if(nrow(rancho_data) == 0) stop("No data found for RANCHO NORTE")
+if(nrow(data) == 0) stop("No data found")
 
-rancho_data <- rancho_data %>%
+density_data <- data %>%
   group_by(year) %>%
   mutate(
     n_trans_count = n(),
@@ -456,93 +426,241 @@ rancho_data <- rancho_data %>%
     year_label = factor(year_label, levels = unique(year_label))
   )
 
-
-rancho_data %>% 
-  select(localidade,  data, tempo_censo, dafor, total_dafor)
-print(rancho_data %>% 
-        select(localidade,  data, tempo_censo, dafor, total_dafor), n= 276)
-
-# 2. Create basic plot with all years together
-base_plot <- ggplot(rancho_data, aes(x = dafor, fill = year_label)) +
-  geom_density(alpha = 0.5, color = NA) +
-  scale_x_continuous(limits = c(0, 10), name = "RAI") +
-  labs(title = "RANCHO NORTE - Density by Year") +
-  theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    legend.position = "top",
-    plot.title = element_text(hjust = 0.5, face = "bold")
-  )
-
-# 3. Create the comparison version (vertical layout)
-years <- levels(rancho_data$year_label)
+##############################
+### 2. Set up comparison parameters
+##############################
+years <- levels(density_data$year_label)
 oldest <- years[1]
 newest <- years[length(years)]
 
-# Calculate comparison
-dafor_compare <- rancho_data %>%
+# Get comparison values
+dafor_compare <- density_data %>%
   filter(year_label %in% c(oldest, newest)) %>%
   distinct(year_label, .keep_all = TRUE) %>%
   arrange(year_label)
 
-# Create color scheme
+# Color scheme: red if newest > oldest, blue otherwise
 plot_colors <- ifelse(
   years == newest,
   ifelse(dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1], 
-         "#FF6B6B", "#6B8EFF"),
+         "red", "#6B8EFF"),
   ifelse(years == oldest, "grey70", "grey90")
 )
 
-# Create individual plots
+##############################
+### 3. Create individual plots
+##############################
 plot_list <- lapply(years, function(yr) {
-  ggplot(filter(rancho_data, year_label == yr), aes(x = dafor)) +
+  is_last_plot <- (yr == years[length(years)])
+  
+  # Calculate y-max for consistent annotation positioning
+  dens <- density(filter(density_data, year_label == yr)$dafor)
+  y_max <- max(dens$y)
+  
+  ggplot(filter(density_data, year_label == yr), aes(x = dafor)) +
     geom_density(fill = plot_colors[which(years == yr)], alpha = 0.8) +
-    geom_text(
-      aes(x = 8, y = 0.1, label = yr),
-      size = 4, hjust = 0.5, vjust = 0
+    
+    # Year annotation in upper right
+    annotate(
+      "text",
+      x = 9.5,            # Right-aligned (near x=10)
+      y = y_max * 0.95,   # 95% of max density height
+      label = yr,
+      size = 9,
+      hjust = 1,          # Right-justified
+      vjust = 1           # Top-justified
     ) +
-    scale_x_continuous(limits = c(0, 10)) +
+    
+    scale_x_continuous(
+      limits = c(0, 10),
+      breaks = seq(0, 10, 2),
+      labels = seq(0, 10, 2)
+    ) +
     scale_y_continuous(limits = c(0, NA)) +
-    theme_void() +
+    theme_minimal() +
     theme(
-      plot.margin = margin(2, 2, 2, 2),
-      axis.title = element_blank()
-    )
+      plot.margin = margin(5, 5, 5, 5, "pt"),
+      axis.title.y = element_blank(),
+      axis.text.y = element_blank(),
+      panel.grid = element_blank(),
+      axis.title.x = if (is_last_plot) element_text(size = 14) else element_blank(),
+      axis.text.x = if (is_last_plot) element_text(size = 12) else element_blank()
+    ) +
+    labs(x = if (is_last_plot) "IAR" else NULL)
 })
 
-# Combine plots
+##############################
+### 4. Combine and display
+##############################
 final_plot <- wrap_plots(plot_list, ncol = 1) +
   plot_annotation(
-    title = "RANCHO NORTE - Yearly Comparison",
-    subtitle = sprintf("%s %s %s (Total DAFOR)", newest,
-                       ifelse(dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1], ">", "≤"),
-                       oldest),
+    title = "Distribuição de IAR por ano - REBIO e Entorno Imediato",
     theme = theme(
-      plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
-      plot.subtitle = element_text(hjust = 0.5, size = 12,
-                                   color = ifelse(dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1],
-                                                  "#FF6B6B", "#6B8EFF"))
+      plot.title = element_text(hjust = 0.5, size = 14, face = "bold",
+                                margin = margin(b = 10))
     )
-  ) &
-  xlab("RAI (0-10 scale)")
+  )
 
-# 4. Display BOTH versions
-print(base_plot)  # Simple combined version
-print(final_plot) # Vertical comparison version
+print(final_plot)
 
- 5. Save to file as backup
-ggsave("rancho_density_simple.png", base_plot, width = 8, height = 6)
-ggsave("rancho_density_vertical.png", final_plot, width = 6, height = 8)
 
-# Return the data for inspection
-list(
-  data = rancho_data,
-  comparison = dafor_compare,
-  colors = setNames(plot_colors, years)
-)
-##############################
-##############################
+ # 5. Save to file as backup
+ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 10, dpi = 300)
 
+
+#########################################
+## Automated solution to create all plots
+library(tidyverse)
+library(patchwork)
+library(fs)
+
+# 1. Create output directory if it doesn't exist
+dir_create("plots/density_by_locality")
+
+# 2. Get all unique localities
+localities <- df_monit %>%
+  filter(localidade_rebio != "entorno") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+         localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>% 
+  distinct(localidade) %>%
+  pull(localidade)
+
+# 3. Create plotting function
+create_density_plot <- function(locality) {
+  # Prepare data
+  loc_data <- df_monit %>%
+    mutate(
+      localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+      year = year(data)
+    ) %>%
+    filter(localidade == locality,
+           obs != "estimado dos dados do ICMBio",
+           localidade_rebio != "entorno")
+  
+  # Skip if no data
+  if (nrow(loc_data) == 0) {
+    message(paste("No data found for", locality))
+    return(NULL)
+  }
+  
+  # Process data
+  loc_data <- loc_data %>%
+    group_by(year) %>%
+    mutate(
+      n_trans_count = n(),
+      total_dafor = sum(dafor, na.rm = TRUE)
+    ) %>%
+    ungroup() %>%
+    arrange(year) %>%
+    mutate(
+      year_label = paste0(year, " (n=", n_trans_count, ")"),
+      year_label = factor(year_label, levels = unique(year_label))
+    )
+  
+  # Set up comparison parameters
+  years <- levels(loc_data$year_label)
+  oldest <- years[1]
+  newest <- years[length(years)]
+  
+  dafor_compare <- loc_data %>%
+    filter(year_label %in% c(oldest, newest)) %>%
+    distinct(year_label, .keep_all = TRUE) %>%
+    arrange(year_label)
+  
+  # Color scheme 
+  plot_colors <- if (all(loc_data$dafor == 0)) {
+    rep("#00AA00", length(years))  # Bright green for all zeros
+  } else if (length(years) == 1) {
+    rep("grey70", length(years))   # Single year with data > 0
+  } else {
+    # Normal comparison logic
+    oldest <- years[1]
+    newest <- years[length(years)]
+    dafor_compare <- loc_data %>%
+      filter(year_label %in% c(oldest, newest)) %>%
+      distinct(year_label, .keep_all = TRUE) %>%
+      arrange(year_label)
+    
+    ifelse(
+      years == newest,
+      ifelse(dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1], 
+             "#FF0000", "#0066CC"),  # Red vs. blue
+      ifelse(years == oldest, "grey70", "grey90")
+    )
+  }
+  
+  # Create individual plots
+  plot_list <- lapply(years, function(yr) {
+    is_last_plot <- (yr == years[length(years)])
+    
+    dens <- density(filter(loc_data, year_label == yr)$dafor)
+    y_max <- max(dens$y)
+    
+    ggplot(filter(loc_data, year_label == yr), aes(x = dafor)) +
+      geom_density(fill = plot_colors[which(years == yr)], alpha = 0.8) +
+      annotate(
+        "text",
+        x = 9.5,
+        y = y_max * 0.95,
+        label = yr,
+        size = 9,
+        hjust = 1,
+        vjust = 1
+      ) +
+      scale_x_continuous(
+        limits = c(0, 10),
+        breaks = seq(0, 10, 2),
+        labels = seq(0, 10, 2)
+      ) +
+      scale_y_continuous(limits = c(0, NA)) +
+      theme_minimal() +
+      theme(
+        plot.margin = margin(5, 5, 5, 5, "pt"),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        panel.grid = element_blank(),
+        axis.title.x = if (is_last_plot) element_text() else element_blank(),
+        axis.text.x = if (is_last_plot) element_text() else element_blank()
+      ) +
+      labs(x = if (is_last_plot) "IAR" else NULL)
+  })
+  
+  # Combine plots
+  final_plot <- wrap_plots(plot_list, ncol = 1) +
+    plot_annotation(
+      title = paste(locality),
+      theme = theme(
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold",
+                                  margin = margin(b = 10))
+      )
+    )
+  
+  # Save plot
+  filename <- paste0("plots/density_by_locality/", 
+                     str_replace_all(tolower(locality), " ", "_"), 
+                     "_density.png")
+  
+  ggsave(filename, final_plot, width = 8, height = 2 * length(years), dpi = 300)
+  return(filename)
+}
+
+# 4. Process all localities (with progress bar)
+created_files <- map(localities, ~ {
+  tryCatch({
+    create_density_plot(.x)
+  }, error = function(e) {
+    message(paste("Failed for", .x, ":", e$message))
+    NULL
+  })
+})
+
+# 5. Report results
+successful <- keep(created_files, ~ !is.null(.x))
+message(paste("\nSuccessfully created", length(successful), " plots in plots/density_by_locality/"))
+
+
+
+################################################################################
 
 #### Map #### 
 library(leaflet)
@@ -666,74 +784,6 @@ dpue_map
 
 ## Detection through the years ##############################
 
-# 1. Process the data with seasonal grouping
-detection_summary_filtered <- df_monit_effort_dpue %>%
-  filter(total_detections > 0,
-         localidade %in% multi_year_localities) %>% 
-  mutate(
-    # Create seasonal periods
-    season = case_when(
-      month(data) %in% c(11, 12, 1) ~ "Nov-Jan",
-      month(data) %in% c(2, 3, 4) ~ "Fev-Abr",
-      month(data) %in% c(5, 6, 7) ~ "Mai-Jul",
-      month(data) %in% c(8, 9, 10) ~ "Ago-Out",
-      TRUE ~ "Other"
-    ),
-    
-    # Adjust year for December to group with following Jan
-    season_year = if_else(month(data) == 12, year(data) + 1, year(data)),
-    
-    # Create complete season label
-    season_label = paste(season, season_year),
-    
-    # Create numeric ordering for plotting
-    season_num = case_when(
-      season == "Nov-Jan" ~ 1,
-      season == "Fev-Abr" ~ 2,
-      season == "Mai-Jul" ~ 3,
-      season == "Ago-Out" ~ 4
-    ) + (season_year - min(season_year)) * 4
-  ) %>%
-  group_by(season_num, season_label, localidade) %>%
-  summarise(
-    total_detections = sum(total_detections, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-# 2. Create the plot with connected lines
-ggplot(detection_summary_filtered, 
-       aes(x = season_num, 
-           y = total_detections, 
-           color = localidade,
-           group = localidade)) +
-  geom_line(linewidth = 1) +
-  geom_point(size = 2) +
-  
-  scale_x_continuous(
-    breaks = unique(detection_summary_filtered$season_num),
-    labels = unique(detection_summary_filtered$season_label)
-  ) +
-  labs(
-    title = "Detecções por Localidade (2022-2025)",
-    x = "Período", 
-    y = "Número de Detecções",
-    color = "Localidade"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "bottom",
-    panel.background = element_blank(),
-    plot.title = element_text(size = 18, color = "#284b80"),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
-    axis.line.x = element_line(color = "grey", linewidth = 0.8),
-    axis.line.y = element_line(color = "grey", linewidth = 0.8),
-    legend.text = element_text(size = 8)
-  ) +
-  guides(color = guide_legend(nrow = 3))
-
-# 3. Save the plot
-ggsave("plots/detec_years.png", width = 10, height = 6, dpi = 300)
-################################################################################
 library(ggrepel)
 library(viridis)
 
@@ -797,6 +847,8 @@ ggplot(detection_summary_filtered,
   theme_minimal() +
   theme(
     legend.position = "none",
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
     panel.background = element_blank(),
     plot.title = element_text(size = 16, face = "bold", color = "#284b80"),
     axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
@@ -809,7 +861,7 @@ ggplot(detection_summary_filtered,
 coord_cartesian(clip = 'off')
 
 # 4. Save the plot
-ggsave("plots/detec_years_improved.png", width = 12, height = 7, dpi = 300)
+ggsave("plots/detec_years.png", width = 12, height = 7, dpi = 300)
 
 #################################################################################
 
@@ -825,7 +877,7 @@ ggplot(df_cumulative_max, aes(x = year, y = cumulative_mass/1000,
   geom_text_repel(
     data = . %>% group_by(localidade) %>% filter(year == max(year)),
     aes(label = localidade),
-    size = 4,
+    size = 3,
     direction = "y",
     xlim = c(max(df_cumulative_max$year) + 0.5, NA),
     segment.color = 'grey50'
@@ -843,8 +895,8 @@ ggplot(df_cumulative_max, aes(x = year, y = cumulative_mass/1000,
   theme_minimal() +
   theme(
     legend.position = "none",
+    panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
-    
     plot.title = element_text(size = 18, color = "#284b80"),
     axis.line.x = element_line(color = "grey", linewidth = 0.8),
     axis.line.y = element_line(color = "grey", linewidth = 0.8),
@@ -865,153 +917,3 @@ ggsave("plots/mass_years.png", width = 10, height = 5, dpi = 300)
 ################################################################################
 ################################################################################
 
-
-
-
-
-
-
-# Geomorfolgia total
-
-df_geo_local <- df_geo %>% 
-  filter(iar_geo != "Na") %>% 
-  group_by(localidade, geo_cat) %>%
-  mutate(geo_value = mean(iar_geo)) %>% 
-  ungroup()
-
-max(df_geo_local$geo_value)
-
-
-###
-df_monit_effort_dpue <- df_monit %>% 
-  
-  group_by(localidade, data, faixa_bat) %>%
-  filter(obs != "estimado dos dados do ICMBio") %>% 
-  mutate(faixa_bat = str_to_title(str_replace_all(faixa_bat, "entremare", "entremaré")),
-         localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
-  summarise(max_trsct_vis = sum(max(n_trans_vis)),
-            n_detection = max(n_trans_pres),
-            dpue = n_detection/(sum(max(max_trsct_vis)/60))) %>%
-  ungroup()
-print(df_monit_effort_dpue, n= 86)
-
-####
-
-
-
-
-
-##
-bp_all_local = df_geo_local  %>%
-  mutate(geo_cat = fct_relevel(geo_cat, "mp", "tf", "gc", "lg", "rpm" )) %>%
-  ggplot( aes(fill = geo_cat, x = geo_cat, y = iar_geo)) +
-  scale_fill_manual(values=c('#ff8200ff', '#ff8200ff', '#ff8200ff', '#ff8200ff', '#ff8200ff' )) +
-  scale_x_discrete(labels = c('Matacões e Paredões','Tocas e Fendas','Grutas', "Lages", "Rochas P e M")) +
-  geom_boxplot(lwd = 0.2) +
-  scale_y_continuous(position="left", n.breaks = 10, expand = c(0, 0.05)) +
-  ggtitle("Índice de Abragência Relativa das Geomorfologias (IAR GEO)") +
-  xlab("") +
-  labs(y = "IAR GEO") +
-    #geom_jitter(color="black", size=0.2, alpha=0.5) +
-    theme(
-      panel.background = element_blank(),
-      axis.ticks.y = element_line(colour = "grey",
-                                  linewidth = 0.8, linetype = "solid"),
-      axis.line.y = element_line(colour = "grey",
-                                 linewidth = 0.8, linetype = "solid"),
-      axis.text.x = element_text(size = 13,  color = "#284b80" ),
-      axis.text.y = element_text(size = 15,  color = "grey" ),
-      axis.title.y = element_text(size = 14,  color = "#284b80" ),
-      legend.position="none",
-      axis.ticks.x = element_blank(), 
-      plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" )
-  )
-
-
-
-bp_all_local
-ggsave("plots/geo_local.png", width = 10, height = 5, dpi = 300)
-
-
-
-
-
-
-
-# Correlation entre as geo e ocorrencias
-# combinar com id geo id
-##### Stoped here
-### TO DO
-
-##### grou_by geo_id
-
-df_monit_effort_eval = df_monit_effort %>% 
-  group_by(localidade) %>% 
-  filter(n_detection != 0) %>% 
-  reframe(detections = sum(n_detection))
-df_monit_effort_eval
-
-
-df_geo_local_eval <- df_geo %>% 
-  filter(iar_geo != "Na") %>% 
-  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
-  group_by(localidade, geo_cat) %>%
-  reframe(mean_geo_value = max(iar_geo)) %>% 
-  ungroup()
-df_geo_local_eval
-
-
-detec_vs_geo = df_monit_effort_eval %>% 
-  left_join(df_geo_local_eval, df_monit_effort_eval, by = "localidade")
-  
-
-detec_vs_geo %>% 
-  ggplot(aes(x=(mean_geo_value), y= (detections), shape = geo_cat, color=geo_cat)) + 
-  geom_point() +
-  geom_jitter() 
-
-
-# regression
-detec_vs_geo %>% 
-  ggplot(aes(x=(mean_geo_value), y= (detections), shape = geo_cat, color=geo_cat)) + 
-  geom_point() +
-  geom_jitter() +
-  geom_smooth(method = "lm", se = F)
-  
-
-
-
-
-  # fazer esse figura melhor
-
-
-
-# Dados padronizados unmarked 
-
-
-
-# Standardidized data
-#detections and predictors
-
-load("unmarked_data.RData")
-
-# exclude location where detection were 0
-effort_positive <- effort %>%
-  group_by(localidade) %>% 
-  mutate(sum_detection = sum( eff_raso, eff_entremare, eff_fundo)) %>% 
-  filter(sum_detection > 0)
-
-effort_positive
-
-
-
-detection
-predictors
-
-
-
-
-
-# Modelos ocorrência por geomorfologia
-
-# Pontos de invasão
