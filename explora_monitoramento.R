@@ -426,6 +426,8 @@ density_data <- data %>%
     year_label = factor(year_label, levels = unique(year_label))
   )
 
+sum(is.na(density_data$dafor))
+
 ##############################
 ### 2. Set up comparison parameters
 ##############################
@@ -446,6 +448,39 @@ plot_colors <- ifelse(
          "red", "#6B8EFF"),
   ifelse(years == oldest, "grey70", "grey90")
 )
+
+##############################
+### 2. Set up comparison parameters
+##############################
+years <- levels(density_data$year_label)
+
+# Initialize all colors as grey90 (default for non-comparison years)
+plot_colors <- rep("grey90", length(years))
+
+# Compare each consecutive pair
+for (i in 1:(length(years)-1)) {
+  # Get comparison values for this pair
+  dafor_compare <- density_data %>%
+    filter(year_label %in% years[c(i, i+1)]) %>%
+    distinct(year_label, .keep_all = TRUE) %>%
+    arrange(year_label)
+  
+  # Only set color for the newer year in each comparison
+  if (dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1]) {
+    plot_colors[i+1] <- "red"  # Newer year increased
+  } else {
+    plot_colors[i+1] <- "#6B8EFF"  # Newer year decreased or stayed same
+  }
+  
+  # Set older year to grey70 (only if not already set by a previous comparison)
+  if (plot_colors[i] == "grey90") {
+    plot_colors[i] <- "grey70"
+  }
+}
+
+# Now map these colors back to your original data
+plot_colors_final <- plot_colors[match(density_data$year_label, years)]
+    
 
 ##############################
 ### 3. Create individual plots
@@ -489,6 +524,9 @@ plot_list <- lapply(years, function(yr) {
     labs(x = if (is_last_plot) "IAR" else NULL)
 })
 
+
+
+
 ##############################
 ### 4. Combine and display
 ##############################
@@ -507,6 +545,14 @@ print(final_plot)
  # 5. Save to file as backup
 ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 10, dpi = 300)
 
+
+##################################
+### Alterantive Table for the data
+##################################
+ #### FAZER
+
+
+##################################
 
 #########################################
 ## Automated solution to create all plots
