@@ -549,10 +549,73 @@ ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 10, 
 ##################################
 ### Alterantive Table for the data
 ##################################
- #### FAZER
+library(dplyr)
+library(tidyr)
+library(kableExtra)
 
+# First create the properly named summary table
+dafor_table <- density_data %>%
+  mutate(
+    dafor_category = case_when(
+      is.na(dafor) ~ "Ausente",
+      dafor == 0 ~ "D",
+      dafor == 1 ~ "A",
+      dafor == 2 ~ "F",
+      dafor == 3 ~ "O",
+      dafor == 4 ~ "R",
+      TRUE ~ "Ausente"
+    )
+  ) %>%
+  count(year_label, dafor_category) %>%
+  complete(year_label, dafor_category, fill = list(n = 0)) %>%
+  pivot_wider(
+    names_from = dafor_category,
+    values_from = n
+  ) %>%
+  # Ensure all categories exist even if no observations
+  { if(!"Ausente" %in% names(.)) mutate(., Ausente = 0) else . } %>%
+  { if(!"D" %in% names(.)) mutate(., D = 0) else . } %>%
+  { if(!"A" %in% names(.)) mutate(., A = 0) else . } %>%
+  { if(!"F" %in% names(.)) mutate(., F = 0) else . } %>%
+  { if(!"O" %in% names(.)) mutate(., O = 0) else . } %>%
+  { if(!"R" %in% names(.)) mutate(., R = 0) else . } %>%
+  select(year_label, D, A, F, O, R, Ausente) %>%
+  mutate(Total = rowSums(across(-year_label)))
 
-##################################
+# Now create the formatted table with correct column names
+dafor_table %>%
+  rename(
+    `Ano(n)` = year_label
+  ) %>%
+  kable("html", 
+        digits = 0,
+        caption = "Densidade de IAR",
+        align = "c") %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE,
+    font_size = 14,
+    html_font = "Arial"
+  ) %>%
+  column_spec(1, bold = TRUE, width = "8em") %>%
+  column_spec(2:7, width = "5em", background = "#f7f7f7") %>%
+  column_spec(8, bold = TRUE, width = "6em", background = "#e6f2ff") %>%
+  add_header_above(
+    c(" " = 1, 
+      "Escala IAR" = 6, 
+      " " = 1),
+    bold = TRUE,
+    font_size = 16,
+    background = c("white", "#2c3e50", "white"),
+    color = c("black", "white", "black")
+  ) %>%
+  footnote(
+    general = "D = Dominante, A = Abundante, F = Frequente, O = Ocasional, R = Raro, Ausente = Sem registro",
+    general_title = "Legenda:",
+    footnote_as_chunk = TRUE
+  )
+  
+
 
 #########################################
 ## Automated solution to create all plots
