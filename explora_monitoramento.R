@@ -135,10 +135,10 @@ print(df_manag_mass, n = 160)
 
 
 
-# Shapefile localities
+# Shapefile localities and rebio
 
 shp_localidades = st_read("data/localidades_shapefile.shp")
-
+shp_rebio = st_read("Rebio_Arvoredo_Ilhas_POL_CGS_WGS84.shp")
 
 
 ### Data processing ### 
@@ -304,7 +304,7 @@ df_monit_effort_dpue <- df_monit_effort %>%
   mutate(
     effort_hours = max_trsct_vis / 60,  # Convert minutes to hours
     locality_100m = comp_m / 100,       # Convert meters to 100m units
-    dpue_standard = n_detection / (effort_hours / locality_100m)
+    dpue_standard = n_detection / (effort_hours * locality_100m)
   ) %>%
   
   # Group and summarize (if needed)
@@ -361,6 +361,13 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
+
+
+
+
+
+
+
 
 ###################
 # Dafor Density plot (IAR of localidades)
@@ -558,11 +565,11 @@ dafor_table <- density_data %>%
   mutate(
     dafor_category = case_when(
       is.na(dafor) ~ "Ausente",
-      dafor == 0 ~ "D",
-      dafor == 1 ~ "A",
-      dafor == 2 ~ "F",
-      dafor == 3 ~ "O",
-      dafor == 4 ~ "R",
+      dafor == 10 ~ "D",
+      dafor == 8 ~ "A",
+      dafor == 6 ~ "F",
+      dafor == 4 ~ "O",
+      dafor == 2 ~ "R",
       TRUE ~ "Ausente"
     )
   ) %>%
@@ -589,7 +596,7 @@ dafor_table %>%
   ) %>%
   kable("html", 
         digits = 0,
-        caption = "Densidade de IAR",
+        caption = "REBIO Arvoredo e Entorno Imediato",
         align = "c") %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed"),
@@ -610,8 +617,8 @@ dafor_table %>%
     color = c("black", "white", "black")
   ) %>%
   footnote(
-    general = "D = Dominante, A = Abundante, F = Frequente, O = Ocasional, R = Raro, Ausente = Sem registro",
-    general_title = "Legenda:",
+    general = "D = Dominante, A = Abundante, F = Frequente, O = Ocasional, R = Raro",
+    general_title = "",
     footnote_as_chunk = TRUE
   )
   
@@ -772,10 +779,6 @@ message(paste("\nSuccessfully created", length(successful), " plots in plots/den
 ################################################################################
 
 #### Map #### 
-library(leaflet)
-library(stringi) # For string manipulation
-
-
 # 1. LOAD REQUIRED LIBRARIES
 library(sf)
 library(tidyverse)
@@ -783,7 +786,9 @@ library(leaflet)
 library(stringi)
 
 # 2. PREPARE DPUE DATA
-df_dpue <- df_monit_effort_dpue %>%
+
+# data
+df_dpue = df_monit_effort_dpue %>%
   group_by(localidade) %>%
   summarise(
     mean_dpue = mean(dpue_standard, na.rm = TRUE),
@@ -797,11 +802,25 @@ df_dpue <- df_monit_effort_dpue %>%
       str_replace_all("\\s+", "_")
   )
 
+
+# centroid for circles
+centroid_locality = read_delim("data/centroide_localidade.csv",
+                               col_types = list(X = col_double(),
+                                                Y = col_double(),
+                                                Z = col_double(),
+                                                localidade = col_character(),
+                                                regiao = col_character()))
+
+
+
+
+
 # 3. PREPARE SHAPEFILE DATA
 shp_data <- shp_localidades %>%
   mutate(
     localidade_clean = tolower(localidade)
   )
+
 
 # 4. JOIN DATASETS
 map_data <- shp_data %>% 
@@ -842,6 +861,13 @@ pal <- colorBin(
   na.color = "#808080",  # Darker grey for NA values
   pretty = FALSE
 )
+
+
+
+
+
+
+
 
 # 6. CREATE MAP
 dpue_map <- leaflet(map_data) %>%
@@ -891,6 +917,72 @@ dpue_map <- leaflet(map_data) %>%
 dpue_map
 
 
+######################################
+# 8. Static map
+library(tmap)
+library(sf)
+library(dplyr)
+
+
+# 1. First try to fix your map_rebio_sf data
+tryCatch({
+  map_rebio_sf <- map_rebio_sf %>% 
+    st_make_valid() %>%  # Fix any invalid geometries
+    st_transform(4326)
+}, error = function(e) {
+  message("Couldn't fix map_rebio_sf, using alternative coastline")
+  # Use Natural Earth coastline as backup
+  if(!require("rnaturalearth")) install.packages("rnaturalearth")
+  map_rebio_sf <- rnaturalearth::ne_coastline(scale = "medium", returnclass = "sf") %>%
+    st_transform(4326)
+})
+
+# 2. Safely crop to bounding box
+coastline_cropped <- tryCatch({
+  st_intersection(map_rebio_sf, st_as_sfc(custom_bbox))
+}, error = function(e) {
+  message("Couldn't crop coastline, using full extent")
+  map_rebio_sf  # Use uncropped if cropping fails
+})
+
+# 3. Create the map with error-proof coastline
+dpue_tmap <- tm_shape(coastline_cropped, bbox = custom_bbox) +
+  tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 1.2) +
+  
+  tm_basemap("Esri.WorldImagery", alpha = 0.7) +
+  
+  tm_shape(map_data_sf) +
+  tm_lines(
+    col = "mean_dpue",
+    palette = color_palette,
+    breaks = breaks,
+    lwd = 10
+  ) +
+  
+  # Rest of your map elements...
+  tm_layout(
+    inner.margins = c(0,0,0,0),
+    legend.position = c("left", "bottom")
+  )
+
+# 4. If still failing, use simple rectangle as coastline backup
+if(inherits(try(print(dpue_tmap), silent = TRUE), "try-error")) {
+  message("Using simplified coastline backup")
+  backup_coast <- st_as_sfc(custom_bbox) %>% st_as_sf()
+  dpue_tmap <- tm_shape(backup_coast, bbox = custom_bbox) +
+    tm_borders(col = "#3498DB", lwd = 2) +
+    tm_basemap("Esri.WorldImagery") +
+    tm_shape(map_data_sf) +
+    tm_lines(col = "mean_dpue", palette = color_palette, lwd = 3)
+}
+
+dpue_tmap
+
+
+
+
+
+#############################################################
 ## Detection through the years ##############################
 
 library(ggrepel)
