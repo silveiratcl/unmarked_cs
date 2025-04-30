@@ -15,7 +15,7 @@ library(patchwork)
 #### Data ####
 
 # monitoring
-df_monit = read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
+df_monit = read_delim("data/dados_monitoramento_cs_2025-04-30.csv",
                       col_types = list(localidade = col_character(),
                                        data = col_date(format = "%d/%m/%Y"),
                                        visib_horiz = col_double(),
@@ -146,9 +146,15 @@ shp_rebio = st_read("Rebio_Arvoredo_Ilhas_POL_CGS_WGS84.shp")
 # Aggregate by locality 
 # total time
 # total detections 
+
+# create faixa_bat based on prof_min e prof_max data
+
 # Obtaining the detection and effort df
 # detection is presence/absence by locality by each monitoring strata
 # effort is the number of visual transects where cs were detected
+
+table(df_monit$prof_min)
+table(df_monit$prof_max)
 
 df_monit_effort <- df_monit  %>% 
   group_by(localidade_rebio, localidade, data, faixa_bat) %>%
@@ -168,6 +174,41 @@ df_monit_effort$localidade
 
 df_monit_effort %>% 
 filter(localidade == "BAIA DAS TARTARUGAS")
+
+######################################
+######################################
+df_monit_effort <- df_monit %>% 
+  # Convert prof_min and prof_max to numeric
+  mutate(prof_min_num = as.numeric(prof_min),
+         prof_max_num = as.numeric(prof_max)) %>%
+  # Create the new depth interval variable
+  mutate(faixa_bat_depth = case_when(
+    prof_max_num <= 2 ~ "0-2m",
+    prof_max_num > 2 & prof_max_num <= 8 ~ "2.1-8m",
+    prof_max_num > 8 ~ "8.1m+",
+    TRUE ~ NA_character_
+  )) %>%
+  # Now proceed with your original processing but using faixa_bat_depth
+  group_by(localidade_rebio, localidade, data, faixa_bat_depth) %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat != "Na") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+         localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>%
+  summarise(max_trsct_vis = sum(max(n_trans_vis)),
+            n_detection = max(n_trans_pres),
+            n_divers = max(n_divers),
+            visib_m = max(visib_horiz)) %>%
+  ungroup()
+
+df_monit_effort
+print(df_monit_effort, n=86)
+
+
+
+
+#####################################
+#####################################
+
+
 
 
 # left_join distance of localities
@@ -225,7 +266,7 @@ sum(table(df_monit$dafor))
 length(df_monit$dafor)/60
 
 table(df_monit_effort$localidade)
-table(df_monit_effort$faixa_bat)
+table(df_monit_effort$faixa_bat_depth)
 
 
 # n detections minutes
@@ -233,7 +274,8 @@ table(df_monit_effort$faixa_bat)
 plot_detec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, n_detection, sum)) %>% 
   filter(n_detection > 0)  %>% 
-  ggplot(aes(fill=factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=n_detection)) +
+  #ggplot(aes(fill=factor(faixa_bat_depth,levels=c("entremare", "raso", "fundo")), y=localidade, x=n_detection)) +
+  ggplot(aes(fill=factor(faixa_bat_depth, y=localidade, x=n_detection))) +
   scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
                     labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
   geom_bar(position="stack", stat="identity") +
@@ -401,7 +443,7 @@ ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
 ggsave("plots/density_IAR.png", width = 10, height = 5, dpi = 300)
 
 
-# Create density plot by locality
+# Create density plot by year
 # Compares the DAFOR between oldest and newest years
 # Displays number of visual transects (n=) in each year label
 
@@ -550,7 +592,7 @@ print(final_plot)
 
 
  # 5. Save to file as backup
-ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 10, dpi = 300)
+ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 5, dpi = 300)
 
 
 ##################################
@@ -623,7 +665,6 @@ dafor_table %>%
   )
   
 
-
 #########################################
 ## Automated solution to create all plots
 library(tidyverse)
@@ -675,34 +716,36 @@ create_density_plot <- function(locality) {
   
   # Set up comparison parameters
   years <- levels(loc_data$year_label)
-  oldest <- years[1]
-  newest <- years[length(years)]
   
-  dafor_compare <- loc_data %>%
-    filter(year_label %in% c(oldest, newest)) %>%
-    distinct(year_label, .keep_all = TRUE) %>%
-    arrange(year_label)
-  
-  # Color scheme 
-  plot_colors <- if (all(loc_data$dafor == 0)) {
-    rep("#00AA00", length(years))  # Bright green for all zeros
+  # Color scheme
+  if (all(loc_data$dafor == 0)) {
+    plot_colors <- rep("#00AA00", length(years))  # Bright green for all zeros
   } else if (length(years) == 1) {
-    rep("grey70", length(years))   # Single year with data > 0
+    plot_colors <- rep("grey70", length(years))   # Single year with data > 0
   } else {
-    # Normal comparison logic
-    oldest <- years[1]
-    newest <- years[length(years)]
-    dafor_compare <- loc_data %>%
-      filter(year_label %in% c(oldest, newest)) %>%
-      distinct(year_label, .keep_all = TRUE) %>%
-      arrange(year_label)
+    # Initialize all colors as grey90 (default for non-comparison years)
+    plot_colors <- rep("grey90", length(years))
     
-    ifelse(
-      years == newest,
-      ifelse(dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1], 
-             "#FF0000", "#0066CC"),  # Red vs. blue
-      ifelse(years == oldest, "grey70", "grey90")
-    )
+    # Compare each consecutive pair
+    for (i in 1:(length(years)-1)) {
+      # Get comparison values for this pair
+      dafor_compare <- loc_data %>%
+        filter(year_label %in% years[c(i, i+1)]) %>%
+        distinct(year_label, .keep_all = TRUE) %>%
+        arrange(year_label)
+      
+      # Only set color for the newer year in each comparison
+      if (dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1]) {
+        plot_colors[i+1] <- "red"  # Newer year increased
+      } else {
+        plot_colors[i+1] <- "#6B8EFF"  # Newer year decreased or stayed same
+      }
+      
+      # Set older year to grey70 (only if not already set by a previous comparison)
+      if (plot_colors[i] == "grey90") {
+        plot_colors[i] <- "grey70"
+      }
+    }
   }
   
   # Create individual plots
@@ -761,7 +804,7 @@ create_density_plot <- function(locality) {
 }
 
 # 4. Process all localities (with progress bar)
-created_files <- map(localities, ~ {
+created_files <- map(localities, ~ {  # Corrected from locality to localities
   tryCatch({
     create_density_plot(.x)
   }, error = function(e) {
@@ -773,8 +816,14 @@ created_files <- map(localities, ~ {
 # 5. Report results
 successful <- keep(created_files, ~ !is.null(.x))
 message(paste("\nSuccessfully created", length(successful), " plots in plots/density_by_locality/"))
+ 
 
 
+
+
+
+##########################################################################
+##########################################################################
 
 ################################################################################
 
@@ -923,6 +972,37 @@ library(tmap)
 library(sf)
 library(dplyr)
 
+# Defining the bbox
+# 5. Define your bounding box
+bbox_arvoredo <- st_bbox(c(
+  xmin = -48.34664,
+  ymin = -27.26745,
+  xmax = -48.38350,
+  ymax = -27.30329
+), crs = st_crs(4326))
+
+bbox_deserta <- st_bbox(c(
+  xmin = -48.326894,
+  ymin = -27.267200,
+  xmax = -48.340900,
+  ymax = -27.278464
+), crs = st_crs(4326))
+
+bbox_gale <- st_bbox(c(
+  xmin = -48.395163,
+  ymin = -27.173507,
+  xmax = -48.416423,
+  ymax = -27.190714
+), crs = st_crs(4326))
+
+
+
+
+
+
+
+
+
 
 # 1. First try to fix your map_rebio_sf data
 tryCatch({
@@ -939,14 +1019,14 @@ tryCatch({
 
 # 2. Safely crop to bounding box
 coastline_cropped <- tryCatch({
-  st_intersection(map_rebio_sf, st_as_sfc(custom_bbox))
+  st_intersection(map_rebio_sf, st_as_sfc(bbox_arvoredo))
 }, error = function(e) {
   message("Couldn't crop coastline, using full extent")
   map_rebio_sf  # Use uncropped if cropping fails
 })
 
 # 3. Create the map with error-proof coastline
-dpue_tmap <- tm_shape(coastline_cropped, bbox = custom_bbox) +
+dpue_tmap_arvoredo <- tm_shape(coastline_cropped, bbox = bbox_arvoredo) +
   tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 1.2) +
   
   tm_basemap("Esri.WorldImagery", alpha = 0.7) +
@@ -956,28 +1036,119 @@ dpue_tmap <- tm_shape(coastline_cropped, bbox = custom_bbox) +
     col = "mean_dpue",
     palette = color_palette,
     breaks = breaks,
-    lwd = 10
+    lwd = 10,
+    
+    lineend = "round",
+    linejoin = "round",
+    title.col = "DPUE Detecções/H/100m"
   ) +
   
   # Rest of your map elements...
   tm_layout(
     inner.margins = c(0,0,0,0),
+    frame = FALSE,
     legend.position = c("left", "bottom")
   )
 
-# 4. If still failing, use simple rectangle as coastline backup
-if(inherits(try(print(dpue_tmap), silent = TRUE), "try-error")) {
-  message("Using simplified coastline backup")
-  backup_coast <- st_as_sfc(custom_bbox) %>% st_as_sf()
-  dpue_tmap <- tm_shape(backup_coast, bbox = custom_bbox) +
-    tm_borders(col = "#3498DB", lwd = 2) +
-    tm_basemap("Esri.WorldImagery") +
-    tm_shape(map_data_sf) +
-    tm_lines(col = "mean_dpue", palette = color_palette, lwd = 3)
-}
+dpue_tmap_arvoredo
 
-dpue_tmap
 
+# 1. First try to fix your map_rebio_sf data
+tryCatch({
+  map_rebio_sf <- map_rebio_sf %>% 
+    st_make_valid() %>%  # Fix any invalid geometries
+    st_transform(4326)
+}, error = function(e) {
+  message("Couldn't fix map_rebio_sf, using alternative coastline")
+  # Use Natural Earth coastline as backup
+  if(!require("rnaturalearth")) install.packages("rnaturalearth")
+  map_rebio_sf <- rnaturalearth::ne_coastline(scale = "medium", returnclass = "sf") %>%
+    st_transform(4326)
+})
+
+# 2. Safely crop to bounding box
+coastline_cropped <- tryCatch({
+  st_intersection(map_rebio_sf, st_as_sfc(bbox_deserta))
+}, error = function(e) {
+  message("Couldn't crop coastline, using full extent")
+  map_rebio_sf  # Use uncropped if cropping fails
+})
+
+# 3. Create the map with error-proof coastline
+dpue_tmap_deserta <- tm_shape(coastline_cropped, bbox = bbox_deserta) +
+  tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 1.2) +
+  
+  tm_basemap("Esri.WorldImagery", alpha = 0.7) +
+  
+  tm_shape(map_data_sf) +
+  tm_lines(
+    col = "mean_dpue",
+    palette = color_palette,
+    breaks = breaks,
+    lwd = 10,
+    
+    lineend = "round",
+    linejoin = "round",
+    title.col = "DPUE Detecções/H/100m"
+  ) +
+  
+  # Rest of your map elements...
+  tm_layout(
+    inner.margins = c(0,0,0,0),
+    frame = FALSE,
+    legend.position = c("left", "bottom")
+  )
+
+dpue_tmap_deserta
+
+
+# 1. First try to fix your map_rebio_sf data
+tryCatch({
+  map_rebio_sf <- map_rebio_sf %>% 
+    st_make_valid() %>%  # Fix any invalid geometries
+    st_transform(4326)
+}, error = function(e) {
+  message("Couldn't fix map_rebio_sf, using alternative coastline")
+  # Use Natural Earth coastline as backup
+  if(!require("rnaturalearth")) install.packages("rnaturalearth")
+  map_rebio_sf <- rnaturalearth::ne_coastline(scale = "medium", returnclass = "sf") %>%
+    st_transform(4326)
+})
+
+# 2. Safely crop to bounding box
+coastline_cropped <- tryCatch({
+  st_intersection(map_rebio_sf, st_as_sfc(bbox_gale))
+}, error = function(e) {
+  message("Couldn't crop coastline, using full extent")
+  map_rebio_sf  # Use uncropped if cropping fails
+})
+
+# 3. Create the map with error-proof coastline
+dpue_tmap_gale <- tm_shape(coastline_cropped, bbox = bbox_gale) +
+  tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 1.2) +
+  
+  tm_basemap("Esri.WorldImagery", alpha = 0.7) +
+  
+  tm_shape(map_data_sf) +
+  tm_lines(
+    col = "mean_dpue",
+    palette = color_palette,
+    breaks = breaks,
+    lwd = 10,
+    
+    lineend = "round",
+    linejoin = "round",
+    title.col = "DPUE Detecções/H/100m"
+  ) +
+  
+  # Rest of your map elements...
+  tm_layout(
+    inner.margins = c(0,0,0,0),
+    frame = FALSE,
+    legend.position = c("left", "bottom")
+  )
+
+dpue_tmap_gale
 
 
 
@@ -1117,4 +1288,5 @@ ggsave("plots/mass_years.png", width = 10, height = 5, dpi = 300)
 
 ################################################################################
 ################################################################################
+
 
