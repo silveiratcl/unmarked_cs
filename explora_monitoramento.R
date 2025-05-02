@@ -184,8 +184,9 @@ df_monit_effort <- df_monit %>%
   # Create the new depth interval variable
   mutate(faixa_bat_depth = case_when(
     prof_max_num <= 2 ~ "0-2m",
-    prof_max_num > 2 & prof_max_num <= 8 ~ "2.1-8m",
-    prof_max_num > 8 ~ "8.1m+",
+    prof_max_num > 2.1 & prof_max_num <= 8 ~ "2.1-8m",
+    prof_max_num > 8.1 & prof_max_num <= 14 ~ "8.1-14m",
+    prof_max_num > 14.1 ~ "14.1m+",
     TRUE ~ NA_character_
   )) %>%
   # Now proceed with your original processing but using faixa_bat_depth
@@ -200,15 +201,11 @@ df_monit_effort <- df_monit %>%
   ungroup()
 
 df_monit_effort
-print(df_monit_effort, n=86)
-
-
+print(df_monit_effort, n=140)
 
 
 #####################################
 #####################################
-
-
 
 
 # left_join distance of localities
@@ -241,12 +238,6 @@ print(df_monit_effort, n= 140
   #filter(faixa_bat == "Na") 
 
 ####
-
-
-
-
-
-
 #### Charting by bathimetry strata ############################################### 
 
 
@@ -274,13 +265,12 @@ table(df_monit_effort$faixa_bat_depth)
 plot_detec_strata <- df_monit_effort %>% 
   mutate(localidade = fct_reorder(localidade, n_detection, sum)) %>% 
   filter(n_detection > 0)  %>% 
-  #ggplot(aes(fill=factor(faixa_bat_depth,levels=c("entremare", "raso", "fundo")), y=localidade, x=n_detection)) +
-  ggplot(aes(fill=factor(faixa_bat_depth, y=localidade, x=n_detection))) +
-  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
+  ggplot(aes(fill=factor(faixa_bat_depth,levels=c( "0-2m", "2.1-8m", "8.1-14m", "14.1m+")), y=localidade, x=n_detection)) +
+  
+  scale_fill_manual(values=c('#db6d10', '#aaee4b','#416f02','#536e99')) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Total de transectos (1 min.) com presença de coral-sol") +
+  ggtitle("Total de transectos (1 min.) com presença de coral-sol (2022-2025)") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -306,15 +296,14 @@ ggsave("plots/detec_batimetria.png", width = 10, height = 5, dpi = 300)
 plot_transec_strata <- df_monit_effort %>% 
   mutate(localidade_rebio = factor(localidade_rebio, levels = c("REBIO", "ENTORNO IMEDIATO", "ENTORNO")),
          localidade = factor(localidade)) %>%
-  ggplot(aes(fill = factor(faixa_bat, levels = c("entremare", "raso", "fundo")), 
+  ggplot(aes(fill = factor(faixa_bat_depth, levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+")), 
              y = reorder(localidade, max_trsct_vis, sum), 
              x = max_trsct_vis)) +
-  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
+  scale_fill_manual(values=c('#db6d10', '#aaee4b','#416f02','#536e99')) +
   geom_bar(position="stack", stat="identity") +
   facet_wrap(~ localidade_rebio, ncol = 1, scales = "free_y") + # cat jump
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
-  ggtitle("Esforço - Total de Transectos (1 min.) por localidade") +
+  ggtitle("Esforço - Total de Transectos (1 min.) por localidade (2022-2025)") +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"), 
@@ -336,8 +325,6 @@ plot_transec_strata
 ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 
-
-
 #### CPUE #########################################################################
 # Detections/60min/100m
 
@@ -350,7 +337,7 @@ df_monit_effort_dpue <- df_monit_effort %>%
   ) %>%
   
   # Group and summarize (if needed)
-  group_by(localidade, data, faixa_bat) %>%
+  group_by(localidade, data, faixa_bat_depth) %>%
   summarise(
     comp_m = first(comp_m),
     total_effort_hours = sum(effort_hours),
@@ -371,15 +358,14 @@ print(df_monit_effort_dpue, n= 140)
 plot_dpue_strata <- df_monit_effort_dpue %>% 
   filter(total_detections > 0)  %>% 
   mutate(localidade = fct_reorder(localidade, dpue_standard, sum)) %>% 
-  ggplot(aes(fill = factor(faixa_bat,levels=c("entremare", "raso", "fundo")), y=localidade, x=dpue_standard)) +
-  scale_fill_manual(values=c('#db6d10', '#78bd49', '#536e99'),
-                    labels = c("Entremarés (~0-2m)", "Raso (~3-6m)", "Fundo (~7m-Interface)")) +
+  ggplot(aes(fill = factor(faixa_bat_depth,levels=c("0-2m", "2.1-8m", "8.1-14m", "14.1m+")), y=localidade, x=dpue_standard)) +
+  scale_fill_manual(values=c('#db6d10', '#aaee4b','#416f02','#536e99')) +
   geom_bar(position="stack", stat="identity") +
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   
   labs(
-    title = "Detecções por Unidade de Esforço",
-    subtitle = "DPUE - Detecções/H/100m"
+    title = "Detecções por Unidade de Esforço (2022-2025)",
+    subtitle = "DPUE - Detecções / (Horas * Unidades de 100m)"
     ) +
  # ggtitle("Detecções por Unidade de Esforço - Detecções/H/100m ") +
   
@@ -406,10 +392,73 @@ ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
 
 
 
+################################################################################
+#Density plot faixa_bat_depth Detections Geral
 
 
+df_depth <- df_monit %>% 
+  # Convert prof_min and prof_max to numeric
+  mutate(prof_min_num = as.numeric(prof_min),
+         prof_max_num = as.numeric(prof_max)) %>%
+  # Create the new depth interval variable
+  mutate(faixa_bat_depth = case_when(
+    prof_max_num <= 2 ~ "0-2 m",
+    prof_max_num > 2.1 & prof_max_num <= 4 ~ "2.1-4 m",
+    prof_max_num > 4.1 & prof_max_num <= 6 ~ "4.1-6 m",
+    prof_max_num > 6.1 & prof_max_num <= 8 ~ "6.1-8 m",
+    prof_max_num > 8.1 & prof_max_num <= 10 ~ "8.1-10 m",
+    prof_max_num > 10.1 & prof_max_num <= 12 ~ "10.1-12 m",
+    prof_max_num > 12.1 & prof_max_num <= 14 ~ "12.1-14 m",
+    prof_max_num > 14.1 & prof_max_num <= 16 ~ "14.1-16 m",
+    prof_max_num > 16.1 & prof_max_num <= 18 ~ "16.1-18 m",
+    prof_max_num > 18.1 & prof_max_num <= 20~ "18.1-20 m",
+    prof_max_num > 20.1 ~ "20.1m+",
+    TRUE ~ NA_character_
+  )) %>% 
+
+group_by(localidade_rebio, localidade, data, faixa_bat_depth) %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat_depth != "Na") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+         localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>%
+  summarise(max_trsct_vis = sum(max(n_trans_vis)),
+            n_detection = max(n_trans_pres),
+            n_divers = max(n_divers),
+            visib_m = max(visib_horiz)) %>%
+  ungroup()
 
 
+depth_levels <- c("0-2 m", "2.1-4 m", "4.1-6 m", "6.1-8 m", "8.1-10 m", 
+                  "10.1-12 m", "12.1-14 m", "14.1-16 m", "16.1-18 m", 
+                  "18.1-20 m", "20.1 m+")
+
+
+ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n_detection)) +
+  geom_col(alpha = 0.5, fill = '#536e99' ) +
+  labs(x = "Faixa Batimétrica", 
+       y = "N. detecções",
+       title = "Detecções por Faixa de Profundidade (2022-2025)",
+       subtitle = "REBIO Arvoredo e Entorno Imediato") +
+  theme(
+
+    panel.background = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"), 
+    axis.ticks.x = element_line(colour = "grey",
+                                linewidth = 0.8, linetype = "solid"), 
+    axis.line.x = element_line(colour = "grey",
+                               linewidth = 0.8, linetype = "solid"),
+    axis.line.y = element_line(colour = "grey",
+                               linewidth = 0.8, linetype = "solid"),
+    axis.title.x = element_blank(),
+    plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
+    legend.text = element_text(size=15, color ="#284b80" ),
+    legend.key.size = unit(.8, 'cm'),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
+
+
+ggsave("plots/density_faixa_bat.png", width = 10, height = 5, dpi = 300) 
+  
 
 ###################
 # Dafor Density plot (IAR of localidades)
@@ -427,18 +476,19 @@ filtered_df <- df_monit %>%
 
 filtered_df    
 
+#install.packages("ggridges")
+library(ggridges)
 
 # Create density plot general
-ggplot(filtered_df, aes(x = dafor, fill = localidade)) +
-  geom_density(alpha = 0.5) +
+ggplot(filtered_df, aes(x = dafor,y = localidade , fill = localidade)) +
+  geom_density_ridges(alpha = 0.5) +
   labs(x = "IAR", 
-       y = "Densidade",
        title = "Distribuição da Densidade IAR por Localidade",
        subtitle = "REBIO Arvoredo e Entorno Imediato",
        fill = "Localidade") +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  scale_x_continuous(limits = c(0, max(filtered_df$dafor)))  # Start at 0 since DAFOR can't be negative
+  theme(legend.position = "none",
+        panel.background = element_blank()) +
+  scale_x_continuous(limits = c(0, max(filtered_df$dafor)), breaks = c(0,2,4,6,8,10))  # Start at 0 since DAFOR can't be negative
 
 ggsave("plots/density_IAR.png", width = 10, height = 5, dpi = 300)
 
@@ -595,9 +645,9 @@ print(final_plot)
 ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 5, dpi = 300)
 
 
-##################################
-### Alterantive Table for the data
-##################################
+################################################################################
+### Alternative Table for the data
+################################################################################
 library(dplyr)
 library(tidyr)
 library(kableExtra)
@@ -605,6 +655,7 @@ library(kableExtra)
 # First create the properly named summary table
 dafor_table <- density_data %>%
   mutate(
+    year_label = str_sub(year_label, 1, 4),
     dafor_category = case_when(
       is.na(dafor) ~ "Ausente",
       dafor == 10 ~ "D",
@@ -631,42 +682,74 @@ dafor_table <- density_data %>%
   select(year_label, D, A, F, O, R, Ausente) %>%
   mutate(Total = rowSums(across(-year_label)))
 
-# Now create the formatted table with correct column names
-dafor_table %>%
-  rename(
-    `Ano(n)` = year_label
-  ) %>%
-  kable("html", 
-        digits = 0,
-        caption = "REBIO Arvoredo e Entorno Imediato",
-        align = "c") %>%
-  kable_styling(
-    bootstrap_options = c("striped", "hover", "condensed"),
-    full_width = FALSE,
-    font_size = 14,
-    html_font = "Arial"
-  ) %>%
-  column_spec(1, bold = TRUE, width = "8em") %>%
-  column_spec(2:7, width = "5em", background = "#f7f7f7") %>%
-  column_spec(8, bold = TRUE, width = "6em", background = "#e6f2ff") %>%
-  add_header_above(
-    c(" " = 1, 
-      "Escala IAR" = 6, 
-      " " = 1),
-    bold = TRUE,
-    font_size = 16,
-    background = c("white", "#2c3e50", "white"),
-    color = c("black", "white", "black")
-  ) %>%
-  footnote(
-    general = "D = Dominante, A = Abundante, F = Frequente, O = Ocasional, R = Raro",
-    general_title = "",
-    footnote_as_chunk = TRUE
-  )
-  
+# Function to determine cell color based on value
+get_color <- function(value, max_value) {
+  if (value == 0) {
+    return("#d4edda")  # light green
+  } else if (value == max_value) {
+    return("#f8d7da")  # light red
+  } else {
+    return("#fff3cd")  # light yellow
+  }
+}
 
-#########################################
-## Automated solution to create all plots
+# Get maximum values for each DAFOR category
+max_values <- dafor_table %>% 
+  select(D, A, F, O, R, Ausente) %>% 
+  summarise(across(everything(), max)) %>% 
+  as.list()
+
+# Create a list of background colors for each column
+bg_colors <- dafor_table %>%
+  mutate(across(D:Ausente, ~ mapply(get_color, ., max_values[[cur_column()]]))) %>%
+           select(-year_label, -Total) %>%
+           as.list()
+         
+         # Now create the formatted table with correct column names and coloring
+         dafor_table %>%
+           rename(`Ano` = year_label) %>%
+           kable("html", 
+                 digits = 0,
+                 align = "c",
+                 escape = FALSE) %>%
+           kable_styling(
+             bootstrap_options = c("striped", "hover", "condensed"),
+             full_width = FALSE,
+             font_size = 14,
+             html_font = "Arial"
+           ) %>%
+           column_spec(1, bold = TRUE, width = "8em") %>%
+           column_spec(2:7, width = "5em") %>%  # Removed static background color
+           column_spec(8, bold = TRUE, width = "6em", background = "#e6f2ff") %>%
+           add_header_above(
+             c(" " = 1, 
+               "Escala IAR" = 6, 
+               " " = 1),
+             bold = TRUE,
+             font_size = 16,
+             background = c("white", "#536e99", "white"),
+             color = c("black", "white", "black")
+           ) %>%
+           footnote(
+             general = "D = Dominante, A = Abundante, F = Frequente, O = Ocasional, R = Raro",
+             general_title = "",
+             footnote_as_chunk = TRUE
+           ) %>%
+           # Apply conditional formatting to each column
+           column_spec(2, background = bg_colors$D) %>%
+           column_spec(3, background = bg_colors$A) %>%
+           column_spec(4, background = bg_colors$F) %>%
+           column_spec(5, background = bg_colors$O) %>%
+           column_spec(6, background = bg_colors$R)# %>%
+           #column_spec(7, background = bg_colors$Ausente)
+
+
+
+################################################################################
+
+################################################################################
+## Automated solution to create all density plots by localidade
+################################################################################
 library(tidyverse)
 library(patchwork)
 library(fs)
@@ -779,7 +862,7 @@ create_density_plot <- function(locality) {
         axis.text.y = element_blank(),
         panel.grid = element_blank(),
         axis.title.x = if (is_last_plot) element_text() else element_blank(),
-        axis.text.x = if (is_last_plot) element_text() else element_blank()
+        axis.text.x = if (is_last_plot) element_text() else element_blank(),
       ) +
       labs(x = if (is_last_plot) "IAR" else NULL)
   })
@@ -791,7 +874,8 @@ create_density_plot <- function(locality) {
       theme = theme(
         plot.title = element_text(hjust = 0.5, size = 14, face = "bold",
                                   margin = margin(b = 10))
-      )
+      ) +
+      theme(plot.background = element_rect(color = "black", size = 1, fill = "white"))
     )
   
   # Save plot
@@ -799,7 +883,7 @@ create_density_plot <- function(locality) {
                      str_replace_all(tolower(locality), " ", "_"), 
                      "_density.png")
   
-  ggsave(filename, final_plot, width = 8, height = 2 * length(years), dpi = 300)
+  ggsave(filename, final_plot, width = 5, height = 2 * length(years), dpi = 300)
   return(filename)
 }
 
@@ -819,11 +903,8 @@ message(paste("\nSuccessfully created", length(successful), " plots in plots/den
  
 
 
-
-
-
-##########################################################################
-##########################################################################
+################################################################################
+################################################################################
 
 ################################################################################
 
@@ -907,7 +988,7 @@ pal <- colorBin(
   palette = color_palette,
   domain = map_data$mean_dpue,
   bins = breaks,
-  na.color = "#808080",  # Darker grey for NA values
+  na.color = "#111111",  # Darker grey for NA values
   pretty = FALSE
 )
 
@@ -977,26 +1058,26 @@ library(dplyr)
 bbox_arvoredo <- st_bbox(c(
   xmin = -48.34664,
   ymin = -27.26745,
-  xmax = -48.38350,
+  xmax = -48.40350,
   ymax = -27.30329
 ), crs = st_crs(4326))
 
 bbox_deserta <- st_bbox(c(
-  xmin = -48.326894,
-  ymin = -27.267200,
-  xmax = -48.340900,
-  ymax = -27.278464
+  xmin = -48.325350,
+  ymin = -27.266767,
+  xmax = -48.339598,
+  ymax = -27.277903
 ), crs = st_crs(4326))
+
+
+
 
 bbox_gale <- st_bbox(c(
   xmin = -48.395163,
   ymin = -27.173507,
-  xmax = -48.416423,
+  xmax = -48.429423,
   ymax = -27.190714
 ), crs = st_crs(4326))
-
-
-
 
 
 
@@ -1037,10 +1118,10 @@ dpue_tmap_arvoredo <- tm_shape(coastline_cropped, bbox = bbox_arvoredo) +
     palette = color_palette,
     breaks = breaks,
     lwd = 10,
-    
+    colorNA = "#111111",
     lineend = "round",
     linejoin = "round",
-    title.col = "DPUE Detecções/H/100m"
+    title.col = "DPUE Detecções/ H * Un.100m"
   ) +
   
   # Rest of your map elements...
@@ -1051,6 +1132,8 @@ dpue_tmap_arvoredo <- tm_shape(coastline_cropped, bbox = bbox_arvoredo) +
   )
 
 dpue_tmap_arvoredo
+
+tmap_save(dpue_tmap_arvoredo,"plots/maps/dpue_map_arvoredo.png", width = 10, height = 5, dpi = 300)
 
 
 # 1. First try to fix your map_rebio_sf data
@@ -1086,20 +1169,21 @@ dpue_tmap_deserta <- tm_shape(coastline_cropped, bbox = bbox_deserta) +
     palette = color_palette,
     breaks = breaks,
     lwd = 10,
-    
+    colorNA = "#111111",
     lineend = "round",
     linejoin = "round",
-    title.col = "DPUE Detecções/H/100m"
+    title.col = "DPUE Detecções/ H * Un.100m"
   ) +
   
   # Rest of your map elements...
   tm_layout(
     inner.margins = c(0,0,0,0),
     frame = FALSE,
-    legend.position = c("left", "bottom")
+    legend.position = c("right", "bottom")
   )
 
 dpue_tmap_deserta
+tmap_save(dpue_tmap_deserta,"plots/maps/dpue_map_deserta.png", width = 10, height = 5, dpi = 300)
 
 
 # 1. First try to fix your map_rebio_sf data
@@ -1135,10 +1219,10 @@ dpue_tmap_gale <- tm_shape(coastline_cropped, bbox = bbox_gale) +
     palette = color_palette,
     breaks = breaks,
     lwd = 10,
-    
+    colorNA = "#111111",
     lineend = "round",
     linejoin = "round",
-    title.col = "DPUE Detecções/H/100m"
+    title.col = "DPUE Detecções/ H * Un.100m"
   ) +
   
   # Rest of your map elements...
@@ -1149,7 +1233,7 @@ dpue_tmap_gale <- tm_shape(coastline_cropped, bbox = bbox_gale) +
   )
 
 dpue_tmap_gale
-
+tmap_save(dpue_tmap_gale,"plots/maps/dpue_map_gale.png", width = 10, height = 5, dpi = 300)
 
 
 
