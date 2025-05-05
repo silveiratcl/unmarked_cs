@@ -25,8 +25,8 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="0.25134134"
-     inkscape:cx="-861.37838"
-     inkscape:cy="-614.70189"
+     inkscape:cx="634.59516"
+     inkscape:cy="1163.756"
      inkscape:window-width="3200"
      inkscape:window-height="1261"
      inkscape:window-x="2391"
@@ -34,12 +34,7 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
      showguides="true"
-     inkscape:guide-bbox="true">
-    <sodipodi:guide
-       position="1077.0903,262.84962"
-       orientation="1,0"
-       id="guide16788" />
-  </sodipodi:namedview>
+     inkscape:guide-bbox="true" />
   <defs
      id="defs2">
     <clipPath
@@ -87,11 +82,17 @@
        width="681.09021"
        height="364.36465"
        x="-190.92857"
-       y="-32.007519" />
+       y="-32.007519"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 203.5827,230.3797 10.79324,-10.04888"
-       id="path1698" />
+       d="m 239.374,231.43239 10.79324,-10.04888"
+       id="path1698"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -103,7 +104,10 @@
        width="681.09021"
        height="380.14334"
        x="597.53912"
-       y="-32.399403" />
+       y="-32.399403"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
   </g>
   <g
      inkscape:label="Camada 1"
@@ -594,7 +598,10 @@ e6iFVAAAAABJRU5ErkJggg==
        x="-623.11652"
        y="230.15038"
        clip-path="url(#clipPath1416)"
-       transform="matrix(0.67733803,0,0,0.67733803,384.35212,-83.43999)" />
+       transform="matrix(0.67733803,0,0,0.67733803,420.14342,-82.387305)"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="428.18045"
        height="214.09023"
@@ -1079,7 +1086,10 @@ e6iFVAAAAABJRU5ErkJggg==
        x="-659.21802"
        y="66.390976"
        clip-path="url(#clipPath6678)"
-       transform="matrix(1.3318406,0,0,1.314631,1016.331,-38.667946)" />
+       transform="matrix(1.3318406,0,0,1.314631,1052.1223,-40.790263)"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="428.18045"
        height="214.09023"
@@ -1564,17 +1574,23 @@ e6iFVAAAAABJRU5ErkJggg==
        x="-659.21802"
        y="66.390976"
        clip-path="url(#clipPath6678)"
-       transform="matrix(1.3318406,0,0,1.3318406,1534.267,-68.940041)" />
+       transform="matrix(1.3318406,0,0,1.3318406,1501.6338,-55.255132)"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <rect
        style="fill:none;fill-opacity:0.940419;stroke:#000000;stroke-width:0.476931;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect6704"
        width="134.11662"
        height="77.3806"
-       x="231.89711"
-       y="252.06642" />
+       x="267.68842"
+       y="247.82751"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
-       width="681.09021"
-       height="340.5451"
+       width="678.98486"
+       height="339.49243"
        preserveAspectRatio="none"
        xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAC7gAAAXcCAMAAACFkTNaAAAA8FBMVEUAAAAAADoAAGYAOjoAOmYA
 OpAAZpAAZrYRERE0mNs6AAA6ADo6OgA6Ojo6OmY6ZmY6ZpA6ZrY6kLY6kNtmAABmOgBmOjpmOmZm
@@ -2044,8 +2060,11 @@ YASEOwAAjIBwBwCAERDuAAAwAsIdAABGQLgDAMAICHcAABgB4Q4AACMg3AEAYASEOwAAjIBwBwCA
 ERDuAAAwAsIdAABG4P8DvCO1zEItPkYAAAAASUVORK5CYII=
 "
        id="image15291"
-       x="-899.11243"
-       y="-30.755415" />
+       x="-899.09821"
+       y="-26.544672"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="612.9657"
        height="306.48285"
@@ -2528,7 +2547,11 @@ QLgDAMAICHcAABgB4Q4AACMg3AEAYASEOwAAjIBwBwCAERDuAAAwAsIdAABGQLgDAMAICHcAABiB
        id="image15303"
        x="610.27692"
        y="11.040692"
-       clip-path="url(#clipPath15775)" />
+       clip-path="url(#clipPath15775)"
+       transform="translate(-32.633244,13.684909)"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="101.6"
@@ -3754,7 +3777,10 @@ AAAAABxhHCkDAAAAAAApELgDAAAAAEAKBO4AAAAAAJCC/wPcl352TGf4FQAAAABJRU5ErkJggg==
 "
        id="image15315"
        x="-809.35974"
-       y="113.67996" />
+       y="113.67996"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="101.6"
@@ -4877,7 +4903,10 @@ AACQAMEdAAAAAAASILgDAAAAAEAC/h9WBhzvLL0CuwAAAABJRU5ErkJggg==
 "
        id="image15327"
        x="-722.45343"
-       y="-9.9553051" />
+       y="-9.9553051"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="103.92481"
        height="83.139847"
@@ -5981,8 +6010,11 @@ AAAbeJtP5OXlOVAGAAAAAAAAAADR40BZukuS0eaVAAAAAAAAAAAQY2gpAwAAAAAAAACADQjcAQAA
 AAAAAACwAYE7AAAAAAAAAAA2+H9gcnHRVHLr8wAAAABJRU5ErkJggg==
 "
        id="image15655"
-       x="905.99615"
-       y="-27.868803" />
+       x="873.36292"
+       y="-14.183894"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="50.799999"
@@ -6884,8 +6916,11 @@ AAACgjsAAAAAAAT262FmXpgBAAAAAADfcdfSt7XW8fgSAAAAAAD4GS9lAAAAAAAgILgDAAAAAEBA
 cAcAAAAAgMAJkAL/Hxqm9TwAAAAASUVORK5CYII=
 "
        id="image15667"
-       x="744.75562"
-       y="17.904129" />
+       x="712.12238"
+       y="31.589037"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="50.799999"
@@ -7508,8 +7543,11 @@ IHAHAAAAAIAE/vq6ce3atf9hDQAAAAAA6Du+laX3i4j2Xt8EAAAAAAB+M66UAQAAAACABATuAAAA
 AACQgMAdAAAAAAAS+BtLKabSkyS7PQAAAABJRU5ErkJggg==
 "
        id="image16055"
-       x="744.75562"
-       y="72.408302" />
+       x="712.12238"
+       y="86.093208"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="50.799999"
@@ -8188,8 +8226,11 @@ q4rQBgAAAAAAlI4PytJzEZFv8U4AAAAAAKCNsaUMAAAAAABkQOAOAAAAAAAZELgDAAAAAEAG/g9W
 fXvvUJ+CjgAAAABJRU5ErkJggg==
 "
        id="image16067"
-       x="744.75562"
-       y="125.85411" />
+       x="712.12238"
+       y="139.53902"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="50.799999"
@@ -8938,8 +8979,11 @@ GhiWlAEAAAAAAAAAwAIE7gAAAAAAAAAAWIDAHQAAAAAAAAAAC/w/YdSZUpL9zUsAAAAASUVORK5C
 YII=
 "
        id="image16079"
-       x="1078.3496"
-       y="184.50978" />
+       x="1045.7163"
+       y="198.19469"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="127"
        height="50.799999"
@@ -9629,22 +9673,31 @@ AAAAkIKWpw+sWbMmB20AAAAAAED++LAsvSAiahu9EwAAAAAAaGZsKQMAAAAAACkQuAMAAAAAQAoE
 7gAAAAAAkIL/A5HpgDYqhrhpAAAAAElFTkSuQmCC
 "
        id="image16091"
-       x="1078.3496"
-       y="240.07222" />
+       x="1045.7163"
+       y="253.75713"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <rect
        style="fill:none;fill-opacity:0.940419;stroke:#000000;stroke-width:0.460604;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect16786"
        width="134.11662"
        height="72.173271"
-       x="746.28265"
-       y="222.82967" />
+       x="715.23694"
+       y="236.51457"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <rect
-       style="fill:none;fill-opacity:0.940419;stroke:#000000;stroke-width:0.550899;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.550899;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect16872"
        width="154.91711"
        height="89.38176"
        x="-531.26276"
-       y="216.8692" />
+       y="216.8692"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -11415,8 +11468,11 @@ AABg4Dhfll4WER19PgkAAAAAAFxiHCkDAAAAAAAJCNwBAAAAACABgTsAAAAAACTwP1YGo4baZUWn
 AAAAAElFTkSuQmCC
 "
        id="image5282"
-       x="127.47953"
-       y="220.47403" />
+       x="163.27083"
+       y="221.52672"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="106.24632"
        height="42.498528"
@@ -12055,8 +12111,11 @@ ABKYd37j2LFjMzAGAAAAAADMHRfK0qsiYqzikwAAAAAAwCXGkTIAAAAAAJCAwB0AAAAAABIQuAMA
 AAAAQAL/A9gK2XSTg9NwAAAAAElFTkSuQmCC
 "
        id="image5294"
-       x="257.4173"
-       y="90.38575" />
+       x="293.20859"
+       y="91.438438"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="106.42178"
        height="85.137421"
@@ -13230,8 +13289,11 @@ AABAQHAHAAAAAICA4A4AAAAAAAHBHQAAAAAAAoI7AAAAAAAEBHcAAAAAAAjs18PMvDADAAAAAAC+
 RK5CYII=
 "
        id="image5466"
-       x="257.4173"
-       y="136.05923" />
+       x="293.20859"
+       y="137.11192"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="104.71647"
        height="83.773178"
@@ -14388,8 +14450,11 @@ vreDi4uLb7gNAAAAAADoHv9q6T0ppWbH7wQAAAAAAP4zXikDAAAAAAABBHcAAAAAAAgguAMAAAAA
 QIA/du9mDV1sih0AAAAASUVORK5CYII=
 "
        id="image5638"
-       x="257.14316"
-       y="-1.3477588" />
+       x="292.93445"
+       y="-0.29507348"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="92.298256"
        height="110.75789"
@@ -15816,8 +15881,11 @@ RRgDAAAAAABKx/dl6bmIyPf5JAAAAAAAMMDYUgYAAAAAADIgcAcAAAAAgAwI3AEAAAAAIAP/B/5C
 7B2pPHqRAAAAAElFTkSuQmCC
 "
        id="image5650"
-       x="145.08897"
-       y="-29.261953" />
+       x="180.88028"
+       y="-28.209269"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="92.298241"
        height="110.75789"
@@ -17454,8 +17522,11 @@ AAwwDCkDAAAAAAAAAIADCNwBAAAAAAAAAHAAgTsAAAAAAAAAAA74/8bQXCxBJE+sAAAAAElFTkSu
 QmCC
 "
        id="image5822"
-       x="48.028183"
-       y="-29.261953" />
+       x="83.819481"
+       y="-28.209269"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.461365"
        height="72.369087"
@@ -18770,8 +18841,11 @@ pEDgDgAAAAAAKRC4AwAAAABACko/OvDiiy8WoAwAAAAAACgeH5elZyIi2+iVAAAAAABAM2NJGQAA
 AAAASIHAHQAAAAAAUiBwBwAAAACAFPw/dTRZ9NBQGpUAAAAASUVORK5CYII=
 "
        id="image5834"
-       x="-51.321884"
-       y="-28.778835" />
+       x="-15.530584"
+       y="-27.726151"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.914108"
        height="36.365639"
@@ -19428,8 +19502,11 @@ ABIQuAMAAAAAQAJ9/t3Ys2dPF4wBAAAAAAA9x39l6SUR0dbpkwAAAAAAwCXGkTIAAAAAAJCAwB0A
 AAAAABIQuAMAAAAAQAL/A6L2AwkHAFcWAAAAAElFTkSuQmCC
 "
        id="image5926"
-       x="-160.25221"
-       y="-3.2175255" />
+       x="-124.46091"
+       y="-2.1648402"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.899979"
        height="72.719986"
@@ -20522,8 +20599,11 @@ AAAAAAB50GztwYQJE1KIAQAAAAAAhWNdXXomIrINngQAAAAAAIqMLWUAAAAAACAPFO4AAAAAAJAH
 CncAAAAAAMiD/wfUUb5dkfgycwAAAABJRU5ErkJggg==
 "
        id="image6098"
-       x="-160.23808"
-       y="34.735622" />
+       x="-124.44678"
+       y="35.788307"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.899979"
        height="109.07997"
@@ -22065,8 +22145,11 @@ DgAAAAAAKRC4AwAAAABACoo37nj55ZdzUAYAAAAAAOSPT8vSCyIi0+KVAAAAAABAG2NKGQAAAAAA
 SIHAHQAAAAAAUiBwBwAAAACAFPx/CnrxAMxQKqcAAAAASUVORK5CYII=
 "
        id="image6110"
-       x="-160.23808"
-       y="109.04311" />
+       x="-124.44678"
+       y="110.0958"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.285912"
        height="72.228729"
@@ -23181,8 +23264,11 @@ AABIgMAdAAAAAAASIHAHAAAAAIAEVBZPPPbYYymUAQAAAAAA5WNrWXomInLdXgkAAAAAAPQyWsoA
 AAAAAEACBO4AAAAAAJAAgTsAAAAAACTg/wOScvViWwkEBAAAAABJRU5ErkJggg==
 "
        id="image6202"
-       x="-159.62402"
-       y="221.29794" />
+       x="-123.83273"
+       y="222.35063"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.285912"
        height="108.34309"
@@ -25048,8 +25134,11 @@ iy++2AZlAAAAAABA6dhQlp6JiEKrVwIAAAAAAB2MJWUAAAAAACAFAncAAAAAAEiBwB0AAAAAAFLw
 /wFkAYtCL42SFAAAAABJRU5ErkJggg==
 "
        id="image6294"
-       x="-60.500599"
-       y="220.47403" />
+       x="-24.709299"
+       y="221.52672"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <image
        width="90.285904"
        height="108.34309"
@@ -26672,8 +26761,11 @@ AwTuAAAAAACQAQUbd7z88stZKAMAAAAAAHLH5rL0REQkd3klAAAAAADQzphSBgAAAAAAMkDgDgAA
 AAAAGSBwBwAAAACADPj/WMYIe3S/+oEAAAAASUVORK5CYII=
 "
        id="image6466"
-       x="33.489483"
-       y="220.47403" />
+       x="69.280785"
+       y="221.52672"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
   </g>
   <g
      inkscape:groupmode="layer"
@@ -26686,108 +26778,670 @@ AAAAGSBwBwAAAACADPj/WMYIe3S/+oEAAAAASUVORK5CYII=
      inkscape:label="Camada 5">
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M -69.338112,221.29794 127.65841,156.14385"
+       d="M -33.546812,222.35063 163.44971,157.19654"
        id="path7174"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 145.08897,81.495935 116.01195,93.773353"
+       d="M 180.88027,82.54862 151.80325,94.826038"
        id="path7313"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 106.41165,116.67638 95.209128,81.848088"
+       d="M 142.20295,117.72907 131.00043,82.900773"
        id="path7433"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M -70.802419,82.77243 108.26189,140.97265"
+       d="M -35.011119,83.825115 144.05319,142.02534"
        id="path7794"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 257.15414,112.62009 157.59818,100.11938"
+       d="M 292.94544,113.67278 193.38948,101.17207"
        id="path7796"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 258.73068,82.425423 131.92846,95.89709"
+       d="M 294.52198,83.478108 167.71976,96.949775"
        id="path8007"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 257.24797,174.62409 146.41705,102.94982"
+       d="M 293.03927,175.67678 182.20835,104.00251"
        id="path8344"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 80.07711,220.33082 74.95112,-33.13275"
+       d="m 115.86841,221.38351 74.95112,-33.13275"
        id="path8559"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M -70.777183,165.70634 123.28254,145.18549"
+       d="M -34.985883,166.75903 159.07384,146.23818"
        id="path8561"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 172.6695,220.49769 -8.49546,-23.76614"
+       d="m 208.4608,221.55038 -8.49546,-23.76614"
        id="path8563"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 134.41082,175.10262 -13.489852,219.13076"
+       d="M 170.20212,176.15531 22.301448,220.18345"
        id="path8565"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M -6.0370375,43.65016 93.157844,117.06489"
+       d="M 29.754262,44.702845 128.94914,118.11758"
        id="path9084"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M -69.338104,33.148113 97.489873,132.74296"
+       d="M -33.546804,34.200798 133.28117,133.79565"
        id="path9086"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\arvored0_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m -595.20467,36.994235 81.18084,42.196461"
        id="path15331"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m -682.2949,160.07485 94.57934,30.28669"
        id="path15428"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 998.77193,111.49529 958.73414,55.874471"
+       d="M 966.13869,125.1802 926.1009,69.55938"
        id="path16095"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 952.91303,124.17909 871.82054,44.872846"
+       d="M 920.27979,137.864 839.1873,58.557755"
        id="path16097"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 957.67335,185.36122 871.58061,96.317641"
+       d="M 925.04011,199.04613 838.94737,110.00255"
        id="path16099"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 940.42534,227.23379 871.96508,150.55926"
+       d="M 907.7921,240.9187 839.33184,164.24417"
        id="path16101"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 1078.278,212.5865 -52.7991,-41.03418"
+       d="M 1045.6448,226.27141 992.84566,185.23723"
        id="path16103"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.419269;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 1077.5336,265.43612 988.28923,228.74681"
+       d="M 1044.9004,279.12103 955.65599,242.43172"
        id="path16105"
-       sodipodi:nodetypes="cc" />
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\gale_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
+    <image
+       width="428.18045"
+       height="214.09023"
+       preserveAspectRatio="none"
+       xlink:href="data:image/png;base64,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
+9/78V//q+88PRhdT3nfPS/npP37+/V+uD/cvF/h1x2vDd/Dej3/X8VOW/rBx33Wc++P/+KvzH4U/
++/uH38T+IxCFvTKVCHdYSLhz0dHVX/3198NvePfuz7+/PrxXuD8uZtBv/s39Otb7fz+7XszDhc71
+q3fv/uL+tfmt3fVTFv+wMec7cH/u/77cla/+09QjEMcl3L+pG7LNUe6wjHDnorOrf/pPI294e8fe
+4X67mAH//O36rn70q5ul9M25p/pyX7767/cvxg73jnN/vLkpX38/5QhE8hzuT6FYO2XbItxhGeHO
+RXdXX+VlT3i/1uH+4d7Ruh3Og+Htw/28K+Xffv/jr392c82L/a7rsme19h/O//G6eeVfOj9h03D/
+47fvHs69/cvM9d9m+o9AJF/C/TUUa6dsY5Q7LCLcubgtvR//z//8q7tY/t1dOv/4219eV9mkcJ+U
+3lMW02+fcH8dkf/46z999+4X00b/A77rGpXPae0f/+6rP/+X53D//S+7/u6zcbif9/Xfn/v0t6uv
+/vrL3xr+8A+3R/uPQCint06sXbKNEe6wiHDn4rH0nrd1X6KwI7x/97O313YM947F9Nsn3Ld1nt8/
+tuyc1n66HX/263df/bdvu2/rtuH+m5cd69fnni/i3Z/809V6Xn93+o9AJLehWDtlG6PbYQnhzkVH
+6T113mU03BXe3729Yedwv1tMvwzh/mWNHUuc09p3e4nWje/H/P6Xr59zfe7t7+dTn3f+Tl8fgTAe
+SrF2yTZGtsMSwp2LrtJ7aq7rTez34f1Ugl/3nr9luN8upl+GcP+uc9v3rNb+7a//6vW5LZ3Pytwu
+3F829v/kT+/O/dW7h23tX48dgSA6WrF2yTZGtsMSwp2LztL77t1IeP/qsg9i93C/WcyTP/z65+eX
+/uzmQZGP4d75tie//8/nIw/PGu97+b8+v/z4c/o+4fkHPZR1906Z+a19viFf/U33sak/7Menpf/k
+P/Zu23/+fzre/eL//t3tufc/6+0D+4+8+u0vv/wm/eT1qwK/P//qq19Uf1I/zejJxdop2xjZDgsI
+dy76S+/q26cP4f3d5az9w/16MZ+vN3C8PU7+6mnrr6d3ve3lyLeXA9cPiR9/+f7n9HzC9Rk3fd35
+MMj54f6bL/H7s3dfdR8c/WG/ejr+9rj1X/RsQ38658vyf7wL9/u/IJ3f93xV/UfO/+vrzz9e7td5
+h8+P/zC2AthUbzDWLtnGyHZYQLhz0Vl6TxP1l1erh/v1Yl6+GHvx0+eXH8O9822Xpb+5fH1y0svX
+19H3Cbf/ZNP1NvTOh0HODvffnZfxZVnd5T4t3P+hc+X35zz9/eU+3H/37vYq3o73H3kK9z9+e31T
+ng6+sJ+G3Q1t0FDuZcl2mE+4c9Hdyle1XX2rzM1PuM3l13c/hHv3285uS/xSjRNfvnpKZs8nvGwx
+efMWvT3/btK8cD9f6tdP3dt5UyeF+3/putT7c/7d8//tcB/u392fcf6j8BfDR86f/6+vSv3LCm+e
++O4rrOxqsNqFe2kP9/9U+w8IxCfcuehu5atHgtT+curNYp6z+KfnXeg//vO3l+y8D/eet13e+dN/
+/P684/qtGntefn6Iy9PP+cPzdzVv+7zjE55S/2nj9t0n9+2UmRnuv3l+Ms2XBXduc58S7peV//bb
+d11vv3Ef7pcaf3Xp9f4jL3+ZeXrC+++fAv7nr7+6vUWwg7FuF+6F3WX7F7X/iEB4wp2L7lZ+Sq23
+5z12Pg7yb/vP3zbcrxZzjsO3YP3N1bj2Zod1/9ueuvVvrg983f/y836O1xi9+VXfJzy96ZKvN5t8
+vqyw87nmd494HJtE///27ra5bSwx0CjUVq9XmrIdeeySNpkeO+mNtyq13ma3U2mll2Ov0zuejSRb
+/P+/ZgG+4OKdIAgSBHnOhxQFgAAop6of3bm8ePjvi78pqh8H1TLcV3c4qb3MSlW4596QC/fqPYtw
+X67wvpwkk/3p0FcDYuSU+2Ep/OqVO6wn3El1CfdpZqC2VbhXqFyZfd3NFNcGz0yrzoZ7/WHzPeHS
+q7Cu2XyXv9FMZNZeIXwjc37YH67CEjXVi0FuHO7N2oX7q9yexkXyC+Fe7Pjw0ev3LL/o+lNmc/gp
++U22/bsOOhHuB6bwi1fusJZwJ1XdyvMKC3NhsmX1Hx+eZct7D+EebqY4jToz1Tsb7vWHTaPcFyhX
+YV2zeZLfnMn12ivUf6m0ZjHIIcI9c8DaxdZ7C/f0KvPfYnYCkXBnt9aGu3Lfr+JvXbnDOsKdVKtw
+r/C06f07CvdyG07TM2XCveGw0jzsherN5QifrL2R+Z6z8pLvdY9NnQ0R7plSL32jtKi3cM+P8r/N
+/iTc2S3hfmCKv3PlDmsId1Idwz0diN5nuCenze++S28zE+71h5XjMlygvLn8TKdVijbcyHIdmif/
+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
+e6iFVAAAAABJRU5ErkJggg==
+"
+       id="image17246"
+       x="-659.21802"
+       y="66.390976"
+       clip-path="url(#clipPath6678)"
+       transform="matrix(1.538597,0,0,1.538597,463.88617,-130.08937)"
+       style="display:inline"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
+    <rect
+       style="display:inline;fill:none;fill-opacity:0.940419;stroke:#000000;stroke-width:0.550724;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect17248"
+       width="160.35735"
+       height="86.294403"
+       x="-446.3699"
+       y="205.5054"
+       inkscape:export-filename="C:\Users\silve\OneDrive\Documentos\Academico\POS-DOC_UFSC\@Karon Coral Sol\modelling\modeling_pacs_unmarked\unmarked_cs\plots\maps\deserta_density.png"
+       inkscape:export-xdpi="111.197"
+       inkscape:export-ydpi="111.197" />
   </g>
 </svg>
