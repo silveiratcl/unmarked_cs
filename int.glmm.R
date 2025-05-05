@@ -327,4 +327,36 @@ pred_intensity
 
 write.csv(pred_intensity, "predict_intensity.csv", row.names = FALSE)
 
+library(gt)
+install.packages("webshot2")
 
+predict.table <- pred_intensity %>%
+  gt() %>%
+  fmt_number(everything(), decimals = 3) %>%
+  tab_style(
+    style = list(
+      cell_text(weight = "bold", align = "center"),
+      cell_fill(color = "#f5f5f5")
+    ),
+    locations = cells_body()
+  ) %>%
+  tab_options(
+    table.font.size = px(14),
+    table.border.top.color = "black"
+  )
+
+
+# Criando a tabela
+
+df1 <- pred_intensity[1:14, ]
+df2 <- pred_intensity[15:37, ]
+
+# Criar "grob" (objetos gráficos para as tabelas)
+tabela1 <- tableGrob(df1)
+tabela2 <- tableGrob(df2)
+
+# Plotar as duas tabelas na mesma imagem
+grid.arrange(tabela1, tabela2, ncol = 2)
+
+png("predict table.png", width = 10, height = 6, units = "in", res = 300)
+grid.arrange(tabela1, tabela2, ncol = 2)
