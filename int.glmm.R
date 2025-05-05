@@ -328,7 +328,6 @@ pred_intensity
 write.csv(pred_intensity, "predict_intensity.csv", row.names = FALSE)
 
 library(gt)
-install.packages("webshot2")
 
 predict.table <- pred_intensity %>%
   gt() %>%
@@ -345,11 +344,12 @@ predict.table <- pred_intensity %>%
     table.border.top.color = "black"
   )
 
+library('gridExtra')
 
 # Criando a tabela
 
-df1 <- pred_intensity[1:14, ]
-df2 <- pred_intensity[15:37, ]
+df1 <- pred_intensity[1:20, ]
+df2 <- pred_intensity[20:37, ]
 
 # Criar "grob" (objetos gráficos para as tabelas)
 tabela1 <- tableGrob(df1)
