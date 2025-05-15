@@ -1,5 +1,4 @@
-## 
-# Indicadores Monitoramento
+ # Indicadores Monitoramento
 
 library(tidyverse)
 library(readr)
@@ -260,6 +259,16 @@ table(df_monit_effort$localidade)
 table(df_monit_effort$faixa_bat_depth)
 
 
+# without icmbio data
+ 
+df_table  = df_monit %>% 
+  filter(obs != "estimado dos dados do ICMBio") 
+
+table(df_table$dafor)
+sum(table(df_table$dafor))
+
+
+
 # n detections minutes
 
 plot_detec_strata <- df_monit_effort %>% 
@@ -326,7 +335,7 @@ ggsave("plots/transec_batimetria.png", width = 10, height = 5, dpi = 300)
 
 
 #### CPUE #########################################################################
-# Detections/60min/100m
+# Detections/60min*100m
 
 df_monit_effort_dpue <- df_monit_effort %>% 
   # Calculate DPUE per 60min per 100m
@@ -365,7 +374,7 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
   
   labs(
     title = "Detecções por Unidade de Esforço (2022-2025)",
-    subtitle = "DPUE - Detecções / (Horas * Unidades de 100m)"
+    #subtitle = "DPUE - Detecções / (Horas * Unidades de 100m)"
     ) +
  # ggtitle("Detecções por Unidade de Esforço - Detecções/H/100m ") +
   
@@ -527,6 +536,14 @@ density_data <- data %>%
 
 sum(is.na(density_data$dafor))
 
+#checks
+sum(table(density_data$data))
+#looks like we are inflating
+
+sum(table(df_monit$data))
+
+
+
 ##############################
 ### 2. Set up comparison parameters
 ##############################
@@ -651,6 +668,9 @@ ggsave("plots/density_vertical_rebio.png", final_plot, width = 10, height = 5, d
 library(dplyr)
 library(tidyr)
 library(kableExtra)
+
+table(density_data$dafor)
+
 
 # First create the properly named summary table
 dafor_table <- density_data %>%
@@ -956,30 +976,50 @@ shp_data <- shp_localidades %>%
 map_data <- shp_data %>% 
   left_join(df_dpue, by = "localidade_clean")
 
-# 5. CREATE ENHANCED COLOR SCALE
-# New improved color palette with better visual distinction
-color_palette <- c("#D3D3D3",  # Light grey for 0 values
-                   "#A3D699",  # Light green for very low
-                   "#2ECC71",  # Green for low
-                   "#F1C40F",  # Yellow for medium-low
-                   "#F39C12",  # Orange for medium-high
-                   "#E74C3C")  # Red for high values
 
-# Calculate breaks - now with more categories for better resolution
+# 5. CREATE ENHANCED COLOR SCALE
+color_palette <- c(
+  "#D3D3D3",  # Light grey for EXACTLY 0
+  "#A3D699",  # Light green for very low (>0)
+  "#2ECC71",  # Green for low
+  "#F1C40F",  # Yellow for medium-low
+  "#F39C12",  # Orange for medium-high
+  "#E74C3C"   # Red for high values
+)
+
 dpue_values <- map_data$mean_dpue[!is.na(map_data$mean_dpue)]
-if(length(unique(dpue_values)) <= 4) {
-  breaks <- sort(unique(c(0, dpue_values)))
+positive_values <- dpue_values[dpue_values > 0]
+
+if (length(unique(dpue_values)) <= 4) {
+  breaks <- sort(unique(c(0, dpue_values)))  # Few values: include all
 } else {
-  # More break points for better gradient
-  breaks <- c(0, 
-              quantile(dpue_values[dpue_values > 0], 
-                       probs = seq(0.2, 0.8, by = 0.2), 
-                       na.rm = TRUE),
-              max(dpue_values, na.rm = TRUE))
-  breaks <- unique(round(breaks, 2))
-  # Ensure at least 4 breaks for the color palette
-  if(length(breaks) < 4) {
-    breaks <- seq(0, max(breaks), length.out = 4)
+  # Force a break right after 0 (e.g., smallest positive value)
+  min_positive <- min(positive_values, na.rm = TRUE)
+  epsilon <- min_positive / 2  # A tiny value to separate 0 from >0
+  
+  # Calculate breaks for remaining values (now excluding 0)
+  if (length(unique(positive_values)) <= 3) {
+    positive_breaks <- sort(unique(positive_values))
+  } else {
+    positive_breaks <- quantile(
+      positive_values,
+      probs = seq(0, 1, length.out = length(color_palette) - 1),  # -1 because 0 is separate
+      na.rm = TRUE
+    )
+  }
+  
+  # Combine breaks: 0, epsilon, then the rest
+  breaks <- c(0, epsilon, positive_breaks)
+  breaks <- unique(round(breaks, 2))  # Remove duplicates
+  
+  # Ensure we have enough breaks (matching palette)
+  if (length(breaks) < length(color_palette)) {
+    extra_breaks <- seq(
+      min_positive,
+      max(positive_values, na.rm = TRUE),
+      length.out = length(color_palette) - 2  # -2 because 0 and epsilon are fixed
+    )
+    breaks <- c(0, epsilon, extra_breaks)
   }
 }
 
@@ -991,13 +1031,11 @@ pal <- colorBin(
   na.color = "#111111",  # Darker grey for NA values
   pretty = FALSE
 )
+ 
 
 
-
-
-
-
-
+####################
+####################
 
 # 6. CREATE MAP
 dpue_map <- leaflet(map_data) %>%
@@ -1034,14 +1072,14 @@ dpue_map <- leaflet(map_data) %>%
     pal = pal,
     values = ~mean_dpue,
     title = "DPUE Detecções/H/100m",
-    position = "bottomright",
+    position = "bottomleft",
     labFormat = labelFormat(digits = 3),  # More decimal places
     na.label = "Não amostrado",
     opacity = 1
   ) %>%
   
   # Add scale bar
-  addScaleBar(position = "bottomleft")
+  addScaleBar(position = "bottomright")
 
 # 7. DISPLAY MAP
 dpue_map
@@ -1052,13 +1090,14 @@ dpue_map
 library(tmap)
 library(sf)
 library(dplyr)
+library(rnaturalearth)
 
 # Defining the bbox
 # 5. Define your bounding box
 bbox_arvoredo <- st_bbox(c(
   xmin = -48.34664,
   ymin = -27.26745,
-  xmax = -48.40350,
+  xmax = -48.40000,
   ymax = -27.30329
 ), crs = st_crs(4326))
 
@@ -1070,20 +1109,12 @@ bbox_deserta <- st_bbox(c(
 ), crs = st_crs(4326))
 
 
-
-
 bbox_gale <- st_bbox(c(
   xmin = -48.395163,
   ymin = -27.173507,
   xmax = -48.429423,
   ymax = -27.190714
 ), crs = st_crs(4326))
-
-
-
-
-
-
 
 # 1. First try to fix your map_rebio_sf data
 tryCatch({
@@ -1121,7 +1152,9 @@ dpue_tmap_arvoredo <- tm_shape(coastline_cropped, bbox = bbox_arvoredo) +
     colorNA = "#111111",
     lineend = "round",
     linejoin = "round",
-    title.col = "DPUE Detecções/ H * Un.100m"
+    title.col = "DPUE Detecções/ H * Un.100m",
+    labels = c("0", "0.01-0.03", "0.03-0.09", "0.09-0.038", "0.38-0.85", "0.85-94.57"), 
+    textNA = "Não amostrado",
   ) +
   
   # Rest of your map elements...
@@ -1172,7 +1205,9 @@ dpue_tmap_deserta <- tm_shape(coastline_cropped, bbox = bbox_deserta) +
     colorNA = "#111111",
     lineend = "round",
     linejoin = "round",
-    title.col = "DPUE Detecções/ H * Un.100m"
+    title.col = "DPUE Detecções/ H * Un.100m",
+    labels = c("0", "0.01-0.03", "0.03-0.09", "0.09-0.038", "0.38-0.85", "0.85-94.57"), 
+    textNA = "Não amostrado",
   ) +
   
   # Rest of your map elements...
@@ -1373,4 +1408,102 @@ ggsave("plots/mass_years.png", width = 10, height = 5, dpi = 300)
 ################################################################################
 ################################################################################
 
+library(tmap)
+library(sf)
+library(dplyr)
+
+# 1. LOAD AND REPAIR SHAPEFILE
+land_polygon <- st_read("data/Rebio_Arvoredo_Ilhas_POL_CGS_WGS84.shp") %>% 
+  # Force 2D coordinates (fixes dimension mismatch)
+  st_zm(drop = TRUE) %>% 
+  # Convert to valid geometries
+  st_make_valid() %>% 
+  # Ensure correct CRS (WGS84)
+  st_transform(4326)
+
+# 2. VERIFY GEOMETRY (diagnostic check)
+if(!all(st_is_valid(land_polygon))) {
+  message("Found invalid geometries - applying additional fixes")
+  land_polygon <- land_polygon %>% 
+    st_buffer(0) %>%  # Fix potential geometry issues
+    st_make_valid()
+}
+
+# 3. DEFINE BOUNDING BOXES (with explicit CRS)
+create_bbox <- function(xmin, ymin, xmax, ymax) {
+  st_bbox(c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), crs = 4326)
+}
+
+bbox_arvoredo <- create_bbox(-48.34664, -27.26745, -48.40000, -27.30329)
+bbox_deserta <- create_bbox(-48.325350, -27.266767, -48.339598, -27.277903)
+bbox_gale <- create_bbox(-48.397000, -27.173507, -48.419423, -27.190714)
+
+# 4. ENHANCED MAP FUNCTION
+create_dpue_map <- function(data, land, bbox, title, legend_pos) {
+  # Convert bbox to polygon with small buffer
+  bbox_poly <- st_as_sfc(bbox) %>% st_buffer(0.02)
+  
+  # Safely crop land to area of interest
+  land_cropped <- tryCatch({
+    st_intersection(land, bbox_poly) %>% 
+      st_make_valid() %>% 
+      st_collection_extract("POLYGON")
+  }, error = function(e) {
+    message("Using full land extent due to cropping error")
+    land
+  })
+  
+  # Create map
+  tm_shape(land_cropped, bbox = bbox) +
+    tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 0.8) +
+    
+    tm_basemap("Esri.WorldImagery", alpha = 0.7) +
+    
+    tm_shape(data) +
+    tm_lines(
+      col = "mean_dpue",
+      palette = color_palette,
+      breaks = breaks,
+      lwd = 6,
+      title.col = "DPUE Detecções/H*Uni100m",
+      labels = c("0", "0.01-0.03", "0.03-0.09", "0.09-0.38", "0.38-0.85", "0.85-94.57"),
+      textNA = "Não amostrado",
+      colorNA = "#111111"
+      
+    ) +
+    
+    tm_layout(
+      main.title = title,
+      inner.margins = c(0.02, 0.02, 0.02, 0.02),
+      legend.position = legend_pos,
+      frame = TRUE
+    ) +
+    tm_scale_bar(position = c("left", "bottom"))
+}
+
+# 5. GENERATE MAPS WITH ERROR HANDLING
+generate_safe_map <- function(bbox, title, legend_pos) {
+  tryCatch({
+    create_dpue_map(map_data_sf, land_polygon, bbox, title, legend_pos)
+  }, error = function(e) {
+    message("Falling back to simplified map for ", title)
+    tm_shape(map_data_sf, bbox = bbox) +
+      tm_lines(col = "mean_dpue", palette = color_palette, lwd = 6) +
+      tm_layout(main.title = paste(title, "(simplified)"),
+                legend.position = legend_pos)
+  })
+}
+
+# Generate and save maps
+dpue_tmap_arvoredo <- generate_safe_map(bbox_arvoredo, "Ilha do Arvoredo", c("left", "bottom"))
+dpue_tmap_deserta <- generate_safe_map(bbox_deserta, "Ilha Deserta", c("left", "top"))
+dpue_tmap_gale <- generate_safe_map(bbox_gale, "Ilha da Galé", c("left", "top"))
+
+dpue_tmap_arvoredo
+
+
+# Save outputs
+tmap_save(dpue_tmap_arvoredo, "plots/maps/dpue_map_arvoredo.png", width = 10, height = 5, dpi = 300)
+tmap_save(dpue_tmap_deserta, "plots/maps/dpue_map_deserta.png", width = 10, height = 5, dpi = 300)
+tmap_save(dpue_tmap_gale, "plots/maps/dpue_map_gale.png", width = 10, height = 5, dpi = 300)
 
