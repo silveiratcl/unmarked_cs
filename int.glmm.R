@@ -127,7 +127,7 @@ print(t_visib.chr)
 
 int.geomonit$t_visib.chr <- t_visib.chr
 
-int.geomonit <- as.data.frame(int.geomonit)
+int.geomonit <- as_tibble(int.geomonit)
 
 
 # generalize linear mixed models
@@ -305,13 +305,17 @@ intensity.glmm <- int.a2c2 <- glmmTMB(t.total_dafor  ~ mp + tf + offset(log(t.to
                                       family = poisson)
 summary(intensity.glmm)
 
+ranef(intensity.glmm) #efeito aleatorio para cada localidade
+
+log(int.geomonit$t.total_min)
+
 # extraindo o predict do modelo
 
 data(sleepstudy, package = "lme4")
 
 pred <- predict(intensity.glmm, type = "response")
 
-model_pred <- round(as.numeric(pred), 3)
+model_pred <- round(as.numeric(pred), 0.3)
 
 # inserindo no data frame
 
@@ -327,6 +331,7 @@ pred_intensity
 
 write.csv(pred_intensity, "predict_intensity.csv", row.names = FALSE)
 
+install.packages('gt')
 library(gt)
 
 predict.table <- pred_intensity %>%
@@ -360,3 +365,75 @@ grid.arrange(tabela1, tabela2, ncol = 2)
 
 png("predict table.png", width = 10, height = 6, units = "in", res = 300)
 grid.arrange(tabela1, tabela2, ncol = 2)
+
+print(pred_intensity, n =37)
+
+ggplot(pred_intensity, aes(x = reorder(localidade, -model_pred), y = model_pred)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +  # Inverte os eixos → barras ficam horizontais
+  scale_y_continuous(breaks = seq(0, 400, by = 20)) +
+  scale_x_discrete(limits = rev, 
+                   labels = c("engenho" = "ENGENHO", "rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", "farol" = "FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
+                              "deserta_sul" = "DESERTA SUL", "enseada_do_lili" = "ENSEADA DO LILI", "saco_do_batismo" = "SACO DO BATISMO", "baia_das_tartarugas" = "BAÍA DAS TARTARUGAS", "saquinho_dagua" = "SAQUINHO D'ÁGUA", 
+                              "saco_do_capim" = "SACO DO CAPIM", "deserta_norte" = "DESERTA NORTE", "letreiro" = "LETREIRO", "portinho_sul" = "PORTINHO SUL", "saco_dagua" = "SACO D'ÁGUA", "tamboretes_sul" = "TAMBORETES SUL",
+                              "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
+                              "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
+                              "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
+                              "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE")) +
+  labs(title = "Predição do IAR-GEO por localidade", x = "", y = "") +
+  theme(panel.background = element_blank(), 
+    plot.background = element_blank(),      
+    panel.grid = element_blank(),
+    axis.ticks = element_blank(),
+    plot.title = element_text(family = "TT Arial", face = "bold", size = 14),
+    axis.text.y = element_text(family = "TT Arial", face = "bold", size = 10),
+    axis.text.X = element_text(family = "TT Arial", size = 8),
+    axis.title = element_text(family = "TT Arial", size = 10))   
+
+ggplot(pred_intensity[2:14, ], aes(x = reorder(localidade, -model_pred), y = model_pred)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  coord_flip() +  # Inverte os eixos → barras ficam horizontais
+  scale_y_continuous(breaks = seq(0, 80, by = 5)) +
+  scale_x_discrete(limits = rev, 
+                   labels = c("rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", "farol" = "FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
+                              "deserta_sul" = "DESERTA SUL", "enseada_do_lili" = "ENSEADA DO LILI", "saco_do_batismo" = "SACO DO BATISMO", "baia_das_tartarugas" = "BAÍA DAS TARTARUGAS", "saquinho_dagua" = "SAQUINHO D'ÁGUA", 
+                              "saco_do_capim" = "SACO DO CAPIM", "deserta_norte" = "DESERTA NORTE", "letreiro" = "LETREIRO")) +
+  labs(title = "", x = "", y = "") +
+  theme(panel.background = element_blank(), 
+        plot.background = element_blank(),      
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title = element_text(family = "TT Arial", face = "bold", size = 14),
+        axis.text.y = element_text(family = "TT Arial", face = "bold", size = 10),
+        axis.text.X = element_text(family = "TT Arial", size = 8),
+        axis.title = element_text(family = "TT Arial", size = 10)) 
+
+ggplot(pred_intensity[15:37, ], aes(x = reorder(localidade, -model_pred), y = model_pred)) +
+  geom_bar(stat = "identity", fill = "darkgreen") +
+  coord_flip() +  # Inverte os eixos → barras ficam horizontais
+  scale_y_continuous(limits = c(0, 0.3), breaks = seq(0, 1, by = 0.1)) +
+  scale_x_discrete(limits = rev, 
+                   labels = c("portinho_sul" = "PORTINHO SUL", "saco_dagua" = "SACO D'ÁGUA", "tamboretes_sul" = "TAMBORETES SUL",
+                              "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
+                              "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
+                              "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
+                              "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE")) +
+  labs(title = "", x = "", y = "") +
+  theme(panel.background = element_blank(), 
+        plot.background = element_blank(),      
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        plot.title = element_text(family = "TT Arial", face = "bold", size = 14),
+        axis.text.y = element_text(family = "TT Arial", face = "bold", size = 10),
+        axis.text.X = element_text(family = "TT Arial", size = 8),
+        axis.title = element_text(family = "TT Arial", size = 10)) 
+
+windowsFonts()
+
+
+
+, "portinho_sul" = "PORTINHO SUL", "saco_dagua" = "SACO D'ÁGUA", "tamboretes_sul" = "TAMBORETES SUL",
+"saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
+"ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
+"aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
+"tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE")
