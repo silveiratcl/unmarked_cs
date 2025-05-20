@@ -743,7 +743,7 @@ bg_colors <- dafor_table %>%
            column_spec(8, bold = TRUE, width = "6em", background = "#e6f2ff") %>%
            add_header_above(
              c(" " = 1, 
-               "Escala IAR" = 6, 
+               "Escala DAFOR" = 6, 
                " " = 1),
              bold = TRUE,
              font_size = 16,
@@ -1407,7 +1407,7 @@ ggsave("plots/mass_years.png", width = 10, height = 5, dpi = 300)
 
 ################################################################################
 ################################################################################
-
+### DEBUGED dpue MAPS
 library(tmap)
 library(sf)
 library(dplyr)
@@ -1506,4 +1506,280 @@ dpue_tmap_arvoredo
 tmap_save(dpue_tmap_arvoredo, "plots/maps/dpue_map_arvoredo.png", width = 10, height = 5, dpi = 300)
 tmap_save(dpue_tmap_deserta, "plots/maps/dpue_map_deserta.png", width = 10, height = 5, dpi = 300)
 tmap_save(dpue_tmap_gale, "plots/maps/dpue_map_gale.png", width = 10, height = 5, dpi = 300)
+
+
+
+
+################################################################################
+
+################################################################################
+## Automated solution to create all bar plots by localidade
+################################################################################
+library(tidyverse)
+library(patchwork)
+library(fs)
+
+# 1. Create output directory if it doesn't exist
+dir_create("plots/bar_by_locality")
+
+# 2. Get all unique localities
+localities <- df_monit %>%
+  filter(localidade_rebio != "entorno") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+         localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>% 
+  distinct(localidade) %>%
+  pull(localidade)
+
+# 3. Create plotting function
+create_bar_plot <- function(locality) {
+  # Prepare data
+  loc_data <- df_monit %>%
+    mutate(
+      localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+      year = year(data)
+    ) %>%
+    filter(localidade == locality,
+           obs != "estimado dos dados do ICMBio",
+           localidade_rebio != "entorno")
+  
+  # Skip if no data
+  if (nrow(loc_data) == 0) {
+    message(paste("No data found for", locality))
+    return(NULL)
+  }
+  
+  # Process data
+  loc_data <- loc_data %>%
+    group_by(year) %>%
+    mutate(
+      n_trans_count = n(),
+      total_dafor = sum(dafor, na.rm = TRUE)
+    ) %>%
+    ungroup() %>%
+    arrange(year) %>%
+    mutate(
+      year_label = paste0(year, " (n=", n_trans_count, ")"),
+      year_label = factor(year_label, levels = unique(year_label))
+    )
+  
+  # Set up comparison parameters
+  years <- levels(loc_data$year_label)
+  
+  # Color scheme
+  if (all(loc_data$dafor == 0)) {
+    plot_colors <- rep("#00AA00", length(years))  # Bright green for all zeros
+  } else if (length(years) == 1) {
+    plot_colors <- rep("grey70", length(years))   # Single year with data > 0
+  } else {
+    # Initialize all colors as grey90 (default for non-comparison years)
+    plot_colors <- rep("grey90", length(years))
+    
+    # Compare each consecutive pair
+    for (i in 1:(length(years)-1)) {
+      # Get comparison values for this pair
+      dafor_compare <- loc_data %>%
+        filter(year_label %in% years[c(i, i+1)]) %>%
+        distinct(year_label, .keep_all = TRUE) %>%
+        arrange(year_label)
+      
+      # Only set color for the newer year in each comparison
+      if (dafor_compare$total_dafor[2] > dafor_compare$total_dafor[1]) {
+        plot_colors[i+1] <- "red"  # Newer year increased
+      } else {
+        plot_colors[i+1] <- "#6B8EFF"  # Newer year decreased or stayed same
+      }
+      
+      # Set older year to grey70 (only if not already set by a previous comparison)
+      if (plot_colors[i] == "grey90") {
+        plot_colors[i] <- "grey70"
+      }
+    }
+  }
+  
+  # Create individual plots
+  plot_list <- lapply(years, function(yr) {
+    is_last_plot <- (yr == years[length(years)])
+    
+    # Calculate counts for each dafor value
+    count_data <- loc_data %>%
+      filter(year_label == yr) %>%
+      count(dafor) %>%
+      complete(dafor = 0:10, fill = list(n = 0))
+    
+    # Calculate max count for y-axis limits
+    y_max <- max(count_data$n)
+    
+    ggplot(count_data, aes(x = dafor, y = n)) +
+      geom_bar(stat = "identity", fill = plot_colors[which(years == yr)], alpha = 0.8) +
+      annotate(
+        "text",
+        x = 10,
+        y = y_max * 0.95,
+        label = yr,
+        size = 9,
+        hjust = 1,
+        vjust = 1
+      ) +
+      scale_x_continuous(
+        limits = c(-0.5, 10.5),
+        breaks = seq(0, 10, 2),
+        labels = seq(0, 10, 2)
+      ) +
+      scale_y_continuous(limits = c(0, NA)) +
+      theme_minimal() +
+      theme(
+        plot.margin = margin(5, 5, 5, 5, "pt"),
+        axis.text.y = element_text(size = 14),
+        axis.title.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = if (is_last_plot) element_text() else element_blank(),
+        axis.text.x = if (is_last_plot) element_text() else element_blank(),
+      ) +
+      labs(x = if (is_last_plot) "IAR" else NULL)
+  })
+  
+  # Combine plots
+  final_plot <- wrap_plots(plot_list, ncol = 1) +
+    plot_annotation(
+      title = paste(locality),
+      theme = theme(
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold",
+                                  margin = margin(b = 10))
+      ) +
+        theme(plot.background = element_rect(color = "black", size = 1, fill = "white"))
+    )
+  
+  # Save plot
+  filename <- paste0("plots/bar_by_locality/", 
+                     str_replace_all(tolower(locality), " ", "_"), 
+                     "_bar.png")
+  
+  ggsave(filename, final_plot, width = 5, height = 2 * length(years), dpi = 300)
+  return(filename)
+}
+
+# 4. Process all localities (with progress bar)
+created_files <- map(localities, ~ {
+  tryCatch({
+    create_bar_plot(.x)
+  }, error = function(e) {
+    message(paste("Failed for", .x, ":", e$message))
+    NULL
+  })
+})
+
+# 5. Report results
+successful <- keep(created_files, ~ !is.null(.x))
+message(paste("\nSuccessfully created", length(successful), " plots in plots/bar_by_locality/"))
+
+
+################################################################################
+## Map withouT DPUE
+
+
+library(tmap)
+library(sf)
+library(dplyr)
+
+# 1. LOAD AND REPAIR SHAPEFILE
+land_polygon <- st_read("data/Rebio_Arvoredo_Ilhas_POL_CGS_WGS84.shp") %>% 
+  # Force 2D coordinates (fixes dimension mismatch)
+  st_zm(drop = TRUE) %>% 
+  # Convert to valid geometries
+  st_make_valid() %>% 
+  # Ensure correct CRS (WGS84)
+  st_transform(4326)
+
+# 2. VERIFY GEOMETRY (diagnostic check)
+if(!all(st_is_valid(land_polygon))) {
+  message("Found invalid geometries - applying additional fixes")
+  land_polygon <- land_polygon %>% 
+    st_buffer(0) %>%  # Fix potential geometry issues
+    st_make_valid()
+}
+
+# 3. DEFINE BOUNDING BOXES (with explicit CRS)
+create_bbox <- function(xmin, ymin, xmax, ymax) {
+  st_bbox(c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), crs = 4326)
+}
+
+bbox_arvoredo <- create_bbox(-48.34664, -27.26745, -48.40000, -27.30329)
+bbox_deserta <- create_bbox(-48.325350, -27.266767, -48.339598, -27.277903)
+bbox_gale <- create_bbox(-48.397000, -27.173507, -48.419423, -27.190714)
+
+# 4. ENHANCED MAP FUNCTION
+create_dpue_map <- function(data, land, bbox, title, legend_pos) {
+  # Convert bbox to polygon with small buffer
+  bbox_poly <- st_as_sfc(bbox) %>% st_buffer(0.02)
+  
+  # Safely crop land to area of interest
+  land_cropped <- tryCatch({
+    st_intersection(land, bbox_poly) %>% 
+      st_make_valid() %>% 
+      st_collection_extract("POLYGON")
+  }, error = function(e) {
+    message("Using full land extent due to cropping error")
+    land
+  })
+  
+  # Create map
+  tm_shape(land_cropped, bbox = bbox) +
+    tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 0.8) +
+    
+    tm_basemap("Esri.WorldImagery", alpha = 0.7) +
+    
+    tm_shape(data) +
+    tm_lines(
+      col = c("blue"),
+      #palette = color_palette,
+      #breaks = breaks,
+      lwd = 6,
+      #title.col = "DPUE Detecções/H*Uni100m",
+      #labels = c("0", "0.01-0.03", "0.03-0.09", "0.09-0.38", "0.38-0.85", "0.85-94.57"),
+      #textNA = "Não amostrado",
+      colorNA = "#111111"
+      
+    ) +
+    
+    tm_layout(
+     # main.title = title,
+      #inner.margins = c(0.02, 0.02, 0.02, 0.02),
+      #legend.position = legend_pos,
+      frame = F
+    ) +
+    tm_scale_bar(position = c("left", "bottom"))
+}
+
+# 5. GENERATE MAPS WITH ERROR HANDLING
+generate_safe_map <- function(bbox, title, legend_pos) {
+  tryCatch({
+    create_dpue_map(map_data_sf, land_polygon, bbox, title, legend_pos)
+  }, error = function(e) {
+    message("Falling back to simplified map for ", title)
+    tm_shape(map_data_sf, bbox = bbox) +
+      tm_lines(col = "mean_dpue", palette = color_palette, lwd = 6) +
+      tm_layout(main.title = paste(title, "(simplified)"),
+                legend.position = legend_pos)
+  })
+}
+
+# Generate and save maps
+dafor_tmap_arvoredo <- generate_safe_map(bbox_arvoredo, "Ilha do Arvoredo", c("left", "bottom"))
+dafor_tmap_deserta <- generate_safe_map(bbox_deserta, "Ilha Deserta", c("left", "top"))
+dafor_tmap_gale <- generate_safe_map(bbox_gale, "Ilha da Galé", c("left", "top"))
+
+dafor_tmap_arvoredo
+dafor_tmap_deserta
+dafor_tmap_gale
+
+
+
+# Save outputs
+tmap_save(dafor_tmap_arvoredo, "plots/maps/dafor_map_arvoredo.png", width = 10, height = 5, dpi = 300)
+tmap_save(dafor_tmap_deserta, "plots/maps/dafor_map_deserta.png", width = 10, height = 5, dpi = 300)
+tmap_save(dafor_tmap_gale, "plots/maps/dafor_map_gale.png", width = 10, height = 5, dpi = 300)
+
+
+
 
