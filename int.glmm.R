@@ -65,7 +65,7 @@ int.monit2 <- int.monit[ ,c("localidade", "total_min", "total_dafor", "divers")]
 
 print(int.monit2, n = 42)
 
-#int.monit$geo_id <- as.double(int.monit$geo_id)
+int.monit$geo_id <- as.double(int.monit$geo_id)
 
 
 # geomorfologia
@@ -108,7 +108,7 @@ int.geo2 <- int.geo[ ,c("localidade", "visibilidade", "geo_cat", "iar_geo")] %>%
             iar_geo = mean(sum(iar_geo))) %>%
   spread(geo_cat, iar_geo)
 
-print(int.geo2, n = 81)
+print(int.geo2, n = 39)
 
 
 # unindo os data frames
@@ -189,7 +189,11 @@ int.b <- glmmTMB(t.total_dafor  ~ mp + gc + lg + rpm + tf + offset(log(t.total_m
                      data = int.geomonit, control=controle, 
                      family = poisson)
 
-ICtab(int.a, int.b, int.model, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+int.c <- glmmTMB(t.total_dafor  ~ mp + gc + lg + rpm + tf + offset(log(t.total_min)),
+                 data = int.geomonit, control=controle, 
+                 family = poisson)
+
+ICtab(int.a, int.b, int.c, int.model, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
 
 res.int.a <- simulateResiduals(fittedModel=int.a, n=1000)
@@ -286,6 +290,22 @@ int.a2c2a <- glmmTMB(t.total_dafor  ~ mp + tf + (1|localidade),
                     family = poisson)
 
 ICtab(int.a2c2, int.a2c2a, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.int.a2c2a <- simulateResiduals(fittedModel=int.a2c2a, n=1000)
+windows(12,8)
+plot(res.int.a2c2a)
+
+int.a2c2a1 <- glmmTMB(t.total_dafor  ~ mp + offset(log(t.total_min)) + (1|localidade),
+                     data = int.geomonit, control=controle, 
+                     family = poisson)
+
+
+int.a2c2a2 <- glmmTMB(t.total_dafor  ~ tf + offset(log(t.total_min)) + (1|localidade),
+                      data = int.geomonit, control=controle, 
+                      family = poisson)
+
+ICtab(int.a2c2, int.a2c2a1, int.a2c2a2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
 
 ## avaliando a variavel relacionada a inflação por zero
 
