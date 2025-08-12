@@ -18,6 +18,8 @@ counting_data <- read_delim("data/data_counting_class.csv", delim = ";") %>%
 # 2. Build model
 lm_model <- lm(mass_g ~ factor(class), data = mass_data)
 
+summary(lm_model)
+
 # 3. Bootstrap prediction function
 predict_mass_with_uncertainty <- function(counts_df, model, n_boot = 1000) {
   counts <- c(counts_df$class_1,
@@ -118,6 +120,10 @@ ggplot(counting_data, aes(x = total, y = pred_mass)) +
 
 ggsave("plots/counting_mass.png", width = 10, height = 5, dpi = 300)        
         
-### Return Final data frame
-counting_data
+### Return Final data frame IN 
+counting_data = counting_data %>% 
+  mutate(pred_mass_kg = pred_mass/1000 )
+
+
+
 write.csv(counting_data, file = "data/counting_data_pred.csv", row.names = FALSE)

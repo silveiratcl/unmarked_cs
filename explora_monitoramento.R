@@ -475,6 +475,71 @@ ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n
 
 ggsave("plots/density_faixa_bat.png", width = 10, height = 5, dpi = 300) 
   
+# alternative plot using same intervals from previous plots
+
+df_depth <- df_monit %>% 
+  # Convert prof_min and prof_max to numeric
+  mutate(prof_min_num = as.numeric(prof_min),
+         prof_max_num = as.numeric(prof_max)) %>%
+  # Create the new depth interval variable
+  mutate(faixa_bat_depth = case_when(
+    prof_max_num <= 2 ~ "0-2 m",
+    prof_max_num > 2.1 & prof_max_num <= 8 ~ "2.1-8 m",
+    prof_max_num > 8.1 & prof_max_num <= 14 ~ "8.1-14 m",
+    prof_max_num > 14.1 ~ "14.1m+",
+    TRUE ~ NA_character_
+  )) %>% 
+  
+  group_by(localidade_rebio, localidade, data, faixa_bat_depth) %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat_depth != "Na") %>% 
+  mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+         localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>%
+  summarise(max_trsct_vis = sum(max(n_trans_vis)),
+            n_detection = max(n_trans_pres),
+            n_divers = max(n_divers),
+            visib_m = max(visib_horiz)) %>%
+  ungroup()
+
+
+depth_levels <- c("0-2 m", "2.1-8 m", "8.1-14 m", "14.1m+")
+
+
+print(df_depth, n=136)  
+
+
+ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n_detection)) +
+  geom_col(alpha = 0.5, fill = '#536e99' ) +
+  labs(x = "Faixa Batimétrica", 
+       y = "N. detecções",
+       title = "Detecções por Faixa de Profundidade (2022-2025)",
+       subtitle = "REBIO Arvoredo e Entorno Imediato") +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(
+    
+    panel.background = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"), 
+    axis.ticks.x = element_line(colour = "grey",
+                                linewidth = 0.8, linetype = "solid"), 
+    axis.line.x = element_line(colour = "grey",
+                               linewidth = 0.8, linetype = "solid"),
+    axis.line.y = element_line(colour = "grey",
+                               linewidth = 0.8, linetype = "solid"),
+    axis.title.x = element_blank(),
+    plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
+    legend.text = element_text(size=15, color ="#284b80" ),
+    legend.key.size = unit(.8, 'cm'),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
+
+
+ggsave("plots/density_faixa_bat2.png", width = 10, height = 5, dpi = 300) 
+
+
+
+
+
+
 
 ###################
 # Dafor Density plot (IAR of localidades)

@@ -31,3 +31,6 @@ summary(model3)
 plot(model3) 
 
 model3
+
+
+
