@@ -237,7 +237,83 @@ print(df_monit_effort, n= 140
 #df_monit_effort %>% 
   #filter(faixa_bat == "Na") 
 
-####
+#### df
+
+############# Relative abundance index weighed by effort
+######################
+library(dplyr)
+library(stringr)
+library(tidyr)
+
+clean_num <- function(x) {
+  x %>%
+    as.character() %>%
+    str_trim() %>%
+    na_if("") %>%
+    na_if("Na") %>%
+    str_replace_all(",", ".") %>%  # decimal comma -> dot
+    as.numeric()
+}
+
+df_monit_iarw <- df_monit %>% 
+  # Clean & convert to numeric safely
+  mutate(
+    prof_min_num   = clean_num(prof_min),
+    prof_max_num   = clean_num(prof_max),
+    visib_horiz_num= clean_num(visib_horiz)
+  ) %>%
+  # Depth bins (contiguous)
+  mutate(faixa_bat_depth = case_when(
+    !is.na(prof_max_num) & prof_max_num <= 2                      ~ "0-2m",
+    !is.na(prof_max_num) & prof_max_num > 2  & prof_max_num <= 8  ~ "2.1-8m",
+    !is.na(prof_max_num) & prof_max_num > 8  & prof_max_num <= 14 ~ "8.1-14m",
+    !is.na(prof_max_num) & prof_max_num > 14                      ~ "14.1m+",
+    TRUE ~ NA_character_
+  )) %>%
+  group_by(localidade_rebio, localidade, data, faixa_bat_depth) %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat != "Na") %>% 
+  mutate(
+    localidade       = str_to_upper(str_replace_all(localidade, "_", " ")),
+    localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " ")),
+    weight           = coalesce(as.numeric(dafor) / 10, 0)  # robust if dafor has NA
+  ) %>%
+  summarise(
+    n_minutes   = dplyr::n(),                # 1 row = 1 minute
+    Nhours      = n_minutes / 60,
+    sum_weight  = sum(weight, na.rm = TRUE),
+    n_detection = max(n_trans_pres, na.rm = TRUE) %>% na_if(-Inf),
+    n_divers    = max(n_divers,    na.rm = TRUE) %>% na_if(-Inf),
+    visib_m     = max(visib_horiz_num, na.rm = TRUE) %>% na_if(-Inf),
+    .groups = "drop"
+  ) %>%
+  # Join distance and compute Uni100m + index
+  left_join(
+    df_localidade %>%
+      mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
+      dplyr::select(localidade, comp_m),
+    by = "localidade"
+  ) %>%
+  mutate(
+    Uni100m = comp_m / 100,
+    DAFOR_weighted_index = if_else(
+      Nhours > 0 & Uni100m > 0,
+      sum_weight / (Nhours * Uni100m),
+      NA_real_
+    )
+  )
+
+print(df_monit_iarw, n = 140)
+
+
+
+
+
+
+
+
+
+
+
 #### Charting by bathimetry strata ############################################### 
 
 
@@ -404,6 +480,167 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
 
 plot_dpue_strata
 ggsave("plots/detec_dpue.png", width = 10, height = 5, dpi = 300)
+
+
+################################################################################
+################## RAIW
+################## Data processing (manual weights, same denominator as DPUE)
+################################################################################
+library(dplyr)
+library(stringr)
+library(tidyr)
+
+# ---- Set manual weights for DAFOR scores ----
+# Edit these to taste (concave example below):
+# D=10→1.00, A=8→0.55, F=6→0.25, O=4→0.10, R=2→0.04, Absent=0→0
+manual_weights <- c(
+  `10` = 1.00,
+  `8`  = 0.8,
+  `6`  = 0.6,
+  `4`  = 0.1,
+  `2`  = 0.04,
+  `0`  = 0.00
+)
+
+clean_num <- function(x) {
+  x %>%
+    as.character() %>%
+    str_trim() %>%
+    na_if("") %>%
+    na_if("Na") %>%
+    str_replace_all(",", ".") %>%  # decimal comma -> dot
+    as.numeric()
+}
+
+df_monit_iarw <- df_monit %>% 
+  # Clean & convert to numeric safely
+  mutate(
+    prof_min_num    = clean_num(prof_min),
+    prof_max_num    = clean_num(prof_max),
+    visib_horiz_num = clean_num(visib_horiz)
+  ) %>%
+  # Depth bins (contiguous)
+  mutate(faixa_bat_depth = case_when(
+    !is.na(prof_max_num) & prof_max_num <= 2                      ~ "0-2m",
+    !is.na(prof_max_num) & prof_max_num > 2  & prof_max_num <= 8  ~ "2.1-8m",
+    !is.na(prof_max_num) & prof_max_num > 8  & prof_max_num <= 14 ~ "8.1-14m",
+    !is.na(prof_max_num) & prof_max_num > 14                      ~ "14.1m+",
+    TRUE ~ NA_character_
+  )) %>%
+  group_by(localidade_rebio, localidade, data, faixa_bat_depth) %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat != "Na") %>% 
+  mutate(
+    localidade       = str_to_upper(str_replace_all(localidade, "_", " ")),
+    localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " ")),
+    dafor_num        = coalesce(as.numeric(dafor), 0),
+    # ----- MANUAL WEIGHTING (no gamma) -----
+    weight           = manual_weights[as.character(dafor_num)],
+    weight           = ifelse(is.na(weight), 0, weight)
+  ) %>%
+  summarise(
+    # SAME denominator as DPUE: minutes from n_trans_vis if available
+    effort_minutes = ifelse(all(is.na(n_trans_vis)), n(), max(n_trans_vis, na.rm = TRUE)),
+    effort_hours   = effort_minutes / 60,
+    Nhours         = effort_hours,  # keep for compatibility
+    sum_weight     = sum(weight, na.rm = TRUE),
+    n_detection    = max(n_trans_pres, na.rm = TRUE) %>% na_if(-Inf),
+    n_divers       = max(n_divers,    na.rm = TRUE) %>% na_if(-Inf),
+    visib_m        = max(visib_horiz_num, na.rm = TRUE) %>% na_if(-Inf),
+    .groups = "drop"
+  ) %>%
+  # Join distance and compute Uni100m + index
+  left_join(
+    df_localidade %>%
+      mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " "))) %>%
+      dplyr::select(localidade, comp_m),
+    by = "localidade"
+  ) %>%
+  mutate(
+    Uni100m       = comp_m / 100,
+    raiw_standard = dplyr::if_else(
+      Nhours > 0 & Uni100m > 0,
+      sum_weight / (Nhours * Uni100m),
+      NA_real_
+    )
+  )
+
+print(df_monit_iarw, n = 140)
+
+
+#### Plot RAIW (stacked by depth stratum) #######################################
+plot_raiw_strata <- df_monit_effort_raiw %>%
+  filter(total_sum_weight > 0, is.finite(raiw_standard)) %>%
+  mutate(localidade = fct_reorder(localidade, raiw_standard, .fun = sum, .na_rm = TRUE)) %>% 
+  ggplot(aes(
+    fill = factor(faixa_bat_depth, levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+")),
+    y = localidade,
+    x = raiw_standard
+  )) +
+  scale_fill_manual(values = c('#db6d10', '#aaee4b', '#416f02', '#536e99')) +
+  geom_bar(position = "stack", stat = "identity") +
+  scale_x_continuous(position = "top", n.breaks = 10, expand = c(0, 0)) +
+  labs(
+    title    = "Índice de Abundância Relativa Ponderado (2022–2025)",
+    subtitle = paste0("RAI-W = sum_i w(s_i) / (Nhours * Uni100m)
+ ")
+  ) +
+  theme(
+    panel.background = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"),
+    axis.ticks.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    axis.line.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    axis.ticks.y = element_blank(),
+    axis.title.x = element_blank(),
+    plot.title = element_text(hjust = 0.5, size = 18, color = "#284b80"),
+    plot.subtitle = element_text(hjust = 0.5, size = 12, color = "#284b80"),
+    axis.title.y = element_blank(),
+    legend.text = element_text(size = 15, color = "#284b80"),
+    legend.title = element_blank(),
+    legend.key.size = unit(.8, 'cm')
+  )
+
+plot_raiw_strata
+ggsave("plots/raiw.png", width = 10, height = 5, dpi = 300)
+
+
+
+################################################################################
+## Plot combined DEPUE and RAIW by depth strata for paper
+
+library(patchwork)
+
+# Left: DPUE — put label on TOP x-axis
+plot_dpue_clean <- plot_dpue_strata +
+  labs(title = NULL, subtitle = NULL, x = "DPUE", y = NULL) +
+  theme(
+    axis.title.x        = element_blank(),                 # hide bottom title
+    axis.title.x.top    = element_text(size = 14, color = "#284b80"),
+    axis.title.y        = element_text(size = 14, color = "#284b80")
+  )
+
+# Right: RAI-W — put label on TOP x-axis, no y label (to avoid duplication)
+plot_raiw_clean <- plot_raiw_strata +
+  labs(title = NULL, subtitle = NULL, x = "RAI-W", y = NULL) +
+  theme(
+    axis.title.x        = element_blank(),
+    axis.title.x.top    = element_text(size = 14, color = "#284b80"),
+    axis.title.y        = element_blank()
+  )
+
+# Combine with A/B tags
+combined <- (plot_dpue_clean + plot_raiw_clean) +
+  plot_layout(ncol = 2, guides = "collect") +
+  plot_annotation(tag_levels = "A") &
+  theme(
+    legend.position   = "bottom",
+    plot.tag          = element_text(face = "bold", size = 14),
+    plot.tag.position = c(1, 1)  # top-left of each subplot
+  )
+
+combined
+ggsave("plots/dpue_raiw_side_by_side.png", combined, width = 12, height = 5, dpi = 300)
+
+
 
 
 
