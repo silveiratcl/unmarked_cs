@@ -67,7 +67,7 @@ print(monit.trans, n = 95)
 
 monit.trans2 <- monit.trans %>%
   group_by(geo_id, data, localidade, faixa_bat) %>%
-  summarise(t_trans_vis = sum(trans_vis),
+  reframe(t_trans_vis = sum(trans_vis),
             t_detections = sum(detections),
             t_divers = sum(divers),
             min.div = sum(t_trans_vis*t_divers)) %>%
@@ -112,7 +112,7 @@ print(geo.trans, n = 405)
 
 geo.trans2 <- geo.trans[ ,c("geo_id", "localidade", "faixa_bat", "visibilidade", "geo_cat", "iar_geo")] %>%
   group_by(geo_id, localidade, faixa_bat, geo_cat) %>%
-  summarise(t_visib = max(visibilidade),
+  reframe(t_visib = max(visibilidade),
             iar_geo = mean(sum(iar_geo))) %>%
   spread(geo_cat, iar_geo)
 
@@ -445,7 +445,9 @@ windows(12,8)
 plot(res.modelo3b.e4)
 #e4 melhor
 
-transect.glmm <- modelo3b.e4
+transect.glmm <- modelo3b.e4 <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
+                                        data = geomonit.trans, control=controle, 
+                                        family = poisson)
 summary(transect.glmm)
 
 # figures

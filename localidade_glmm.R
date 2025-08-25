@@ -288,6 +288,9 @@ nb2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div1),
 ICtab(model.nb1, nb1, nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 #ver o melhor modelo e seguir comparando o mais completo com o mais simples
 
+res.model.nb2 <- simulateResiduals(fittedModel=model.nb2, n=1000)
+windows(12,8)
+plot(res.model.nb2)
 
 ## avaliando o efeito fixo
 
@@ -316,10 +319,12 @@ ICtab(nb2, nb2.a, nb2.b, nb2.c, nb2.d, nb2.e, type="AICc",  weights =  TRUE, del
 res.nb2.b <- simulateResiduals(fittedModel=nb2.b, n=1000)
 windows(12,8)
 plot(res.nb2.b)
+testUniformity(res.nb2.b)
 
 res.nb2.a <- simulateResiduals(fittedModel=nb2.a, n=1000)
 windows(12,8)
 plot(res.nb2.a)
+testUniformity(res.nb2.a)
 
 res.nb2.e <- simulateResiduals(fittedModel=nb2.e, n=1000)
 windows(12,8)
@@ -400,7 +405,9 @@ res.nb2.a1.zi <- simulateResiduals(fittedModel=nb2.a1.zi, n=1000)
 windows(12,8)
 plot(res.nb2.a1.zi)
 
-locality.glmm <- nb2.a1.zi
+locality.glmm <- nb2.a1.zi <- glmmTMB(t_detections ~ lg + rpm + tf + (1|min.div1),
+                                      data = geomonit2, control=controle, 
+                                      ziformula = ~t_trans_vis, family = nbinom1) 
 summary(locality.glmm)
 
 
