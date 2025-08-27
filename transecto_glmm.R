@@ -143,7 +143,7 @@ geomonit.trans$min.div2 <- min.div2
 # categorizando em faixa a variável visibilidade
 
 t_visib2 <- cut(geomonit.trans$t_visib, breaks = seq(0, max(geomonit.trans$t_visib), by = 3), right = TRUE)
-levels(t_visib2) <- c("0-3", "3-6", "6-9", "9-10", "10-13", "13-15")
+levels(t_visib2) <- c("0-3", "3-6", "6-9", "9-12", "12-15")
 print(t_visib2)
 
 geomonit.trans$t_visib2 <- t_visib2
