@@ -346,6 +346,8 @@ sum(table(df_table$dafor))
 
 
 
+
+
 # n detections minutes
 
 plot_detec_strata <- df_monit_effort %>% 
@@ -603,6 +605,17 @@ plot_raiw_strata
 ggsave("plots/raiw.png", width = 10, height = 5, dpi = 300)
 
 
+# Getting values to paste on the figure
+
+
+df_monit_effort_raiw %>% 
+  filter(total_sum_weight > 0, is.finite(raiw_standard)) %>%
+  group_by(localidade) %>%
+  summarise(
+    total_sum_weight = sum(total_sum_weight, na.rm = TRUE),
+  )
+
+
 
 ################################################################################
 ## Plot combined DEPUE and RAIW by depth strata for paper
@@ -723,7 +736,7 @@ df_depth <- df_monit %>%
     prof_max_num <= 2 ~ "0-2 m",
     prof_max_num > 2.1 & prof_max_num <= 8 ~ "2.1-8 m",
     prof_max_num > 8.1 & prof_max_num <= 14 ~ "8.1-14 m",
-    prof_max_num > 14.1 ~ "14.1m+",
+    prof_max_num > 14.1 ~ "14.1-20 m",
     TRUE ~ NA_character_
   )) %>% 
   
@@ -738,7 +751,7 @@ df_depth <- df_monit %>%
   ungroup()
 
 
-depth_levels <- c("0-2 m", "2.1-8 m", "8.1-14 m", "14.1m+")
+depth_levels <- c("0-2 m", "2.1-8 m", "8.1-14 m", "14.1-20 m")
 
 
 print(df_depth, n=136)  
@@ -747,7 +760,7 @@ print(df_depth, n=136)
 ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n_detection)) +
   geom_col(alpha = 0.5, fill = '#536e99' ) +
   labs(x = "Faixa Batimétrica", 
-       y = "N. detecções",
+       y = "Number of detections",
        title = "Detecções por Faixa de Profundidade (2022-2025)",
        subtitle = "REBIO Arvoredo e Entorno Imediato") +
   scale_y_continuous(limits = c(0, 100)) +
@@ -771,6 +784,44 @@ ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n
 
 
 ggsave("plots/density_faixa_bat2.png", width = 10, height = 5, dpi = 300) 
+
+
+### interface mean depth
+
+library(dplyr)
+
+# Step 1: filter and reduce to unique depth per dafor_id
+base <- df_monit %>%
+  filter(obs != "estimado dos dados do ICMBio", faixa_bat == "fundo") %>%
+  group_by(localidade_rebio, dafor_id) %>%
+  summarise(depth = mean(as.numeric(prof_max), na.rm = TRUE), .groups = "drop")
+
+# Step 2: summarise by locality
+by_locality <- base %>%
+  group_by(localidade_rebio) %>%
+  summarise(
+    n = n(),  # number of unique dafor_id’s considered
+    mean_depth = mean(depth, na.rm = TRUE),
+    min_depth  = min(depth,  na.rm = TRUE),
+    max_depth  = max(depth,  na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(localidade_rebio)
+
+# Step 3: overall summary across all localities
+overall <- base %>%
+  summarise(
+    n = n(),
+    mean_depth = mean(depth, na.rm = TRUE),
+    min_depth  = min(depth,  na.rm = TRUE),
+    max_depth  = max(depth,  na.rm = TRUE)
+  ) %>%
+  mutate(localidade_rebio = "ALL") %>%
+  relocate(localidade_rebio, .before = n)
+
+# Combine and show
+bind_rows(by_locality, overall) %>% print(n = Inf)
+
 
 
 
@@ -1072,7 +1123,81 @@ bg_colors <- dafor_table %>%
            column_spec(6, background = bg_colors$R)# %>%
            #column_spec(7, background = bg_colors$Ausente)
 
-
+         library(dplyr)
+         library(tidyr)
+         library(stringr)
+         library(ggplot2)
+         
+         # --- Build from raw data (robust to missing columns) ---
+         data_clean <- density_data %>%
+           mutate(
+             year = str_sub(year_label, 1, 4),
+             dafor_cat = case_when(
+               dafor == 10 ~ "D",
+               dafor == 8  ~ "A",
+               dafor == 6  ~ "F",
+               dafor == 4  ~ "O",
+               dafor == 2  ~ "R",
+               TRUE        ~ NA_character_   # treat others (e.g., 0 or NA) as absence
+             ),
+             is_absence = is.na(dafor_cat)   # <- if you want only dafor==0, use: (dafor == 0)
+           )
+         
+         # Totals and absences per year
+         effort_abs <- data_clean %>%
+           group_by(year) %>%
+           summarise(
+             Total   = n(),
+             Ausente = sum(is_absence),
+             .groups = "drop"
+           )
+         
+         # Category counts (stacked parts), excluding absences
+         cats <- data_clean %>%
+           filter(!is.na(dafor_cat)) %>%
+           count(year, dafor_cat, name = "count") %>%
+           complete(year, dafor_cat = c("D","A","F","O","R"), fill = list(count = 0)) %>%
+           mutate(
+             dafor_cat = factor(dafor_cat, levels = c("D","A","F","O","R")),
+             year      = factor(year, levels = sort(unique(year)))
+           )
+         
+         # Where to place the annotation (top of each stacked bar)
+         bar_tops <- cats %>%
+           group_by(year) %>%
+           summarise(bar_top = sum(count), .groups = "drop") %>%
+           left_join(effort_abs, by = "year") %>%
+           mutate(
+             label = paste0("Absent: ", Ausente, " | Total: ", Total)
+           )
+         
+        stacked_dafor  = ggplot(cats, aes(x = year, y = count, fill = dafor_cat)) +
+           geom_col() +
+           # anotações de Ausente + Total
+           geom_text(
+             data = bar_tops,
+             aes(x = year, y = bar_top, label = label),
+             vjust = -0.4, size = 4, inherit.aes = FALSE
+           ) +
+           labs(
+             x = "Year",
+             y = "Count",
+             fill = "",
+             #title = "DAFOR categories by year (stacked)",
+             #subtitle = "Annotations show absences (Ausente) and total effort per year"
+           ) +
+           scale_fill_viridis_d(option = "plasma", begin = 0.9, end = 0.1)+
+           # paleta daltônico-friendly
+           #scale_fill_brewer(palette = "Set2") +
+           theme_minimal(base_size = 12) +
+           theme(
+             panel.grid = element_blank(),     # remove todas as linhas de grid
+             axis.line = element_line(),       # mantém eixos visíveis
+             panel.border = element_blank()
+           )
+         
+        stacked_dafor
+         ggsave("plots/stacked_dafor.png",  stacked_dafor, width = 10, height = 5, dpi = 300)  
 
 ################################################################################
 
