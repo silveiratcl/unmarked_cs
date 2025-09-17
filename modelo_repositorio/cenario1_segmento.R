@@ -124,7 +124,7 @@ geomonit.seg <- left_join(monit.trans2, geo.seg2) %>%
   arrange(geo_id) %>%
   drop_na()
 
-print(geomonit.trans, n = 69)
+print(geomonit.seg, n = 69)
 
 
 # categorizando em faixa a variável minutos por mergulhador
@@ -132,7 +132,7 @@ print(geomonit.trans, n = 69)
 max(geomonit.seg$min.div)
 min(geomonit.seg$min.div)
 
-min.div2 <- cut(geomonit.trans$min.div, breaks = seq(0, max(geomonit.trans$min.div), by = 5), right = TRUE)
+min.div2 <- cut(geomonit.seg$min.div, breaks = seq(0, max(geomonit.seg$min.div), by = 5), right = TRUE)
 levels(min.div2) <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35", "35-40", "40-45", "45-50",
                       "50-55", "55-60", "60-65", "65-70", "70-75", "75-80", "80-85", "85-90", "90-95", "95-100",
                       "1000-105", "105-110", "110-115", "115-120", "120-125", "125-130", "130-135", "135-140",
@@ -141,20 +141,20 @@ levels(min.div2) <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35"
                       "220-225", "225-230", "230-235", "235-240")
 print(min.div2)
 
-geomonit.trans$min.div2 <- min.div2
+geomonit.seg$min.div2 <- min.div2
 
 # categorizando em faixa a variável visibilidade
 
 max(geomonit.seg$t_visib)
 min(geomonit.seg$t_visib)
 
-t_visib2 <- cut(geomonit.trans$t_visib, breaks = seq(0, max(geomonit.trans$t_visib), by = 3), right = TRUE)
+t_visib2 <- cut(geomonit.seg$t_visib, breaks = seq(0, max(geomonit.seg$t_visib), by = 3), right = TRUE)
 levels(t_visib2) <- c("0-3", "3-6", "6-9", "9-12", "12-15")
 print(t_visib2)
 
-geomonit.trans$t_visib2 <- t_visib2
+geomonit.seg$t_visib2 <- t_visib2
 
-geomonit.trans <- as.data.frame(geomonit.trans)
+geomonit.seg <- as.data.frame(geomonit.seg)
 
 
 # modelos glmm
@@ -174,19 +174,19 @@ controle <- glmmTMBControl(optimizer=optim, optArgs=list(method="BFGS"),
                            optCtrl=list(iter.max=1e3,eval.max=1e3))
 
 modelo <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2) + (1|localidade),
-                  data = geomonit.trans, control=controle, 
+                  data = geomonit.seg, control=controle, 
                   family = poisson)
 
 modelo.gp <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2)+ (1|localidade),
-                     data = geomonit.trans, control=controle, 
+                     data = geomonit.seg, control=controle, 
                      family = genpois)
 
 modelo.nb1 <- glmmTMB(t_detections ~mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2) + (1|localidade),
-                      data = geomonit.trans, control=controle,
+                      data = geomonit.seg, control=controle,
                       family = nbinom1)
 
 modelo.nb2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2)+ (1|localidade),
-                      data = geomonit.trans, control=controle,
+                      data = geomonit.seg, control=controle,
                       family = nbinom2)
 
 ### selecionando o melhor modelo
@@ -197,26 +197,19 @@ res.modelo <- simulateResiduals(fittedModel=modelo, n=1000)
 windows(12,8)
 plot(res.modelo)
 
-res.modelo.gp <- simulateResiduals(fittedModel=modelo.gp, n=1000)
-windows(12,8)
-plot(res.modelo.gp)
-
-res.modelo.nb1 <- simulateResiduals(fittedModel=modelo.nb1, n=1000)
-windows(12,8)
-plot(res.modelo.nb1)
 
 ## comparando os efeitos aleatorios
 
 modelo1 <-glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|min.div2),
-                  data = geomonit.trans, control=controle, 
+                  data = geomonit.seg, control=controle, 
                   family = poisson)
 
 modelo2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1|localidade),
-                   data = geomonit.trans, control=controle, 
+                   data = geomonit.seg, control=controle, 
                    family = poisson)
 
 modelo3 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div2) + (1|localidade),
-                   data = geomonit.trans, control=controle, 
+                   data = geomonit.seg, control=controle, 
                    family = poisson)
 
 ICtab(modelo, modelo1,  modelo2, modelo3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
@@ -229,232 +222,153 @@ res.modelo3 <- simulateResiduals(fittedModel=modelo3, n=1000)
 windows(12,8)
 plot(res.modelo3)
 
-modelo3a <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|min.div2),
-                    data = geomonit.trans, control=controle, 
+modelo2a <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2),
+                    data = geomonit.seg, control=controle, 
                     family = poisson)
 
-modelo3b <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|localidade),
-                    data = geomonit.trans, control=controle, 
+modelo2b <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|localidade),
+                    data = geomonit.seg, control=controle, 
                     family = poisson)
 
-ICtab(modelo3, modelo3a, modelo3b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo2, modelo2a, modelo2b, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.modelo3b <- simulateResiduals(fittedModel=modelo3b, n=1000)
+res.modelo2b <- simulateResiduals(fittedModel=modelo2b, n=1000)
 windows(12,8)
-plot(res.modelo3b)
+plot(res.modelo2b)
 
 ## avaliando o efeito fixo
 
-modelo3b.a <- glmmTMB(t_detections ~ gc + lg + rpm + tf + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo2.a <- glmmTMB(t_detections ~ gc + lg + rpm + tf + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
 
-modelo3b.b <- glmmTMB(t_detections ~ mp + lg + rpm + tf + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo2.b <- glmmTMB(t_detections ~ mp + lg + rpm + tf + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
 
-modelo3b.c <- glmmTMB(t_detections ~ mp + gc + rpm + tf + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo2.c <- glmmTMB(t_detections ~ mp + gc + rpm + tf + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
 
-modelo3b.d <- glmmTMB(t_detections ~ mp + gc + lg + tf + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo2.d <- glmmTMB(t_detections ~ mp + gc + lg + tf + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
 
-modelo3b.e <- glmmTMB(t_detections ~ mp + gc + lg + rpm + (1|localidade),
-                      data = geomonit.trans, control=controle, 
-                      family = poisson)
+modelo2.e <- glmmTMB(t_detections ~ mp + gc + lg + rpm + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
 
-ICtab(modelo3b, modelo3b.a, modelo3b.b, modelo3b.c, modelo3b.d, modelo3b.e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo2, modelo2.a, modelo2.b, modelo2.c, modelo2.d, modelo2.e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.modelo3b.c <- simulateResiduals(fittedModel=modelo3b.c, n=1000)
+res.modelo2.c <- simulateResiduals(fittedModel=modelo2.c, n=1000)
 windows(12,8)
-plot(res.modelo3b.c)
+plot(res.modelo2.c)
 
-res.modelo3b.e <- simulateResiduals(fittedModel=modelo3b.e, n=1000)
+res.modelo2.e <- simulateResiduals(fittedModel=modelo2.e, n=1000)
 windows(12,8)
-plot(res.modelo3b.e)
+plot(res.modelo2.e)
 
-res.modelo3b.d <- simulateResiduals(fittedModel=modelo3b.d, n=1000)
+res.modelo2.d <- simulateResiduals(fittedModel=modelo2.d, n=1000)
 windows(12,8)
-plot(res.modelo3b.d)
+plot(res.modelo2.d)
 
-modelo3b.e1 <- glmmTMB(t_detections ~ gc + lg + rpm + (1|localidade),
-                       data = geomonit.trans, control=controle, 
+modelo2.c1 <- glmmTMB(t_detections ~ gc + rpm + tf + (1|t_visib2) + (1|localidade),
+                      data = geomonit.seg, control=controle, 
+                      family = poisson)
+
+modelo2.c2 <- glmmTMB(t_detections ~ mp + rpm + tf + (1|t_visib2) + (1|localidade),
+                      data = geomonit.seg, control=controle, 
+                      family = poisson)
+
+modelo2.c3 <- glmmTMB(t_detections ~ mp + gc + tf + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
+
+modelo2.c4 <- glmmTMB(t_detections ~ mp + gc + rpm + (1|t_visib2) + (1|localidade),
+                     data = geomonit.seg, control=controle, 
+                     family = poisson)
+
+ICtab(modelo2.c, modelo2.c1, modelo2.c2, modelo2.c3, modelo2.c4, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo2.c4 <- simulateResiduals(fittedModel=modelo2.c4, n=1000)
+windows(12,8)
+plot(res.modelo2.c4)
+
+res.modelo2.c3 <- simulateResiduals(fittedModel=modelo2.c3, n=1000)
+windows(12,8)
+plot(res.modelo2.c3)
+
+modelo2.c3a <- glmmTMB(t_detections ~ gc + tf + (1|t_visib2) + (1|localidade),
+                      data = geomonit.seg, control=controle, 
+                      family = poisson)
+
+modelo2.c3b <- glmmTMB(t_detections ~ mp + tf + (1|t_visib2) + (1|localidade),
+                      data = geomonit.seg, control=controle, 
+                      family = poisson)
+
+modelo2.c3c <- glmmTMB(t_detections ~ mp + gc + (1|t_visib2) + (1|localidade),
+                      data = geomonit.seg, control=controle, 
+                      family = poisson)
+
+ICtab(modelo2.c3, modelo2.c3a, modelo2.c3b, modelo2.c3c, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo2.c3c <- simulateResiduals(fittedModel=modelo2.c3c, n=1000)
+windows(12,8)
+plot(res.modelo2.c3c)
+
+modelo2.c3d <- glmmTMB(t_detections ~ gc + (1|t_visib2) + (1|localidade),
+                       data = geomonit.seg, control=controle, 
                        family = poisson)
 
-modelo3b.e2 <- glmmTMB(t_detections ~ mp + lg + rpm + (1|localidade),
-                       data = geomonit.trans, control=controle, 
+modelo2.c3e <- glmmTMB(t_detections ~ mp + (1|t_visib2) + (1|localidade),
+                       data = geomonit.seg, control=controle, 
                        family = poisson)
 
-modelo3b.e3 <- glmmTMB(t_detections ~ mp + gc + rpm + (1|localidade),
-                       data = geomonit.trans, control=controle, 
-                       family = poisson)
-
-modelo3b.e4 <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                       data = geomonit.trans, control=controle, 
-                       family = poisson)
-
-ICtab(modelo3b.e, modelo3b.e1, modelo3b.e2, modelo3b.e3, modelo3b.e4, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
-res.modelo3b.e3 <- simulateResiduals(fittedModel=modelo3b.e3, n=1000)
-windows(12,8)
-plot(res.modelo3b.e3)
-
-res.modelo3b.e4 <- simulateResiduals(fittedModel=modelo3b.e4, n=1000)
-windows(12,8)
-plot(res.modelo3b.e4)
-
-modelo3b.e4a <- glmmTMB(t_detections ~ gc + lg + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-modelo3b.e4b <- glmmTMB(t_detections ~ mp + lg + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-modelo3b.e4c <- glmmTMB(t_detections ~ mp + gc + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-ICtab(modelo3b.e4, modelo3b.e4a, modelo3b.e4b, modelo3b.e4c, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
-res.modelo3b.e4c <- simulateResiduals(fittedModel=modelo3b.e4c, n=1000)
-windows(12,8)
-plot(res.modelo3b.e4c)
-
-modelo3b.e4d <- glmmTMB(t_detections ~ mp + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-modelo3b.e4e <- glmmTMB(t_detections ~ gc + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-modelo3b.e4f <- glmmTMB(t_detections ~ lg + (1|localidade),
-                        data = geomonit.trans, control=controle, 
-                        family = poisson)
-
-ICtab(modelo3b.e4, modelo3b.e4d, modelo3b.e4e, modelo3b.e4f, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo2.c3c, modelo2.c3d, modelo2.c3e, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
 ## avaliando as variaveis relacionadas a inflacao por zero
 
-modelo3b.e4.zi <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                          data = geomonit.trans, ziformula = ~t_trans_vis + t_divers,
+modelo2.c3c.zi <- glmmTMB(t_detections ~ mp + gc + (1|t_visib2) + (1|localidade),
+                          data = geomonit.seg, ziformula = ~t_trans_vis + t_divers,
                           control=controle, family = poisson)
 
-modelo3b.e4.zi1 <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                           data = geomonit.trans, ziformula = ~t_trans_vis,
+modelo2.c3c.zi1 <- glmmTMB(t_detections ~ mp + gc + (1|t_visib2) + (1|localidade),
+                           data = geomonit.seg, ziformula = ~t_trans_vis,
                            control=controle, family = poisson)
+###erro de overparametrization
 
-modelo3b.e4.zi2 <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                           data = geomonit.trans, ziformula = ~t_divers,
+modelo2.c3c.zi2 <- glmmTMB(t_detections ~ mp + gc + (1|t_visib2) + (1|localidade),
+                           data = geomonit.seg, ziformula = ~t_divers,
                            control=controle, family = poisson)
+###erro de overparametrization
 
 ## comparando o modelo zi com o modelo final
 
-ICtab(modelo3b.e4, modelo3b.e4.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(modelo2.c3c, modelo2.c3c.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.modelo3b.e4.zi <- simulateResiduals(fittedModel=modelo3b.e4.zi, n=1000)
+res.modelo2.c3c.zi <- simulateResiduals(fittedModel=modelo2.c3c.zi, n=1000)
 windows(12,8)
-plot(res.modelo3b.e4.zi)
+plot(res.modelo2.c3c.zi)
 
-res.modelo3b.e4 <- simulateResiduals(fittedModel=modelo3b.e4, n=1000)
-windows(12,8)
-plot(res.modelo3b.e4)
 
-segment.glmm <- modelo3b.e4 <- glmmTMB(t_detections ~ mp + gc + lg + (1|localidade),
-                                        data = geomonit.trans, control=controle, 
-                                        family = poisson)
+# modelo final
+
+segment.glmm <- modelo2.c3c <- glmmTMB(t_detections ~ mp + gc + (1|t_visib2) + (1|localidade),
+                                       data = geomonit.seg, control=controle, 
+                                       family = poisson)
 summary(segment.glmm)
 
-# figures
 
-pred_transect.glmmf <- ggpredict(transect.glmm, terms=c("mp"), type = "fixed")
-pred_transect.glmmr <- ggpredict(transect.glmm, terms=c("mp","localidade"), type = "random")
-df_pred_transect.glmmf <- data.frame(x=pred_transect.glmmf$x,
-                                     predict=pred_transect.glmmf$predicted,
-                                     conf.low=pred_transect.glmmf$conf.low,
-                                     conf.high=pred_transect.glmmf$conf.high)
+# extraindo o predict do modelo
 
-g_transect.glmm <- plot(pred_transect.glmmr, facets=F, show_title=F, show_ci=F) + 
-  geom_ribbon(data=df_pred_transect.glmmf, aes(x=x, ymin=conf.low, ymax=conf.high),
-              alpha=0.2, inherit.aes=F) +
-  geom_line(data=df_pred_transect.glmmf, aes(x=x, y=predict), 
-            color="black", linewidth=1.5, inherit.aes=F) +
-  theme_bw() + xlab("Média de MP") + labs(color="localidade") +
-  ylab("Variância da localidade") +
-  scale_color_manual(values=c("coral","indianred","gold2","darkolivegreen3","forestgreen",
-                              "violet","purple","rosybrown", "seashell3", "peachpuff1",
-                              "bisque3", "chocolate3", "burlywood2", "lightskyblue1",
-                              "magenta2", "mediumpurple", "olivedrab4", "thistle", "firebrick",
-                              "yellow2", "tomato", "plum1", "palevioletred", "orchid",
-                              "midnightblue", "moccasin", "cornsilk2", "mistyrose", "chartreuse3",
-                              "lemonchiffon", "khaki3", "lightblue","royalblue","gray60","black")) +
-  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-        axis.text.y=element_text(size=12),axis.title=element_text(size=14),
-        axis.text.x=element_text(size=12),
-        legend.position="right", legend.text=element_text(size=12),
-        legend.background=element_rect(fill="transparent",color="transparent"),
-        legend.title=element_text(size=12, face="bold"))
-g_transect.glmm
+data(sleepstudy, package = "lme4")
 
-pred_transect.glmm.gcf<- ggpredict(transect.glmm, terms=c("gc"), type = "fixed")
-pred_transect.glmm.gcr <- ggpredict(transect.glmm, terms=c("gc","localidade"), type = "random")
-df_pred_transect.glmm.gcf <- data.frame(x=pred_transect.glmm.gcf$x,
-                                        predict=pred_transect.glmm.gcf$predicted,
-                                        conf.low=pred_transect.glmm.gcf$conf.low,
-                                        conf.high=pred_transect.glmm.gcf$conf.high)
+pred <- predict(segment.glmm, type = "response")
 
-g_transect.glmm.gc <- plot(pred_transect.glmm.gcr, facets=F, show_title=F, show_ci=F) + 
-  geom_ribbon(data=df_pred_transect.glmm.gcf, aes(x=x, ymin=conf.low, ymax=conf.high),
-              alpha=0.2, inherit.aes=F) +
-  geom_line(data=df_pred_transect.glmm.gcf, aes(x=x, y=predict), 
-            color="black", linewidth=1.5, inherit.aes=F) +
-  theme_bw() + xlab("Média de GC") + labs(color="localidade") +
-  ylab("Variância da localidade") +
-  scale_color_manual(values=c("coral","indianred","gold2","darkolivegreen3","forestgreen",
-                              "violet","purple","rosybrown", "seashell3", "peachpuff1",
-                              "bisque3", "chocolate3", "burlywood2", "lightskyblue1",
-                              "magenta2", "mediumpurple", "olivedrab4", "thistle", "firebrick",
-                              "yellow2", "tomato", "plum1", "palevioletred", "orchid",
-                              "midnightblue", "moccasin", "cornsilk2", "mistyrose", "chartreuse3",
-                              "lemonchiffon", "khaki3", "lightblue","royalblue","gray60","black")) +
-  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-        axis.text.y=element_text(size=12),axis.title=element_text(size=14),
-        axis.text.x=element_text(size=12),
-        legend.position="right", legend.text=element_text(size=12),
-        legend.background=element_rect(fill="transparent",color="transparent"),
-        legend.title=element_text(size=12, face="bold"))
-g_transect.glmm.gc
+model_pred <- as.numeric(pred)
 
-pred_transect.glmm.lgf<- ggpredict(transect.glmm, terms=c("lg"), type = "fixed")
-pred_transect.glmm.lgr <- ggpredict(transect.glmm, terms=c("lg","localidade"), type = "random")
-df_pred_transect.glmm.lgf <- data.frame(x=pred_transect.glmm.lgf$x,
-                                        predict=pred_transect.glmm.lgf$predicted,
-                                        conf.low=pred_transect.glmm.lgf$conf.low,
-                                        conf.high=pred_transect.glmm.lgf$conf.high)
+# inserindo no data frame
 
-g_transect.glmm.lg <- plot(pred_transect.glmm.lgr, facets=F, show_title=F, show_ci=F) + 
-  geom_ribbon(data=df_pred_transect.glmm.lgf, aes(x=x, ymin=conf.low, ymax=conf.high),
-              alpha=0.2, inherit.aes=F) +
-  geom_line(data=df_pred_transect.glmm.lgf, aes(x=x, y=predict), 
-            color="black", linewidth=1.5, inherit.aes=F) +
-  theme_bw() + xlab("Média de LG") + labs(color="localidade") +
-  ylab("Variância da localidade") +
-  scale_color_manual(values=c("coral","indianred","gold2","darkolivegreen3","forestgreen",
-                              "violet","purple","rosybrown", "seashell3", "peachpuff1",
-                              "bisque3", "chocolate3", "burlywood2", "lightskyblue1",
-                              "magenta2", "mediumpurple", "olivedrab4", "thistle", "firebrick",
-                              "yellow2", "tomato", "plum1", "palevioletred", "orchid",
-                              "midnightblue", "moccasin", "cornsilk2", "mistyrose", "chartreuse3",
-                              "lemonchiffon", "khaki3", "lightblue","royalblue","gray60","black")) +
-  theme(panel.grid.major=element_blank(), panel.grid.minor=element_blank(),
-        axis.text.y=element_text(size=12),axis.title=element_text(size=14),
-        axis.text.x=element_text(size=12),
-        legend.position="right", legend.text=element_text(size=12),
-        legend.background=element_rect(fill="transparent",color="transparent"),
-        legend.title=element_text(size=12, face="bold"))
-g_transect.glmm.lg
+geomonit.seg$model_pred <- model_pred
 
-colours()
+arrange(geomonit.seg, -(model_pred))
