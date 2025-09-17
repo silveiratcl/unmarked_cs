@@ -31,9 +31,6 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                                         obs = col_character()
                        ))
 
-
-spec(df_monit)
-
 ## aplicando os filtros 
 
 dfmonit_filt1 <- df_monit %>% 
@@ -41,8 +38,6 @@ dfmonit_filt1 <- df_monit %>%
            !(obs %in% c("estimado dos dados do ICMBio"))) %>%
   arrange(geo_id)
 
-summary(dfmonit_filt1$geo_id)
-print(dfmonit_filt1)
 
 ## selecionando a localidade por data para filtrar o numero de transectos
 
@@ -53,7 +48,6 @@ monit.loc <- dfmonit_filt1[ ,c("localidade", "data", "faixa_bat", "n_trans_vis",
           divers = max(n_divers)) %>%
   arrange(data)
 
-print(monit.loc, n = 76)
 
 ## obtendo o total de transectos vistos e detecções para cada localidade
 ## criando a variável minutos por mergulhador
@@ -66,7 +60,6 @@ monit2 <- monit.loc %>%
             min.div = sum(t_trans_vis*t_divers)) %>%
   arrange(desc(data))
 
-print(monit2, n = 72)
 
 monit3 <- monit2 %>%
   group_by(localidade, faixa_bat) %>%
@@ -75,8 +68,6 @@ monit3 <- monit2 %>%
             t_divers = sum(t_divers),
             t_min.div = sum(min.div)) %>%
   arrange(desc(t_trans_vis))
-
-print(monit3, n = 72)
 
 
 # geomorfologia
@@ -96,9 +87,6 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      n_trans_vis = col_double(),
                                      geo_id = col_double())
 )
-spec(df_geo)
-df_geo = df_geo[, 1:14]
-df_geo
 
 ## agrupando e obtendo o total do IAR para cada geomorfologia em cada localidade
 
@@ -108,8 +96,6 @@ geo <- df_geo[ ,c("localidade", "data", "faixa_bat","geo_cat", "iar_geo")] %>%
   arrange(data)
 
 
-print(geo, n = 185)
-
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
 geo2 <- geo[ ,c("localidade", "faixa_bat","geo_cat", "iar_geo")] %>%
@@ -118,16 +104,11 @@ geo2 <- geo[ ,c("localidade", "faixa_bat","geo_cat", "iar_geo")] %>%
   spread(geo_cat, iar_geo)
 
 
-print(geo2, n = 58)
-
-
 # unindo os data frames
 
 geomonit <- left_join(monit3, geo2) %>%
   arrange(localidade) %>%
   drop_na()
-
-print(geomonit, n = 55)
 
 geomonit <- as.data.frame(geomonit)
 

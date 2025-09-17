@@ -32,13 +32,6 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                        ))
 
 
-
-spec(df_monit)
-df_monit
-print(df_monit, n = 100)
-df_monit[, 1:17]
-
-
 ## aplicando os filtros 
 
 dfmonit_filt <- df_monit %>% 
@@ -46,9 +39,6 @@ dfmonit_filt <- df_monit %>%
            !(obs %in% c("Sem geo", "estimado dos dados do ICMBio", "geo não realizada", "geo não realizada, sem ficha de campo")) &
            !(geo_id %in% c("Na"))) %>%
   arrange(geo_id)
-
-summary(dfmonit_filt)
-print(dfmonit_filt)
 
 ## selecionando as variáveis importantes
 
@@ -59,8 +49,6 @@ monit.trans <- dfmonit_filt[ ,c("localidade", "data", "faixa_bat", "n_trans_vis"
           divers = max(n_divers)) %>%
   arrange(geo_id)
 
-print(monit.trans, n = 95)
-
 ## criando a variável minutos por mergulhador
 
 monit.trans2 <- monit.trans %>%
@@ -70,8 +58,6 @@ monit.trans2 <- monit.trans %>%
           t_divers = sum(divers),
           min.div = sum(t_trans_vis*t_divers)) %>%
   arrange(data)
-
-print(monit.trans2, n = 114)
 
 monit.trans2$geo_id <- as.double(monit.trans2$geo_id)
 
@@ -93,9 +79,6 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      n_trans_vis = col_double(),
                                      geo_id = col_double())
 )
-spec(df_geo)
-df_geo = df_geo[, 1:14]
-df_geo
 
 ## agrupando e obtendo o total do IAR para cada geomorfologia em cada segmento
 
@@ -105,8 +88,6 @@ geo.seg <- df_geo[ ,c("localidade", "data", "faixa_bat", "visibilidade", "geo_ca
           iar_geo = mean(iar_geo)) %>%
   arrange(geo_id)
 
-print(geo.seg, n = 405)
-
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
 geo.seg2 <- geo.seg[ ,c("geo_id", "localidade", "faixa_bat", "visibilidade", "geo_cat", "iar_geo")] %>%
@@ -115,16 +96,12 @@ geo.seg2 <- geo.seg[ ,c("geo_id", "localidade", "faixa_bat", "visibilidade", "ge
           iar_geo = mean(sum(iar_geo))) %>%
   spread(geo_cat, iar_geo)
 
-print(geo.seg2, n = 81)
-
 
 # unindo os data frames
 
 geomonit.seg <- left_join(monit.trans2, geo.seg2) %>%
   arrange(geo_id) %>%
   drop_na()
-
-print(geomonit.seg, n = 69)
 
 
 # categorizando em faixa a variável minutos por mergulhador
@@ -139,7 +116,6 @@ levels(min.div2) <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35"
                       "140-145", "145-150", "150-155", "155-160", "160-165", "165-170", "170-175", "175-180",
                       "180-185", "185-190", "190-195", "195-200", "200-205", "205-210", "210-215", "215-220",
                       "220-225", "225-230", "230-235", "235-240")
-print(min.div2)
 
 geomonit.seg$min.div2 <- min.div2
 
