@@ -51,7 +51,7 @@ monit.loc <- dfmonit_filt1[ ,c("localidade", "data", "faixa_bat", "n_trans_vis",
   reframe(trans_vis = max(n_trans_vis),
           detections  = max(n_trans_pres),
           divers = max(n_divers)) %>%
-  arrange(data)
+  arrange(localidade)
 
 print(monit.loc, n = 76)
 
@@ -64,7 +64,7 @@ monit2 <- monit.loc %>%
             t_detections = sum(detections),
             t_divers = sum(divers),
             min.div = sum(t_trans_vis*t_divers)) %>%
-  arrange(desc(data))
+  arrange(localidade)
 
 print(monit2, n = 72)
 
@@ -76,7 +76,7 @@ monit3 <- monit2 %>%
             t_min.div = sum(min.div)) %>%
   arrange(desc(t_trans_vis))
 
-print(monit3, n = 72)
+print(monit3, n = 94)
 
 # geomorfologia
 
@@ -104,10 +104,10 @@ df_geo
 geo <- df_geo[ ,c("localidade", "data", "faixa_bat","geo_cat", "iar_geo")] %>%
   group_by(localidade, data, faixa_bat, geo_cat) %>%
   reframe(iar_geo = mean(iar_geo)) %>%
-  arrange(data)
+  arrange(localidade)
 
 
-print(geo, n = 185)
+print(geo, n = 320)
 
 ## colocando as geos como coluna (variáveis) e iargeo como linha (valores das variáveis)
 
@@ -117,7 +117,7 @@ geo2 <- geo[ ,c("localidade", "faixa_bat","geo_cat", "iar_geo")] %>%
   spread(geo_cat, iar_geo)
 
 
-print(geo2, n = 58)
+print(geo2, n = 59)
 
 ## padronizando as geos
 ###média = 0
@@ -151,7 +151,7 @@ geomonit <- left_join(monit3, geo2) %>%
 max(geomonit$t_min.div)
 min(geomonit$t_min.div)
 
-print(geomonit, n = 55)
+print(geomonit, n = 96)
 
 geomonit <- as.data.frame(geomonit)
 
@@ -270,6 +270,10 @@ plot(res.model.gp)
 res.model.nb1 <- simulateResiduals(fittedModel=model.nb1, n=1000)
 windows(12,8)
 plot(res.model.nb1)
+
+res.model.nb2 <- simulateResiduals(fittedModel=model.nb2, n=1000)
+windows(12,8)
+plot(res.model.nb2)
 #melhor model.nb1
 
 

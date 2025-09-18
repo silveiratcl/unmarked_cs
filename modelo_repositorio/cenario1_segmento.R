@@ -28,8 +28,7 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                                         n_trans_pres = col_double(),
                                         dafor_id = col_double(),
                                         geo_id = col_character(),
-                                        obs = col_character()
-                       ))
+                                        obs = col_character()))
 
 
 ## aplicando os filtros 
@@ -100,7 +99,7 @@ geo.seg2 <- geo.seg[ ,c("geo_id", "localidade", "faixa_bat", "visibilidade", "ge
 # unindo os data frames
 
 geomonit.seg <- left_join(monit.trans2, geo.seg2) %>%
-  arrange(geo_id) %>%
+  arrange(localidade) %>%
   drop_na()
 
 
@@ -130,6 +129,7 @@ print(t_visib2)
 
 geomonit.seg$t_visib2 <- t_visib2
 
+print(geomonit.seg, n = 72)
 geomonit.seg <- as.data.frame(geomonit.seg)
 
 

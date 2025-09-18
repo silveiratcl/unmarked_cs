@@ -28,8 +28,7 @@ df_monit <- read_delim("data/dados_monitoramento_cs_2024-03-22.csv",
                                         n_trans_pres = col_double(),
                                         dafor_id = col_double(),
                                         geo_id = col_character(),
-                                        obs = col_character()
-                       ))
+                                        obs = col_character()))
 
 ## aplicando os filtros 
 
@@ -85,8 +84,7 @@ df_geo = read_delim("data/dados_geo_cs_2024-03-22.csv",
                                      geo_cat = col_character(),
                                      iar_geo = col_double(),
                                      n_trans_vis = col_double(),
-                                     geo_id = col_double())
-)
+                                     geo_id = col_double()))
 
 ## agrupando e obtendo o total do IAR para cada geomorfologia em cada localidade
 
@@ -127,7 +125,6 @@ levels(min.div1) <- c("0-8", "8-16", "16-24", "24-32", "32-40", "40-48", "48-56"
 
 geomonit2 <- geomonit
 geomonit2$min.div1 <- min.div1
-colnames(geomonit2)
 
 geomonit2 <- as.data.frame(geomonit2)
 
