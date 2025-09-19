@@ -99,7 +99,7 @@ geo.seg2 <- geo.seg[ ,c("geo_id", "localidade", "faixa_bat", "visibilidade", "ge
 # unindo os data frames
 
 geomonit.seg <- left_join(monit.trans2, geo.seg2) %>%
-  arrange(localidade) %>%
+  arrange(geo_id) %>%
   drop_na()
 
 
@@ -168,6 +168,10 @@ modelo.nb2 <- glmmTMB(t_detections ~ mp + gc + lg + rpm + tf + (1|t_visib2) + (1
 ### selecionando o melhor modelo
 
 ICtab(modelo, modelo.gp, modelo.nb1, modelo.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.modelo.gp <- simulateResiduals(fittedModel=modelo.gp, n=1000)
+windows(12,8)
+plot(res.modelo.gp)
 
 res.modelo <- simulateResiduals(fittedModel=modelo, n=1000)
 windows(12,8)

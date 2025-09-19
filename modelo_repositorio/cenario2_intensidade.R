@@ -114,6 +114,7 @@ print(t_visib.chr)
 int.geomonit$t_visib.chr <- t_visib.chr
 
 int.geomonit <- as_tibble(int.geomonit)
+print(int.geomonit, n = 38)
 
 
 # modelos glmm
