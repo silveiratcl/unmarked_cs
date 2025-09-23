@@ -320,9 +320,9 @@ res.zi <- simulateResiduals(fittedModel=nb1.b2d.zi, n=1000)
 windows(12,8)
 plot(res.zi)
 
-intensity.glmm <- int.a2c2 <- glmmTMB(t.total_dafor  ~ mp + tf + offset(log(t.total_min)) + (1|localidade),
-                                      data = int.geomonit, control=controle, 
-                                      family = poisson)
+intensity.glmm <- int.a4d <- glmmTMB(t.total_dafor  ~ mp + gc + lg + offset(log(t.total_min)) + (1|localidade),
+                                     data = int.geomonit, control=controle, 
+                                     family = poisson)
 summary(intensity.glmm)
 
 ranef(intensity.glmm) #efeito aleatorio para cada localidade
@@ -347,7 +347,7 @@ pred_intensity <- int.geomonit[ ,c("localidade", "model_pred")] %>%
   arrange(desc(model_pred))
 
 
-pred_intensity
+print(pred_intensity, n = 38)
 
 write.csv(pred_intensity, "predict_intensity.csv", row.names = FALSE)
 
@@ -374,7 +374,7 @@ library('gridExtra')
 # Criando a tabela
 
 df1 <- pred_intensity[1:20, ]
-df2 <- pred_intensity[20:37, ]
+df2 <- pred_intensity[20:38, ]
 
 # Criar "grob" (objetos gráficos para as tabelas)
 tabela1 <- tableGrob(df1)
@@ -386,7 +386,7 @@ grid.arrange(tabela1, tabela2, ncol = 2)
 png("predict table.png", width = 10, height = 6, units = "in", res = 300)
 grid.arrange(tabela1, tabela2, ncol = 2)
 
-print(pred_intensity, n =37)
+print(pred_intensity, n =38)
 
 ggplot(pred_intensity, aes(x = reorder(localidade, -model_pred), y = model_pred)) +
   geom_bar(stat = "identity", fill = "steelblue") +

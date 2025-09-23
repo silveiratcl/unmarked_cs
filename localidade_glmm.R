@@ -419,8 +419,8 @@ windows(12,8)
 plot(res.nb2.a1.zi)
 
 locality.glmm <- nb2.a1.zi <- glmmTMB(t_detections ~ lg + rpm + tf + (1|min.div1),
-                                      data = geomonit2, control=controle, 
-                                      ziformula = ~t_trans_vis, family = nbinom1) 
+                                      data = geomonit2, control=controle,
+                                      ziformula = ~t_trans_vis, family = nbinom1)
 summary(locality.glmm)
 
 
