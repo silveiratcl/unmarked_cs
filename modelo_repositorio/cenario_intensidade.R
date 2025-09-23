@@ -153,13 +153,13 @@ int.model.nb2 <- glmmTMB(t.total_dafor  ~ mp + gc + lg + rpm + tf + offset(log(t
 
 ICtab(int.model, int.model.gp, int.model.nb1, int.model.nb2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.int.model <- simulateResiduals(fittedModel=int.model, n=1000)
-windows(12,8)
-plot(res.int.model)
-
 res.int.model.gp <- simulateResiduals(fittedModel=int.model.gp, n=1000)
 windows(12,8)
 plot(res.int.model.gp)
+
+res.int.model <- simulateResiduals(fittedModel=int.model, n=1000)
+windows(12,8)
+plot(res.int.model)
 
 
 ## comparando os efeitos aleatórios
@@ -220,89 +220,90 @@ res.int.a5 <- simulateResiduals(fittedModel=int.a5, n=1000)
 windows(12,8)
 plot(res.int.a5)
 
-int.a2a <- glmmTMB(t.total_dafor  ~ lg + rpm + tf + offset(log(t.total_min)) + (1|localidade),
+int.a4a <- glmmTMB(t.total_dafor  ~ gc + lg + tf + offset(log(t.total_min)) + (1|localidade),
                    data = int.geomonit, control=controle, 
                    family = poisson)
 
-int.a2b <- glmmTMB(t.total_dafor  ~ mp + rpm + tf + offset(log(t.total_min)) + (1|localidade),
+int.a4b <- glmmTMB(t.total_dafor  ~ mp + lg + tf + offset(log(t.total_min)) + (1|localidade),
                    data = int.geomonit, control=controle, 
                    family = poisson)
 
-int.a2c <- glmmTMB(t.total_dafor  ~ mp + lg + tf + offset(log(t.total_min)) + (1|localidade),
+int.a4c <- glmmTMB(t.total_dafor  ~ mp + gc + tf + offset(log(t.total_min)) + (1|localidade),
                    data = int.geomonit, control=controle, 
                    family = poisson)
 
-int.a2d <- glmmTMB(t.total_dafor  ~ lg + rpm + offset(log(t.total_min)) + (1|localidade),
+int.a4d <- glmmTMB(t.total_dafor  ~ mp + gc + lg + offset(log(t.total_min)) + (1|localidade),
                    data = int.geomonit, control=controle, 
                    family = poisson)
 
-ICtab(int.a2, int.a2a, int.a2b, int.a2c, int.a2d, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(int.a4, int.a4a, int.a4b, int.a4c, int.a4d, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.int.a2c <- simulateResiduals(fittedModel=int.a2c, n=1000)
+res.int.a4b <- simulateResiduals(fittedModel=int.a4b, n=1000)
 windows(12,8)
-plot(res.int.a2c)
+plot(res.int.a4b)
 
-int.a2c1 <- glmmTMB(t.total_dafor  ~ lg + tf + offset(log(t.total_min)) + (1|localidade),
+res.int.a4d <- simulateResiduals(fittedModel=int.a4d, n=1000)
+windows(12,8)
+plot(res.int.a4d)
+
+int.a4d1 <- glmmTMB(t.total_dafor  ~ gc + lg + offset(log(t.total_min)) + (1|localidade),
                     data = int.geomonit, control=controle, 
                     family = poisson)
 
-int.a2c2 <- glmmTMB(t.total_dafor  ~ mp + tf + offset(log(t.total_min)) + (1|localidade),
+int.a4d2 <- glmmTMB(t.total_dafor  ~ mp + lg + offset(log(t.total_min)) + (1|localidade),
                     data = int.geomonit, control=controle, 
                     family = poisson)
 
-int.a2c3 <- glmmTMB(t.total_dafor  ~ mp + lg + offset(log(t.total_min)) + (1|localidade),
-                    data = int.geomonit, control=controle, 
-                    family = poisson)
+int.a4d3 <- glmmTMB(t.total_dafor  ~ mp + gc + offset(log(t.total_min)) + (1|localidade),
+                   data = int.geomonit, control=controle, 
+                   family = poisson)
 
-ICtab(int.a2c, int.a2c1, int.a2c2, int.a2c3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(int.a4d, int.a4d1, int.a4d2, int.a4d3, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-res.int.a2c3 <- simulateResiduals(fittedModel=int.a2c3, n=1000)
+res.int.a4d2 <- simulateResiduals(fittedModel=int.a4d2, n=1000)
 windows(12,8)
-plot(res.int.a2c3)
+plot(res.int.a4d2)
 
-res.int.a2c2 <- simulateResiduals(fittedModel=int.a2c2, n=1000)
-windows(12,8)
-plot(res.int.a2c2)
-
-int.a2c2.1 <- glmmTMB(t.total_dafor ~ mp + offset(log(t.total_min)) + (1|localidade),
-                      data = int.geomonit, control=controle, 
-                      family = poisson)
-###erro por overparametrization
-
-int.a2c2.2 <- glmmTMB(t.total_dafor ~ tf + offset(log(t.total_min)) + (1|localidade),
+int.a4da <- glmmTMB(t.total_dafor  ~ mp + offset(log(t.total_min)) + (1|localidade),
                       data = int.geomonit, control=controle, 
                       family = poisson)
 
-ICtab(int.a2c2, int.a2c2.1, int.a2c2.2, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+int.a4db <- glmmTMB(t.total_dafor  ~ gc + offset(log(t.total_min)) + (1|localidade),
+                      data = int.geomonit, control=controle, 
+                      family = poisson)
 
-res.int.a2c2.2 <- simulateResiduals(fittedModel=int.a2c2.2, n=1000)
+int.a4dc <- glmmTMB(t.total_dafor  ~ lg + offset(log(t.total_min)) + (1|localidade),
+                      data = int.geomonit, control=controle, 
+                      family = poisson)
+
+ICtab(int.a4d, int.a4da, int.a4db, int.a4dc, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+
+res.int.a4db <- simulateResiduals(fittedModel=int.a4db, n=1000)
 windows(12,8)
-plot(res.int.a2c2.2)
+plot(res.int.a4db)
 
 ## avaliando o offset
 
-int.a2c2a <- glmmTMB(t.total_dafor ~ mp + tf + (1|localidade),
-                     data = int.geomonit, control=controle, 
-                     family = poisson)
+int.a4d.off <- glmmTMB(t.total_dafor  ~ mp + gc + lg + (1|localidade),
+                       data = int.geomonit, control=controle, 
+                       family = poisson)
 
-ICtab(int.a2c2, int.a2c2a, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
-
-res.int.a2c2a <- simulateResiduals(fittedModel=int.a2c2a, n=1000)
-windows(12,8)
-plot(res.int.a2c2a)
+ICtab(int.a4d, int.a4d.off, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
 ## avaliando a variavel relacionada a inflacao por zero
 
-int.zi <- glmmTMB(t.total_dafor ~ mp + tf + offset(log(t.total_min)) + (1|localidade),
-                  data = int.geomonit, control=controle, 
+int.zi <- glmmTMB(t.total_dafor  ~ mp + gc + lg + offset(log(t.total_min)) + (1|localidade),
+                  data = int.geomonit, control=controle,
                   ziformula = ~t.divers, family = poisson)
-###erro por overparametrization
 
-ICtab(int.a2c2, int.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
+ICtab(int.a4d, int.zi, type="AICc",  weights =  TRUE, delta = TRUE, base = TRUE)
 
-intensity.glmm <- int.a2c2 <- glmmTMB(t.total_dafor  ~ mp + tf + offset(log(t.total_min)) + (1|localidade),
-                                      data = int.geomonit, control=controle, 
-                                      family = poisson)
+
+# modelo final
+
+intensity.glmm <- int.a4d <- glmmTMB(t.total_dafor  ~ mp + gc + lg + offset(log(t.total_min)) + (1|localidade),
+                                     data = int.geomonit, control=controle, 
+                                     family = poisson)
 summary(intensity.glmm)
 
 
