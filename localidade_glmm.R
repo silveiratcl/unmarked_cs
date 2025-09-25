@@ -441,3 +441,5 @@ geomonit2$model_pred <- model_pred
 
 arrange(geomonit2, -(model_pred))
 
+write.csv(geomonit2, "C:/TCC_Vic/cenario1", row.names = FALSE)
+

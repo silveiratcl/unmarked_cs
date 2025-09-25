@@ -313,7 +313,7 @@ data(sleepstudy, package = "lme4")
 
 pred <- predict(intensity.glmm, type = "response")
 
-model_pred <- round(as.numeric(pred), 0.3)
+model_pred <- as.numeric(pred)
 
 # inserindo no data frame
 
@@ -325,3 +325,5 @@ pred_intensity <- int.geomonit[ ,c("localidade", "model_pred")] %>%
   arrange(desc(model_pred))
 
 pred_intensity
+
+write.csv(int.geomonit, "C:/TCC_Vic/cenario_int", row.names = FALSE)
