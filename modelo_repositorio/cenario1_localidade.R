@@ -342,3 +342,11 @@ geomonit2$model_pred <- model_pred
 
 arrange(geomonit2, (localidade))
 
+pred_locality <- geomonit2[ ,c("localidade", "faixa_bat", "model_pred")] %>%
+  arrange(localidade)
+
+install.packages("clipr")
+library('clipr')
+
+write_clip(pred_locality$model_pred)
+write.csv(pred_locality, "pred_locality.csv", row.names = FALSE)

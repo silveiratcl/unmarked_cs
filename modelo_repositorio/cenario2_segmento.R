@@ -376,4 +376,7 @@ geomonit.seg$model_pred <- model_pred
 
 arrange(geomonit.seg, (localidade))
 
-write.csv(geomonit.seg, "C:/TCC_Vic/cenario2", row.names = FALSE)
+pred_segment <- geomonit.seg[ ,c("geo_id", "localidade", "faixa_bat", "model_pred")] %>%
+  arrange(localidade)
+
+
