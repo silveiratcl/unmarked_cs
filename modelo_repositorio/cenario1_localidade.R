@@ -340,5 +340,5 @@ model_pred <- as.numeric(pred)
 
 geomonit2$model_pred <- model_pred
 
-arrange(geomonit2, -(model_pred))
+arrange(geomonit2, (localidade))
 

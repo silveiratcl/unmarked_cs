@@ -374,6 +374,6 @@ model_pred <- as.numeric(pred)
 
 geomonit.seg$model_pred <- model_pred
 
-arrange(geomonit.seg, -(model_pred))
+arrange(geomonit.seg, (localidade))
 
 write.csv(geomonit.seg, "C:/TCC_Vic/cenario2", row.names = FALSE)
