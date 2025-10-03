@@ -66,7 +66,7 @@ unmarked_data <- unmarkedFrameOccu(y=cs_det,
                                                                 rpm = rpm,
                                                                 lg = lg)),
                                    obsCovs = list(esforco = esforco_st,
-                                                  visib_m = visib_st,
+                                                  visib = visib_st,
                                                   comp_local = comp_local_st))
 
 # modelo nulo

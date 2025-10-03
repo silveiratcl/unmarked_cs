@@ -779,6 +779,7 @@ ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n
     plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
     legend.text = element_text(size=15, color ="#284b80" ),
     legend.key.size = unit(.8, 'cm'),
+    
     axis.text.y = element_text(size = 9),
     axis.text.x = element_text(angle = 45, hjust = 1, size = 12))
 
@@ -1122,12 +1123,14 @@ bg_colors <- dafor_table %>%
            column_spec(5, background = bg_colors$O) %>%
            column_spec(6, background = bg_colors$R)# %>%
            #column_spec(7, background = bg_colors$Ausente)
-
-         library(dplyr)
-         library(tidyr)
-         library(stringr)
-         library(ggplot2)
          
+         
+
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+
          # --- Build from raw data (robust to missing columns) ---
          data_clean <- density_data %>%
            mutate(
@@ -1168,11 +1171,12 @@ bg_colors <- dafor_table %>%
            summarise(bar_top = sum(count), .groups = "drop") %>%
            left_join(effort_abs, by = "year") %>%
            mutate(
-             label = paste0("Absent: ", Ausente, " | Total: ", Total)
+             label = paste0("Abs.", Ausente, "| Tot.", Total)
            )
          
         stacked_dafor  = ggplot(cats, aes(x = year, y = count, fill = dafor_cat)) +
            geom_col() +
+          ylim(0, 100) +
            # anotações de Ausente + Total
            geom_text(
              data = bar_tops,
@@ -1180,8 +1184,8 @@ bg_colors <- dafor_table %>%
              vjust = -0.4, size = 4, inherit.aes = FALSE
            ) +
            labs(
-             x = "Year",
-             y = "Count",
+             #x = "Year",
+             y = "Total Visual Transects",
              fill = "",
              #title = "DAFOR categories by year (stacked)",
              #subtitle = "Annotations show absences (Ausente) and total effort per year"
@@ -1193,14 +1197,155 @@ bg_colors <- dafor_table %>%
            theme(
              panel.grid = element_blank(),     # remove todas as linhas de grid
              axis.line = element_line(),       # mantém eixos visíveis
-             panel.border = element_blank()
+             panel.border = element_blank(),
+             axis.title.x = element_blank(),
+             legend.text = element_text(size=11 ),
+             legend.key.size = unit(.8, 'cm'),
+             
            )
          
         stacked_dafor
          ggsave("plots/stacked_dafor.png",  stacked_dafor, width = 10, height = 5, dpi = 300)  
 
 ################################################################################
+################# IARDensity by year
 
+         #IARDensity by year
+ 
+ 
+ # Stacked raiw_standar by year and depth strata         
+ 
+ 
+ total_iar_w_by_year<-df_monit_iarw %>%
+   filter(is.finite(raiw_standard), raiw_standard > 0) %>%
+   mutate(year = year(data),
+          localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+          faixa_bat_depth = factor(faixa_bat_depth, levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+"))) %>%
+   group_by(year, faixa_bat_depth) %>%
+   summarise(total_iarw = sum(raiw_standard, na.rm = TRUE), .groups = "drop") %>%
+   ggplot(aes(x = factor(year), y = total_iarw, fill = faixa_bat_depth)) +
+   geom_col(position = "stack") +
+   scale_fill_manual(values = c('#db6d10', '#aaee4b', '#416f02', '#536e99')) +
+   labs(x = "Year",
+        y = "RAI-W",
+        fill = "Depth(m)",
+   ) +
+    ylim(0, 20
+         ) +       
+   theme_minimal() +
+   theme(
+     panel.grid = element_blank(),
+     axis.line = element_line(),
+     panel.border = element_blank(),
+     plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
+     plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
+     legend.text = element_text(size=11 ),
+     legend.key.size = unit(.8, 'cm'),
+     axis.title.x = element_blank()
+   ) +
+   scale_y_continuous(n.breaks = 10)
+         total_iar_w_by_year
+ 
+ 
+ #############  COMBINE DAFOR YEAR AND IAR-W
+ 
+ 
+ 
+ 
+ library(patchwork)
+ 
+ # Left: DPUE — put label on TOP x-axis
+ stacked_dafor_clean_year <- stacked_dafor +
+   labs(title = NULL, subtitle = NULL, y = "DPUE") +
+   guides(fill = guide_legend(ncol = 1)) +   # vertical legend (1 column)
+   theme(
+     legend.position.inside      = c(1, 1),         # inside plot: top-right corner
+     legend.justification = c(0, 1),
+     legend.direction     = "vertical"           
+   )
+ 
+ # Right: RAI-W — put label on TOP x-axis, no y label (to avoid duplication)
+ plot_raiw_clean_year <- total_iar_w_by_year +
+   labs(title = NULL, subtitle = NULL, y = "RAI-W") +
+   guides(fill = guide_legend(ncol = 1)) + 
+   theme(
+     legend.position.inside      = c(1, 1),         # inside plot: top-right corner
+     legend.justification = c(0, 1),
+     legend.direction     = "vertical"
+   )
+ 
+ # Combine with A/B tags
+ combined_year <- (stacked_dafor_clean_year + plot_raiw_clean_year) +
+   plot_layout(ncol = 1, guides = "keep", axis_titles = "collect_y") +  
+   theme(
+     text = element_text(size = 12),  
+     #plot.tag = element_text(face = "bold", size = 14),
+     plot.tag.position = c(0, 0),
+     axis.title.y = element_text(size = 14),
+     axis.title.x = element_blank(),
+     axis.text.x = element_text(size = 12),
+     axis.text.y = element_text(size = 12)
+     
+   )
+ 
+ 
+ 
+ 
+combined_year
+ggsave("plots/dpue_raiw_up_and_down.png", combined_year, width = 12, height = 8, dpi = 300)
+         
+
+
+          
+###############         
+library(patchwork)
+
+# Left: DPUE
+stacked_dafor_clean_year <- stacked_dafor +
+  labs(title = NULL, subtitle = NULL, y = "DPUE") +
+  guides(fill = guide_legend(ncol = 1)) +
+  theme(
+    legend.position.inside = c(1, 1),
+    legend.justification   = c(0, 1),
+    legend.direction       = "vertical",
+    axis.text.x  = element_blank()  # remove x-axis text from left plot,
+  )
+
+# Right: RAI-W
+plot_raiw_clean_year <- total_iar_w_by_year +
+  labs(title = NULL, subtitle = NULL, y = "RAI-W") +
+  guides(fill = guide_legend(ncol = 1)) +
+  theme(
+    legend.position.inside = c(1, 1),
+    legend.justification   = c(0, 1),
+    legend.direction       = "vertical"
+  )
+
+# Combine with tags
+combined_year <- (stacked_dafor_clean_year + plot_raiw_clean_year) +
+  plot_layout(ncol = 1, guides = "keep", axis_titles = "collect_y") +
+  plot_annotation(tag_levels = "A") +      # automatically tags A, B
+  theme(
+    text = element_text(size = 12),        # standardize all fonts
+    plot.tag = element_text(face = "bold", size = 14),
+    plot.tag.position = c(0, 1),           # top-left corner
+    axis.title.y = element_text(size = 14),
+    axis.title.x = element_blank(),
+    axis.text.x  = element_text(size = 12),
+    axis.text.y  = element_text(size = 12),
+    legend.text  = element_text(size = 12),
+    legend.title = element_text(size = 12)
+  )
+
+combined_year
+ggsave("plots/dpue_raiw_up_and_down.png",
+       combined_year, width = 12, height = 8, dpi = 300)
+
+#######         
+         
+         
+         
+         
 ################################################################################
 ## Automated solution to create all density plots by localidade
 ################################################################################
