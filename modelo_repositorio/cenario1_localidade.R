@@ -343,7 +343,11 @@ geomonit2$model_pred <- model_pred
 arrange(geomonit2, (localidade))
 
 pred_locality <- geomonit2[ ,c("localidade", "faixa_bat", "model_pred")] %>%
+  group_by(localidade) %>%
+  reframe(mean_pred = mean(model_pred)) %>%
   arrange(localidade)
+
+print(pred_locality, n = 38)
 
 install.packages("clipr")
 library('clipr')
