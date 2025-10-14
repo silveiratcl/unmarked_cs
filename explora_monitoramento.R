@@ -1216,36 +1216,34 @@ library(ggplot2)
  # Stacked raiw_standar by year and depth strata         
  
  
- total_iar_w_by_year<-df_monit_iarw %>%
-   filter(is.finite(raiw_standard), raiw_standard > 0) %>%
-   mutate(year = year(data),
-          localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
-          faixa_bat_depth = factor(faixa_bat_depth, levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+"))) %>%
-   group_by(year, faixa_bat_depth) %>%
-   summarise(total_iarw = sum(raiw_standard, na.rm = TRUE), .groups = "drop") %>%
-   ggplot(aes(x = factor(year), y = total_iarw, fill = faixa_bat_depth)) +
-   geom_col(position = "stack") +
-   scale_fill_manual(values = c('#db6d10', '#aaee4b', '#416f02', '#536e99')) +
-   labs(x = "Year",
-        y = "RAI-W",
-        fill = "Depth(m)",
-   ) +
-    ylim(0, 20
-         ) +       
-   theme_minimal() +
-   theme(
-     panel.grid = element_blank(),
-     axis.line = element_line(),
-     panel.border = element_blank(),
-     plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
-     plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
-     legend.text = element_text(size=11 ),
-     legend.key.size = unit(.8, 'cm'),
-     axis.title.x = element_blank()
-   ) +
-   scale_y_continuous(n.breaks = 10)
+         total_iar_w_by_year <- df_monit_iarw %>%
+           filter(is.finite(raiw_standard), raiw_standard > 0) %>%
+           mutate(year = year(data),
+                  localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
+                  faixa_bat_depth = factor(faixa_bat_depth, 
+                                           levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+"))) %>%
+           group_by(year, faixa_bat_depth) %>%
+           summarise(total_iarw = sum(raiw_standard, na.rm = TRUE), .groups = "drop") %>%
+           ggplot(aes(x = factor(year), y = total_iarw, fill = faixa_bat_depth)) +
+           geom_col(position = "stack") +
+           scale_fill_manual(values = c('#db6d10', '#aaee4b', '#416f02', '#536e99')) +
+           labs(x = "Year",
+                y = "RAI-W",
+                fill = "Depth(m)") +
+           scale_y_continuous(limits = c(0, 12), n.breaks = 4) +   # ✅ do it here
+           theme_minimal() +
+           theme(
+             panel.grid = element_blank(),
+             axis.line = element_line(),
+             panel.border = element_blank(),
+             plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80"),
+             plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80"),
+             legend.text = element_text(size=11),
+             legend.key.size = unit(.8, 'cm'),
+             axis.title.x = element_blank()
+           )
+         
          total_iar_w_by_year
- 
  
  #############  COMBINE DAFOR YEAR AND IAR-W
  

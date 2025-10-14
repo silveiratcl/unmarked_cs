@@ -274,7 +274,7 @@ setdiff(predictors$localidade, detection$localidade)
 
 
 save(effort, detection, predictors, file = "unmarked_data.RData")
-
+load("unmarked_data.RData")
 
 
 
