@@ -322,8 +322,8 @@ int.geomonit$model_pred <- model_pred
 arrange(int.geomonit, -(model_pred))
 
 pred_intensity <- int.geomonit[ ,c("localidade", "model_pred")] %>%
-  arrange(desc(model_pred))
+  arrange(localidade) 
 
-pred_intensity
+print(pred_intensity, n = 38)
 
 write.csv(int.geomonit, "C:/TCC_Vic/cenario_int", row.names = FALSE)

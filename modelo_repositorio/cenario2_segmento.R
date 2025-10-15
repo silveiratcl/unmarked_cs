@@ -376,7 +376,10 @@ geomonit.seg$model_pred <- model_pred
 
 arrange(geomonit.seg, (localidade))
 
-pred_segment <- geomonit.seg[ ,c("geo_id", "localidade", "faixa_bat", "model_pred")] %>%
+pred_segment <- geomonit.seg[ ,c("localidade", "faixa_bat", "model_pred")] %>%
+  group_by(localidade) %>%
+  reframe(mean_pred = mean(model_pred)) %>%
   arrange(localidade)
 
+print(pred_segment, n = 38)
 
