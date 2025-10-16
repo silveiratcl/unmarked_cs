@@ -383,6 +383,8 @@ ggsave("plots/detec_batimetria.png", width = 10, height = 5, dpi = 300)
 plot_transec_strata <- df_monit_effort %>% 
   mutate(localidade_rebio = factor(localidade_rebio, levels = c("REBIO", "ENTORNO IMEDIATO", "ENTORNO")),
          localidade = factor(localidade)) %>%
+  #mutate(localidade_rebio = factor(localidade_rebio, levels = c("REBIO", "IMMEDIATE SURROUNDINGS", "SURROUNDINGS")),
+   #      localidade = factor(localidade)) %>%
   ggplot(aes(fill = factor(faixa_bat_depth, levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+")), 
              y = reorder(localidade, max_trsct_vis, sum), 
              x = max_trsct_vis)) +
@@ -409,13 +411,73 @@ plot_transec_strata <- df_monit_effort %>%
     legend.text = element_text(size=15, color ="#284b80" ),
     legend.title = element_blank(),
     legend.key.size = unit(.8, 'cm'),
-    axis.text.y = element_text(size = 5),
+    axis.text.y = element_text(size = 10),
+    #axis.text.y = element_text(size = 5),
     panel.spacing = unit(1, "lines"),# Adjust spacing between facets
     strip.text.y = element_text(size = 6)
     
   )
 plot_transec_strata
 ggsave("plots/transec_batimetria.png", width = 10, height = 10, dpi = 300)
+
+
+
+########### English
+
+library(ggplot2)
+library(dplyr)
+
+plot_transec_strata_english <- df_monit_effort %>% 
+  mutate(
+    # keep the real data values, just set the order of the strips
+    localidade_rebio = factor(localidade_rebio,
+                              levels = c("REBIO", "ENTORNO IMEDIATO", "ENTORNO")),
+    localidade = factor(localidade)
+  ) %>%
+  ggplot(aes(fill = factor(faixa_bat_depth, levels = c("0-2m", "2.1-8m", "8.1-14m", "14.1m+")), 
+             y = reorder(localidade, max_trsct_vis, sum), 
+             x = max_trsct_vis)) +
+  scale_fill_manual(values=c('#db6d10', '#aaee4b','#416f02','#536e99')) +
+  geom_bar(position="stack", stat="identity", width = 0.8) +
+  facet_grid(
+    rows = vars(localidade_rebio),
+    scales = "free_y", space = "free_y", switch = "both",
+    labeller = labeller(localidade_rebio = c(
+      "REBIO"             = "REBIO",
+      "ENTORNO IMEDIATO"  = "IMM. SURROUNDINGS",
+      "ENTORNO"           = "SURROUNDINGS"
+    ))
+  ) +
+  scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
+  #ggtitle("Esforço - Total de Transectos (1 min.) por localidade (2022-2025)") +
+  theme(
+    panel.background = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"), 
+    axis.ticks.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"), 
+    axis.line.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    axis.ticks.y= element_blank(),
+    axis.title.x = element_blank(),
+    #plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80", margin = margin(t = 10, b = 20)),
+    axis.title.y = element_blank(), 
+    legend.text = element_text(size=15, color ="#284b80"),
+    legend.title = element_blank(),
+    legend.key.size = unit(.8, 'cm'),
+    axis.text.y = element_text(size = 12),
+    panel.spacing = unit(1, "lines"),
+    strip.text.y = element_text(size = 6)
+  )
+
+plot_transec_strata_english
+ggsave("plots/transec_batimetria_english.png", width = 10, height = 15, dpi = 300)
+
+
+
+
+
+
+
+
+
 
 
 #### CPUE #########################################################################
