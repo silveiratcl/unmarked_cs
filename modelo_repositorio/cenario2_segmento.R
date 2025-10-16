@@ -366,20 +366,86 @@ summary(segment.glmm)
 
 data(sleepstudy, package = "lme4")
 
-pred <- predict(segment.glmm, type = "response")
+pred2 <- predict(segment.glmm, type = "response")
 
-model_pred <- as.numeric(pred)
+model2_pred <- as.numeric(pred)
 
 # inserindo no data frame
 
-geomonit.seg$model_pred <- model_pred
+geomonit.seg$model2_pred <- model2_pred
 
 arrange(geomonit.seg, (localidade))
 
-pred_segment <- geomonit.seg[ ,c("localidade", "faixa_bat", "model_pred")] %>%
+pred_segment <- geomonit.seg[ ,c("localidade", "faixa_bat", "model2_pred")] %>%
   group_by(localidade) %>%
-  reframe(mean_pred = mean(model_pred)) %>%
+  reframe(mean2_pred = mean(model2_pred)) %>%
   arrange(localidade)
 
 print(pred_segment, n = 38)
+
+min2_val <- min(pred_segment$mean2_pred)
+max2_val <- max(pred_segment$mean2_pred)
+
+
+pred_segment <- pred_segment %>%
+  mutate(localidade = fct_reorder(localidade, -(mean2_pred), .desc = TRUE),
+         recode(localidade,
+                "engenho" = "SACO DO ENGENHO", "rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", 
+                "farol" = "BAÍA DO FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
+                "saco_dagua" = "SACO D'ÁGUA", "deserta_sul" = "DESERTA SUL", "enseada_do_lili" = "ENSEADA DO LILI", "saco_do_batismo" = "SACO DO BATISMO", "baia_das_tartarugas" = "BAÍA DAS TARTARUGAS", "saquinho_dagua" = "SAQUINHO D'ÁGUA", 
+                "saco_do_capim" = "SACO DO CAPIM", "deserta_norte" = "DESERTA NORTE", "letreiro" = "PONTA DO LETREIRO", "portinho_sul" = "PORTINHO SUL", "saco_dagua" = "SACO D'ÁGUA", "tamboretes_sul" = "TAMBORETES SUL",
+                "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
+                "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
+                "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
+                "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE", "macuco" = "ILHA DO MACUCO")
+  )
+
+
+g2 <- ggplot(pred_segment, aes(x = mean2_pred, y = `recode(...)`, fill = mean2_pred)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(
+    title = expression(
+      atop(
+        paste("Probabilidade de detecção de ", italic("T. coccinea")),"pela área de abrangência de MP"
+      )),
+    x = "",
+    y = "",
+    fill = "Média do valor predito por localidade"
+  ) +
+  scale_fill_gradientn(
+    colours = c("#009dff", "#00c514", "#f0e000", "#fd7a00", "#d7191c"),
+    breaks = c(min2_val, max2_val),
+    labels = c("0", "2.5"),
+    guide = guide_colorbar(
+      direction = "horizontal",
+      title.position = "top",
+      barwidth = unit(5, "cm"),
+      title.hjust = 0.5,
+      title.vjust = 3
+    )
+  ) +
+  annotate(
+    "segment",
+    x = 0, xend = 0, y = 0, yend = 38,
+    arrow = arrow(type = "open", length = unit(0.3, "cm")),
+    color = "black", size = 0.5
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0, size = 12,  lineheight = 0),
+    legend.position = c(0.8, 0.1),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    axis.title.x = element_text(
+      hjust = 0,            
+      margin = margin(t = 10)),
+    axis.title.y = element_text(size = 10, margin = margin(r = 10)),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_text(size = 8, margin = margin(r = 1), color = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  )
+
 

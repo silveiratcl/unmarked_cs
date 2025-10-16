@@ -345,7 +345,7 @@ arrange(geomonit2, (localidade))
 pred_locality <- geomonit2[ ,c("localidade", "faixa_bat", "model_pred")] %>%
   group_by(localidade) %>%
   reframe(mean_pred = mean(model_pred)) %>%
-  arrange(localidade)
+  arrange(-(mean_pred))
 
 print(pred_locality, n = 38)
 
@@ -354,3 +354,74 @@ library('clipr')
 
 write_clip(pred_locality$model_pred)
 write.csv(pred_locality, "pred_locality.csv", row.names = FALSE)
+
+#plot em barras empilhadas
+
+min_val <- min(pred_locality$mean_pred)
+max_val <- max(pred_locality$mean_pred)
+
+
+pred_locality <- pred_locality %>%
+  mutate(localidade = fct_reorder(localidade, -(mean_pred), .desc = TRUE),
+         recode(localidade,
+                "engenho" = "SACO DO ENGENHO", "rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", 
+                "farol" = "BAÍA DO FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
+                "saco_dagua" = "SACO D'ÁGUA", "deserta_sul" = "DESERTA SUL", "enseada_do_lili" = "ENSEADA DO LILI", "saco_do_batismo" = "SACO DO BATISMO", "baia_das_tartarugas" = "BAÍA DAS TARTARUGAS", "saquinho_dagua" = "SAQUINHO D'ÁGUA", 
+                "saco_do_capim" = "SACO DO CAPIM", "deserta_norte" = "DESERTA NORTE", "letreiro" = "PONTA DO LETREIRO", "portinho_sul" = "PORTINHO SUL", "saco_dagua" = "SACO D'ÁGUA", "tamboretes_sul" = "TAMBORETES SUL",
+                "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
+                "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
+                "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
+                 "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE", "macuco" = "ILHA DO MACUCO")
+         )
+
+g1 <- ggplot(pred_locality, aes(x = mean_pred, y = `recode(...)`, fill = mean_pred)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(
+    title = expression(
+      atop(
+        paste("Probabilidade de detecção de ", italic("T. coccinea")),
+        "pela área de abrangência de TF, RPM e L"
+      )),
+    x = "",
+    y = "",
+    fill = "Média do valor predito por localidade"
+  ) +
+  scale_fill_gradientn(
+    colours = c("#009dff", "#00c514", "#f0e000", "#fd7a00", "#d7191c"),
+    breaks = c(min_val, max_val),
+    labels = c("0", "13.7"),
+    guide = guide_colorbar(
+      direction = "horizontal",
+      title.position = "top",
+      barwidth = unit(5, "cm"),
+      title.hjust = 0.5,
+      title.vjust = 3
+    )
+  ) +
+  annotate(
+    "segment",
+    x = 0, xend = 0, y = 0, yend = 39,
+    arrow = arrow(type = "open", length = unit(0.3, "cm")),
+    color = "black", size = 0.5
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0, size = 12, lineheight = -1),  
+    legend.position = c(0.8, 0.1),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    axis.title.y = element_text(size = 10, margin = margin(r = 10)),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_text(size = 8, margin = margin(r = 1), color = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  )
+
+install.packages("patchwork")
+library(patchwork)
+
+g1 + g2 + g3 + plot_layout(ncol = 3) + plot_annotation(tag_levels = 'A')
+(g1 | g2) / g3 + 
+  plot_annotation(tag_levels = 'A')

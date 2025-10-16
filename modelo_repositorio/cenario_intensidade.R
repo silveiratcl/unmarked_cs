@@ -311,19 +311,82 @@ summary(intensity.glmm)
 
 data(sleepstudy, package = "lme4")
 
-pred <- predict(intensity.glmm, type = "response")
+pred3 <- predict(intensity.glmm, type = "response")
 
-model_pred <- as.numeric(pred)
+model3_pred <- as.numeric(pred3)
 
 # inserindo no data frame
 
-int.geomonit$model_pred <- model_pred
+int.geomonit$model3_pred <- model3_pred
 
-arrange(int.geomonit, -(model_pred))
+arrange(int.geomonit, -(model3_pred))
 
-pred_intensity <- int.geomonit[ ,c("localidade", "model_pred")] %>%
+pred_intensity <- int.geomonit[ ,c("localidade", "model3_pred")] %>%
   arrange(localidade) 
 
 print(pred_intensity, n = 38)
 
 write.csv(int.geomonit, "C:/TCC_Vic/cenario_int", row.names = FALSE)
+
+min3_val <- min(pred_intensity$model3_pred)
+max3_val <- max(pred_intensity$model3_pred)
+
+
+pred_intensity <- pred_intensity %>%
+  mutate(localidade = fct_reorder(localidade, -(model3_pred), .desc = TRUE),
+         recode(localidade,
+                "engenho" = "SACO DO ENGENHO", "rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", 
+                "farol" = "BAÍA DO FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
+                "saco_dagua" = "SACO D'ÁGUA", "deserta_sul" = "DESERTA SUL", "enseada_do_lili" = "ENSEADA DO LILI", "saco_do_batismo" = "SACO DO BATISMO", "baia_das_tartarugas" = "BAÍA DAS TARTARUGAS", "saquinho_dagua" = "SAQUINHO D'ÁGUA", 
+                "saco_do_capim" = "SACO DO CAPIM", "deserta_norte" = "DESERTA NORTE", "letreiro" = "PONTA DO LETREIRO", "portinho_sul" = "PORTINHO SUL", "saco_dagua" = "SACO D'ÁGUA", "tamboretes_sul" = "TAMBORETES SUL",
+                "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
+                "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
+                "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
+                "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE", "macuco" = "ILHA DO MACUCO")
+  )
+
+g3 <- ggplot(pred_intensity, aes(x = model3_pred, y = `recode(...)`, fill = model3_pred)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(
+    title = expression(
+      paste("Probabilidade de intensidade da invasão de ", italic("T. coccinea"),
+            " pela área de abrangência de MP, GC e L")
+    ),
+    x = "",
+    y = "",
+    fill = "Valor predito por localidade"
+  ) +
+  scale_fill_gradientn(
+    colours = c("#009dff", "#00c514", "#f0e000", "#fd7a00", "#d7191c"),
+    breaks = c(min3_val, max3_val),
+    labels = c("0", "387"),
+    guide = guide_colorbar(
+      direction = "horizontal",
+      title.position = "top",
+      barwidth = unit(5, "cm"),
+      title.hjust = 0.5,
+      title.vjust = 3
+    )
+  ) +
+  annotate(
+    "segment",
+    x = 0, xend = 0, y = 0, yend = 39,
+    arrow = arrow(type = "open", length = unit(0.3, "cm")),
+    color = "black", size = 0.5
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0, size = 12),
+    legend.position = c(0.8, 0.1),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    axis.title.y = element_text(size = 10, margin = margin(r = 0)),
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.text.x = element_blank(),
+    axis.text.y = element_text(size = 8, margin = margin(r = 0), color = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+  )
+
+
