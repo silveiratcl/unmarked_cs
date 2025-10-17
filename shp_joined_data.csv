@@ -1,0 +1,49 @@
+id,localidade,loc_mapa,x,y,comp_m,auxiliary_,auxiliar_1,key,dpue_standard,raiw_standard,lon,lat
+14,rancho_norte,Rancho Norte,NA,NA,702.405,NA,NA,rancho norte,3.46,0.9600000000000001,-48.37475123892098,-27.27739328036988
+12,saco_do_letreiro,Saco do Letreiro,NA,NA,209.276,NA,NA,saco do letreiro,0.39,0.01,-48.36993500496901,-27.270470545504587
+11,saco_dagua,Saco dágua,NA,NA,558.439,NA,NA,saco dagua,0,0,-48.367808838333026,-27.273655155748617
+9,saquinho_dagua,Saquinho Dágua,NA,-27.2736,289.082,NA,-48.36218994239172,saquinho dagua,2.3,0.03,-48.36100697820478,-27.27379558105013
+15,costa_do_elefante,Costa do Elefante,NA,NA,667.941,NA,NA,costa do elefante,0,0,-48.37743882990133,-27.282103167710115
+16,saco_do_capim,Saco do Capim,NA,NA,539.427,NA,NA,saco do capim,0.17,0,-48.37434209864583,-27.284110879730957
+18,baia_das_tartarugas,Baia das Tartarugas,NA,NA,470.878,NA,NA,baia das tartarugas,0.25,0.09,-48.36889177787275,-27.288449650644736
+24,pedra_do_elefante,Pedra do Elefante,NA,NA,265.827,NA,NA,pedra do elefante,6.859999999999999,1.7,-48.37893920673914,-27.278670056585135
+48,deserta_norte,Deserta Norte,NA,NA,529.261,NA,NA,deserta norte,0.19,0.01,-48.33070421086308,-27.270357875110737
+26,deserta_sul,Deserta Sul,NA,NA,430.746,NA,NA,deserta sul,2.79,0.32,-48.333377699123055,-27.274081194596654
+21,farol,Baía do Farol,NA,NA,561.107,NA,NA,baia do farol,NA,NA,-48.36176830478397,-27.2960557853359
+22,vidal,Saco do Vidal,NA,NA,391.929,NA,NA,saco do vidal,NA,NA,-48.358563874568425,-27.29795521230242
+17,saco_do_batismo,Saco do Batismo,NA,NA,413.894,NA,NA,saco do batismo,0.48,0.06999999999999999,-48.370859467111565,-27.28501612226392
+7,saco_da_mulata_norte,Saco da Mulata Norte,NA,NA,407.004,NA,NA,saco da mulata norte,0,0,-48.4050096843639,-27.18245065124579
+6,saco_da_mulata_sul,Saco da Mulata Sul,NA,NA,554.63,NA,NA,saco da mulata sul,0,0,-48.40787240436226,-27.185772295260026
+19,engenho,Saco do Engenho,NA,NA,430.834,NA,NA,saco do engenho,NA,NA,-48.36736786365903,-27.29237716069784
+13,letreiro,Ponta do Letreiro,NA,NA,471.629,NA,NA,ponta do letreiro,NA,NA,-48.372487061184486,-27.272487935133395
+20,ponta_do_meio,Ponta do Meio,NA,NA,314.53,NA,NA,ponta do meio,NA,NA,-48.36605005910585,-27.29575275069557
+1,enseada_do_lili,Enseada do Lili,NA,NA,634.057,NA,NA,enseada do lili,1.08,0.1,-48.40694264821085,-27.17847518536005
+2,toca_da_salema,Toca da Salema,NA,NA,222.047,NA,NA,toca da salema,NA,NA,-48.40953179481675,-27.181443701396596
+3,portinho_norte,Portinho Norte,NA,NA,422.674,NA,NA,portinho norte,0,0,-48.40958392117142,-27.183257547784123
+4,portinho_sul,Portinho Sul,NA,NA,401.159,NA,NA,portinho sul,0,0,-48.41018273097555,-27.18630890422144
+5,gale_sul,Galé Sul,NA,NA,157.151,NA,NA,gale sul,NA,NA,-48.40975416623428,-27.18813038186181
+23,saco_das_balas,Saco das Balas,NA,NA,688.834,NA,NA,saco das balas,NA,NA,-48.357564245225966,-27.292480400464246
+10,costao_do_saco_dagua,Costão do Saco Dágua,NA,-27.2752,433.933,NA,-48.365110442589234,costao do saco dagua,1.9100000000000001,0.63,-48.364114869392694,-27.27449665941728
+8,naufragio_do_lili,Naufrágio do Lili,NA,NA,46.526,NA,NA,naufragio do lili,47.29,6.87,-48.409814666907685,-27.179894603736162
+25,aranhas_oeste,Ilha das Aranhas Oeste,NA,NA,493.065,NA,NA,ilha das aranhas oeste,NA,NA,-48.36447637077611,-27.487587039894724
+27,aranhas_leste,Ilha das Aranhas Leste,NA,NA,479.368,NA,NA,ilha das aranhas leste,NA,NA,-48.35746650803635,-27.48494722969585
+28,mata_fome,Ilha Mata Fome,NA,NA,409.243,NA,NA,ilha mata fome,NA,NA,-48.36748717685845,-27.42462294496839
+30,macuco,Ilha do Macuco,NA,NA,955.613,NA,NA,ilha do macuco,NA,NA,-48.46752263216225,-27.204518016806837
+31,sepultura,Sepultura,NA,NA,478.633,NA,NA,sepultura,0,0,-48.48076899946491,-27.137185915879108
+32,estaleiro_1,Estaleiro 1,NA,NA,801.763,NA,NA,estaleiro 1,0,0,-48.514948518769295,-27.119028156794478
+33,estaleiro_2,Estaleiro 2,NA,NA,662.461,NA,NA,estaleiro 2,0,0,-48.52472457113564,-27.121744914297622
+34,ilha_porto_belo,Ilha de Porto Belo,NA,NA,480.381,NA,NA,ilha de porto belo,NA,NA,-48.54278773277529,-27.13757045880945
+35,ilha_dos_lobos,Ilha dos Lobos,NA,NA,850.642,NA,NA,ilha dos lobos,0,0,-48.56162744607864,-26.514061720939907
+36,tipitinga,Ilha Tipitinga,NA,NA,503.018,NA,NA,ilha tipitinga,NA,NA,-48.58416075325367,-26.497933301392912
+37,tamboretes_norte,Tamboretes Norte,NA,NA,814.655,NA,NA,tamboretes norte,0,0,-48.52302144553336,-26.370987247713767
+29,tamboretes_sul,Tamboretes Sul,NA,NA,942.781,NA,NA,tamboretes sul,0,0,-48.525348747647335,-26.38369684219413
+38,xavier,Ilha do Xavier,NA,NA,652.198,NA,NA,ilha do xavier,NA,NA,-48.38668438255108,-27.609743803043266
+40,lagoinha_do_norte,Lagoinha do Norte,NA,NA,1022.968,NA,NA,lagoinha do norte,0,0,-48.41974964874296,-27.383758218723806
+39,ponta_das_canas,Ponta_das_Canas,NA,NA,663.035,NA,NA,ponta das canas,0,0,-48.43536823316294,-27.39137307106004
+41,campeche_sul,Campeche Sul,NA,NA,682.266,NA,NA,campeche sul,0,0,-48.467759988103865,-27.700961143566765
+46,macuco_sul,Ilha do Macuco Sul,NA,NA,673.9,NA,NA,ilha do macuco sul,NA,NA,-48.470752686129934,-27.20829773227273
+45,ilha_do_coral,Ilha do Coral,NA,NA,554.886,NA,NA,ilha do coral,0,0,-48.543948616435785,-27.937873292490973
+44,irma_do_meio,Irmã do Meio,NA,NA,543.214,NA,NA,irma do meio,0,0,-48.52837695126302,-27.839839945703584
+43,moleques_do_sul,Moleques do Sul,NA,NA,309.525,NA,NA,moleques do sul,0,0,-48.43167159059062,-27.84499468642731
+42,irma_de_fora,Irmã de Fora,NA,NA,373.717,NA,NA,irma de fora,0,0,-48.50592353817902,-27.840475760860116
+47,campeche_norte,Campeche Norte,NA,NA,544.656,NA,NA,campeche norte,0,0,-48.46596942410408,-27.69198749370906
