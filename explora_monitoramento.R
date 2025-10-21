@@ -761,6 +761,260 @@ ggsave("plots/dpue_raiw_side_by_side.png", combined, width = 12, height = 5, dpi
 
 
 
+## generate data for map in the paper
+## Using df_monit_effort_dpue and df_monit_effort_raiw
+## the table must have grouped by ´localidade´ the colluns DPUE and RAI-W
+## incorporating two columns of the centroid of each locality
+
+## PACKAGES ----
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(stringi)
+library(sf)
+
+## NORMALIZER (lowercase, remove accents, underscores -> space, trim) ----
+norm_key <- function(x) {
+  x |>
+    str_to_lower() |>
+    str_replace_all("_", " ") |>
+    str_squish() |>
+    stringi::stri_trans_general("Latin-ASCII")
+}
+
+## 1) SUMMARIZE DPUE + RAIW BY LOCALIDADE ----
+df_map_data <- df_monit_effort_dpue %>%
+  group_by(localidade) %>%
+  summarise(dpue_standard = sum(dpue_standard, na.rm = TRUE), .groups = "drop") %>%
+  full_join(
+    df_monit_effort_raiw %>%
+      group_by(localidade) %>%
+      summarise(raiw_standard = sum(raiw_standard, na.rm = TRUE), .groups = "drop"),
+    by = "localidade"
+  ) %>%
+  # if one side lacks a locality, replace NAs with 0
+  mutate(
+    dpue_standard = coalesce(dpue_standard, 0),
+    raiw_standard = coalesce(raiw_standard, 0)
+  )
+
+print(df_map_data, n =50)
+
+## 2) BUILD CENTROIDS FROM THE SHAPE ----
+# If you’re sure you want geometric centroids, use st_centroid(shp_localidades) instead.
+shp_localidades_centroid <- st_point_on_surface(shp_localidades)
+
+## 3) PICK THE RIGHT NAME COLUMN FROM THE SHAPE & NORMALIZE KEYS ----
+# Your shapes sometimes use `loc_mapa`, sometimes `localidade`.
+shape_name_col <- dplyr::case_when(
+  "localidade" %in% names(shp_localidades_centroid) ~ "localidade",
+  "loc_mapa"   %in% names(shp_localidades_centroid) ~ "loc_mapa",
+  TRUE ~ NA_character_
+)
+if (is.na(shape_name_col)) stop("No 'localidade' or 'loc_mapa' column found in shapefile.")
+
+shp_keyed <- shp_localidades_centroid %>%
+  mutate(
+    nome_shape = .data[[shape_name_col]],
+    key = norm_key(nome_shape)
+  ) %>%
+  select(nome_shape, key, geometry)
+
+df_keyed <- df_map_data %>%
+  mutate(key = norm_key(localidade))
+
+## 4) JOIN ATTRIBUTES INTO THE SF (KEEP GEOMETRY) ----
+# Put the sf object on the left so geometry is preserved.
+shp_joined <- shp_keyed %>%
+  left_join(
+    df_keyed %>% select(key, localidade, dpue_standard, raiw_standard),
+    by = "key"
+  )
+
+st_write(shp_joined, "plots/maps/shp_monitoramento_arvoredo.shp", delete_dsn = TRUE)
+shp_joined$localidade
+
+
+
+## 5) ADD LON/LAT COLUMNS ----
+coords <- st_coordinates(shp_joined)
+shp_joined <- shp_joined %>%
+  mutate(lon = coords[, "X"], lat = coords[, "Y"])
+
+## 6) REPORT UNMATCHED LOCALITIES FROM YOUR TABLE (OPTIONAL) ----
+unmatched <- df_keyed %>%
+  anti_join(shp_keyed %>% st_drop_geometry() %>% select(key, nome_shape), by = "key")
+unmatched
+
+######################################### MAP PANELS (hi-res NE + robust breaks) #########################################
+suppressPackageStartupMessages({
+  library(sf)
+  library(dplyr)
+  library(tmap)
+})
+
+# 0) Ensure sf + CRS
+stopifnot(inherits(shp_joined, "sf"))
+if (is.na(st_crs(shp_joined))) st_crs(shp_joined) <- 4326 else shp_joined <- st_transform(shp_joined, 4326)
+
+# 1) Keep only finite points
+pts <- shp_joined %>%
+  filter(is.finite(dpue_standard), is.finite(raiw_standard)) %>%
+  st_make_valid()
+
+# 2) Safe bbox helpers
+make_bbox_safe <- function(xmin, ymin, xmax, ymax, crs = 4326) {
+  sf::st_bbox(c(
+    xmin = min(xmin, xmax),
+    ymin = min(ymin, ymax),
+    xmax = max(xmin, xmax),
+    ymax = max(ymin, ymax)
+  ), crs = sf::st_crs(crs))
+}
+
+pad_bbox <- function(bbx, dx = 0.0025, dy = 0.0025) {
+  stopifnot(all(!is.na(unclass(bbx))))
+  sf::st_bbox(c(
+    xmin = bbx["xmin"] - dx,
+    ymin = bbx["ymin"] - dy,
+    xmax = bbx["xmax"] + dx,
+    ymax = bbx["ymax"] + dy
+  ), crs = sf::st_crs(bbx))
+}
+
+# 3) Your boxes (safe)
+bbox_arvoredo <- make_bbox_safe(-48.34664, -27.26745, -48.40000, -27.30329)
+bbox_deserta  <- make_bbox_safe(-48.325350, -27.266767, -48.339598, -27.277903)
+bbox_gale     <- make_bbox_safe(-48.395163, -27.173507, -48.429423, -27.190714)
+
+# 4) Ultra-robust points-only panel
+panel_points <- function(bbx, title_label) {
+  # ensure no NA in bbox and add a tiny pad for framing
+  stopifnot(all(!is.na(unclass(bbx))))
+  bbx_pad  <- pad_bbox(bbx, 0.0025, 0.0025)
+  # crop points to padded bbox
+  pts_crop <- suppressWarnings(sf::st_crop(pts, bbx_pad))
+  
+  if (nrow(pts_crop) == 0) {
+    # draw an empty frame so tmap doesn't choke on empty layers
+    frame_poly <- sf::st_as_sfc(bbx_pad) |> sf::st_as_sf()
+    return(
+      tm_shape(frame_poly) + tm_borders(col = "grey85") +
+        tm_layout(
+          main.title = title_label, main.title.size = 1.2,
+          frame = TRUE, bg.color = "white",
+          inner.margins = c(0.03,0.03,0.03,0.03),
+          legend.show = FALSE
+        )
+    )
+  }
+  
+  # draw dots only; no bbox argument (avoid bbox NA pitfalls)
+  tm_shape(pts_crop) +
+    tm_dots(size = 0.06, alpha = 0.9) +
+    tm_layout(
+      main.title = title_label, main.title.size = 1.2,
+      frame = TRUE, bg.color = "white",
+      inner.margins = c(0.03,0.03,0.03,0.03),
+      legend.show = FALSE
+    )
+}
+
+# 5) Render
+options(tmap.check.and.fix = TRUE)  # ask tmap to auto-fix minor issues
+tmap_mode("plot")
+pA <- panel_points(bbox_arvoredo, "A")
+pB <- panel_points(bbox_deserta,  "B")
+pC <- panel_points(bbox_gale,     "C")
+tmap_arrange(pA, pB, pC, nrow = 1)
+
+
+############### diagnostics
+
+# ====================== GGPlot panels: RAI-W (size) & DPUE (color) ======================
+library(sf)
+library(dplyr)
+library(ggplot2)
+library(patchwork)   # for layout & shared legends
+
+# 0) Ensure sf + CRS --------------------------------------------------------------------
+stopifnot(inherits(shp_joined, "sf"))
+if (is.na(sf::st_crs(shp_joined))) sf::st_crs(shp_joined) <- 4326 else shp_joined <- sf::st_transform(shp_joined, 4326)
+
+# 1) Data prep: finite values & coords --------------------------------------------------
+pts_sf <- shp_joined %>%
+  filter(is.finite(dpue_standard), is.finite(raiw_standard)) %>%
+  sf::st_make_valid() %>%
+  filter(!sf::st_is_empty(geometry))
+
+coords <- suppressWarnings(sf::st_coordinates(pts_sf))
+pts_df <- pts_sf %>%
+  sf::st_drop_geometry() %>%
+  mutate(lon = coords[, "X"], lat = coords[, "Y"]) %>%
+  filter(is.finite(lon), is.finite(lat))
+
+# 2) BBoxes (safe) ---------------------------------------------------------------------
+make_bbox_safe <- function(xmin, ymin, xmax, ymax) c(
+  xmin = min(xmin, xmax), ymin = min(ymin, ymax),
+  xmax = max(xmin, xmax), ymax = max(ymin, ymax)
+)
+
+bbox_arvoredo <- make_bbox_safe(-48.34664, -27.26745, -48.40000, -27.30329)
+bbox_deserta  <- make_bbox_safe(-48.325350, -27.266767, -48.339598, -27.277903)
+bbox_gale     <- make_bbox_safe(-48.395163, -27.173507, -48.429423, -27.190714)
+
+# 3) Global, consistent scales across panels -------------------------------------------
+rai_range  <- range(pts_df$raiw_standard, na.rm = TRUE)
+dpue_range <- range(pts_df$dpue_standard, na.rm = TRUE)
+
+# Sizes in ggplot are mm; tweak range to taste
+size_range_mm <- c(2.5, 8.0)
+
+# 4) Panel builder ---------------------------------------------------------------------
+panel_points <- function(df, bbx, title = "") {
+  sub <- df %>%
+    filter(lon >= bbx["xmin"], lon <= bbx["xmax"],
+           lat >= bbx["ymin"], lat <= bbx["ymax"])
+  
+  ggplot(sub, aes(lon, lat)) +
+    geom_point(aes(size = raiw_standard, color = dpue_standard), alpha = 0.95) +
+    scale_size_continuous(
+      name   = "RAI-W",
+      limits = rai_range,
+      range  = size_range_mm,
+      guide  = guide_legend(override.aes = list(alpha = 1))
+    ) +
+    scale_color_gradientn(
+      name   = "DPUE",
+      colours = c("#1a9850","#fee08b","#fc8d59","#d73027", "#a50026"),   
+      limits = dpue_range,
+      na.value = "grey80"
+    ) +
+    coord_fixed(1, xlim = c(bbx["xmin"], bbx["xmax"]),
+                ylim = c(bbx["ymin"], bbx["ymax"]), expand = FALSE) +
+    theme_void(base_size = 11) +
+    theme(
+      plot.title   = element_text(hjust = 0.5, face = "bold"),
+      panel.border = element_rect(colour = "grey70", fill = NA, linewidth = 0.6),
+      plot.margin  = margin(4,4,4,4)
+    ) +
+    ggtitle(title)
+}
+
+# 5) Build panels & collect legends ----------------------------------------------------
+pA <- panel_points(pts_df, bbox_arvoredo, "A")
+pB <- panel_points(pts_df, bbox_deserta,  "B")
+pC <- panel_points(pts_df, bbox_gale,     "C")
+
+(pA + pB + pC) + plot_layout(guides = "collect") &
+  theme(legend.position = "right")
+
+# 6) Save (optional) -------------------------------------------------------------------
+# ggsave("map_panels_points_rai_dpue.png", width = 9, height = 3.6, dpi = 300)
+# ggsave("map_panels_points_rai_dpue.pdf", width = 9, height = 3.6)
+
+
+
 
 
 ################################################################################
@@ -1768,12 +2022,20 @@ dpue_map <- leaflet(map_data) %>%
 dpue_map
 
 
+
+
+
+
+
+
+
 ######################################
 # 8. Static map
 library(tmap)
 library(sf)
 library(dplyr)
 library(rnaturalearth)
+
 
 # Defining the bbox
 # 5. Define your bounding box
