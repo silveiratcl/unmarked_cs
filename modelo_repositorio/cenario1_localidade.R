@@ -340,12 +340,14 @@ model_pred <- as.numeric(pred)
 
 geomonit2$model_pred <- model_pred
 
-arrange(geomonit2, (localidade))
+
+
+dff <- print(geomonit2 [ ,c("localidade", "faixa_bat", "model_pred")])
 
 pred_locality <- geomonit2[ ,c("localidade", "faixa_bat", "model_pred")] %>%
   group_by(localidade) %>%
-  reframe(mean_pred = mean(model_pred)) %>%
-  arrange(-(mean_pred))
+  reframe(sum_pred = sum(model_pred)) %>%
+  arrange(localidade)
 
 print(pred_locality, n = 38)
 
@@ -357,12 +359,12 @@ write.csv(pred_locality, "pred_locality.csv", row.names = FALSE)
 
 #plot em barras empilhadas
 
-min_val <- min(pred_locality$mean_pred)
-max_val <- max(pred_locality$mean_pred)
+min_val <- min(pred_locality$sum_pred)
+max_val <- max(pred_locality$sum_pred)
 
 
 pred_locality <- pred_locality %>%
-  mutate(localidade = fct_reorder(localidade, -(mean_pred), .desc = TRUE),
+  mutate(localidade = fct_reorder(localidade, -(sum_pred), .desc = TRUE),
          recode(localidade,
                 "engenho" = "SACO DO ENGENHO", "rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", 
                 "farol" = "BAÍA DO FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
@@ -374,22 +376,22 @@ pred_locality <- pred_locality %>%
                  "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE", "macuco" = "ILHA DO MACUCO")
          )
 
-g1 <- ggplot(pred_locality, aes(x = mean_pred, y = `recode(...)`, fill = mean_pred)) +
+g1 <- ggplot(pred_locality, aes(x = sum_pred, y = `recode(...)`, fill = sum_pred)) +
   geom_bar(stat = "identity", position = "stack") +
   labs(
     title = expression(
       atop(
         paste("Probabilidade de detecção de ", italic("T. coccinea")),
-        "pela área de abrangência de TF, RPM e L"
+        "pela área de abrangência de TF, RPM e L por localidade"
       )),
     x = "",
     y = "",
-    fill = "Média do valor predito por localidade"
+    fill = "Soma do valor predito por localidade"
   ) +
   scale_fill_gradientn(
     colours = c("#009dff", "#00c514", "#f0e000", "#fd7a00", "#d7191c"),
     breaks = c(min_val, max_val),
-    labels = c("0", "13.7"),
+    labels = c("0", "27.4"),
     guide = guide_colorbar(
       direction = "horizontal",
       title.position = "top",

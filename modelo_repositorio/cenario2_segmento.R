@@ -368,27 +368,30 @@ data(sleepstudy, package = "lme4")
 
 pred2 <- predict(segment.glmm, type = "response")
 
-model2_pred <- as.numeric(pred)
+model2_pred <- as.numeric(pred2)
 
 # inserindo no data frame
 
 geomonit.seg$model2_pred <- model2_pred
 
-arrange(geomonit.seg, (localidade))
+dff2 <- print(geomonit.seg [ ,c("geo_id", "localidade", "faixa_bat", "model2_pred")])
+
+arrange(dff2, (localidade))
+
 
 pred_segment <- geomonit.seg[ ,c("localidade", "faixa_bat", "model2_pred")] %>%
   group_by(localidade) %>%
-  reframe(mean2_pred = mean(model2_pred)) %>%
+  reframe(sum2_pred = sum(model2_pred)) %>%
   arrange(localidade)
 
 print(pred_segment, n = 38)
 
-min2_val <- min(pred_segment$mean2_pred)
-max2_val <- max(pred_segment$mean2_pred)
+min2_val <- min(pred_segment$sum2_pred)
+max2_val <- max(pred_segment$sum2_pred)
 
 
 pred_segment <- pred_segment %>%
-  mutate(localidade = fct_reorder(localidade, -(mean2_pred), .desc = TRUE),
+  mutate(localidade = fct_reorder(localidade, -(sum2_pred), .desc = TRUE),
          recode(localidade,
                 "engenho" = "SACO DO ENGENHO", "rancho_norte" = "RANCHO NORTE", "vidal" = "SACO DO VIDAL", 
                 "farol" = "BAÍA DO FAROL", "pedra_do_elefante" = "PEDRA DO ELEFANTE", "costao_do_saco_dagua" = "COSTÃO DO SACO D'ÁGUA", 
@@ -401,21 +404,21 @@ pred_segment <- pred_segment %>%
   )
 
 
-g2 <- ggplot(pred_segment, aes(x = mean2_pred, y = `recode(...)`, fill = mean2_pred)) +
+g2 <- ggplot(pred_segment, aes(x = sum2_pred, y = `recode(...)`, fill = sum2_pred)) +
   geom_bar(stat = "identity", position = "stack") +
   labs(
     title = expression(
       atop(
-        paste("Probabilidade de detecção de ", italic("T. coccinea")),"pela área de abrangência de MP"
+        paste("Probabilidade de detecção de ", italic("T. coccinea")),"pela área de abrangência de MP por segmento amostral"
       )),
     x = "",
     y = "",
-    fill = "Média do valor predito por localidade"
+    fill = "Soma do valor predito por localidade"
   ) +
   scale_fill_gradientn(
     colours = c("#009dff", "#00c514", "#f0e000", "#fd7a00", "#d7191c"),
     breaks = c(min2_val, max2_val),
-    labels = c("0", "2.5"),
+    labels = c("0", "5"),
     guide = guide_colorbar(
       direction = "horizontal",
       title.position = "top",

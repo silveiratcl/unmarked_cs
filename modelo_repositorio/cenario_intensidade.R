@@ -322,9 +322,10 @@ int.geomonit$model3_pred <- model3_pred
 arrange(int.geomonit, -(model3_pred))
 
 pred_intensity <- int.geomonit[ ,c("localidade", "model3_pred")] %>%
-  arrange(localidade) 
+  arrange(-(model3_pred)) 
 
 print(pred_intensity, n = 38)
+
 
 write.csv(int.geomonit, "C:/TCC_Vic/cenario_int", row.names = FALSE)
 
@@ -359,7 +360,7 @@ g3 <- ggplot(pred_intensity, aes(x = model3_pred, y = `recode(...)`, fill = mode
   scale_fill_gradientn(
     colours = c("#009dff", "#00c514", "#f0e000", "#fd7a00", "#d7191c"),
     breaks = c(min3_val, max3_val),
-    labels = c("0", "387"),
+    labels = c("0", "387.5"),
     guide = guide_colorbar(
       direction = "horizontal",
       title.position = "top",
