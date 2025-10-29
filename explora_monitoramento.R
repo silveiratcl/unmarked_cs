@@ -711,6 +711,27 @@ plot_raiw_strata
 ggsave("plots/raiw.png", width = 10, height = 5, dpi = 300)
 
 
+#### CHECKING CAPIM
+
+
+df_monit_effort_raiw$localidade
+
+df_monit_effort_raiw %>% 
+  filter(localidade == "SACO DO CAPIM") 
+
+
+
+#%>%
+  group_by(localidade, faixa_bat_depth) %>%
+  summarise(
+    total_sum_weight = sum(total_sum_weight, na.rm = TRUE),
+    raiw_standard = sum(raiw_standard, na.rm = TRUE)
+  ) %>%
+  arrange(localidade, faixa_bat_depth) %>%
+  print(n = 100)  
+
+
+
 # Getting values to paste on the figure
 
 
@@ -1086,7 +1107,8 @@ ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n
 ggsave("plots/density_faixa_bat.png", width = 10, height = 5, dpi = 300) 
   
 # alternative plot using same intervals from previous plots
-
+#str(df_depth)
+str(df_monit)
 df_depth <- df_monit %>% 
   # Convert prof_min and prof_max to numeric
   mutate(prof_min_num = as.numeric(prof_min),
@@ -1145,6 +1167,109 @@ ggplot(df_depth, aes(x = factor(faixa_bat_depth, levels = depth_levels ),  y = n
 
 
 ggsave("plots/density_faixa_bat2.png", width = 10, height = 5, dpi = 300) 
+
+
+#################################################################################
+#### version with effort depth
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+
+depth_levels <- c("0-2 m", "2.1-8 m", "8.1-14 m", "14.1-20 m")
+
+bins <- tibble(
+  faixa_bat_depth = depth_levels,
+  dmin = c(0,  2.1,  8.1, 14.1),
+  dmax = c(2,  8,   14,   20)
+)
+
+# 1) Reduce to unique transects (sampling unit)
+#    If your transect identity also depends on geo_id, add it to the group_by().
+transects <- df_monit %>%
+  mutate(
+    prof_min_num = suppressWarnings(as.numeric(prof_min)),
+    prof_max_num = suppressWarnings(as.numeric(prof_max))
+  ) %>%
+  filter(!is.na(prof_min_num), !is.na(prof_max_num),
+         obs != "estimado dos dados do ICMBio") %>%
+  group_by(localidade_rebio, localidade, data, dafor_id) %>%
+  summarise(
+    # use the range to be robust to repeated rows of the same transect
+    prof_min_num = min(prof_min_num, na.rm = TRUE),
+    prof_max_num = max(prof_max_num, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  # (optional) clamp to plotting domain
+  mutate(
+    prof_min_num = pmax(0, pmin(20, prof_min_num)),
+    prof_max_num = pmax(0, pmin(20, prof_max_num))
+  ) %>%
+  # drop zero/negative intervals after clamping
+  filter(prof_max_num > prof_min_num)
+
+# 2) Overlap of each transect with each bin (weight = 1 per transect)
+effort <- transects %>%
+  crossing(bins) %>%
+  mutate(
+    overlap_m = pmax(0, pmin(prof_max_num, dmax) - pmax(prof_min_num, dmin))
+  ) %>%
+  group_by(faixa_bat_depth, dmin, dmax) %>%
+  summarise(
+    total_effort_m = sum(overlap_m),  # units: m · transect (since weight=1 per transect)
+    .groups = "drop"
+  ) %>%
+  mutate(
+    bin_width_m = dmax - dmin,
+    effort_per_m = total_effort_m / bin_width_m,   # transects per meter (normalized)
+    bin_index = match(faixa_bat_depth, depth_levels),
+    xmin = bin_index - 0.5, xmax = bin_index + 0.5,
+    ymin = 0, ymax = 100
+  )
+
+# 3) Plot (background Reds with legend + your blue bars in df_depth)
+ggplot() +
+  geom_rect(
+    data = effort,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = effort_per_m),
+    alpha = 0.35, inherit.aes = FALSE
+  ) +
+  scale_fill_gradientn(
+    colours = c("#f0f4f8", "#cfd8dc", "#90a4ae", "#546e7a", "#263238"),
+    name = "Number of transects" # normalized per meter
+  ) +
+  geom_col(
+    data = df_depth,
+    aes(x = factor(faixa_bat_depth, levels = depth_levels), y = n_detection),
+    fill = "#db6c10",        
+    
+    linewidth = 0.3,
+    alpha = 0.85
+  ) +
+  labs(
+    x = "Faixa Batimétrica",
+    y = "Number of detections"
+  ) +
+  scale_y_continuous(limits = c(0, 100)) +
+  guides(fill = guide_colorbar(barheight = unit(100, "pt"))) +
+  theme(
+    panel.background = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"),
+    axis.ticks.x = element_line(colour = "grey", linewidth = 0.8),
+    axis.line.x = element_line(colour = "grey", linewidth = 0.8),
+    axis.line.y = element_line(colour = "grey", linewidth = 0.8),
+    axis.title.x = element_blank(),
+    axis.text.y = element_text(size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12)
+  )
+
+
+ggsave("plots/density_faixa_bat3.png", width = 10, height = 5, dpi = 300) 
+
+###############################################################################
+
+
+
 
 
 ### interface mean depth
