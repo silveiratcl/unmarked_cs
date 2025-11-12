@@ -563,7 +563,7 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
   scale_x_continuous(position="top", n.breaks = 10, expand = c(0, 0)) +
   
   labs(
-    title = "Detecções por Unidade de Esforço (2022-2025)",
+   # title = "Detecções por Unidade de Esforço (2022-2025)",
     #subtitle = "DPUE - Detecções / (Horas * Unidades de 100m)"
     ) +
  # ggtitle("Detecções por Unidade de Esforço - Detecções/H/100m ") +
@@ -578,6 +578,8 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
                                linewidth = 0.8, linetype = "solid"),
     axis.ticks.y= element_blank(),
     axis.title.x = element_blank(),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 12),
     plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
     plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
     axis.title.y = element_blank(), 
@@ -1235,8 +1237,9 @@ ggplot() +
     alpha = 0.35, inherit.aes = FALSE
   ) +
   scale_fill_gradientn(
-    colours = c("#f0f4f8", "#cfd8dc", "#90a4ae", "#546e7a", "#263238"),
-    name = "Number of transects" # normalized per meter
+    colours = c("#cfd8dc", "#90a4ae", "#546e7a", "#263238"),
+    #name = "Number of transects" # normalized per meter
+    name = "Numero de transectos" # normalized per meter
   ) +
   geom_col(
     data = df_depth,
@@ -1248,10 +1251,12 @@ ggplot() +
   ) +
   labs(
     x = "Faixa Batimétrica",
-    y = "Number of detections"
+    #y = "Number of detections"
+    y = "Numero de detectções"
   ) +
   scale_y_continuous(limits = c(0, 100)) +
-  guides(fill = guide_colorbar(barheight = unit(100, "pt"))) +
+  guides(fill = guide_colorbar(barheight = unit(150, "pt"),
+                               barwidth = unit(30, "pt"))) +
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"),
@@ -1264,10 +1269,10 @@ ggplot() +
   )
 
 
-ggsave("plots/density_faixa_bat3.png", width = 10, height = 5, dpi = 300) 
-
+#ggsave("plots/density_faixa_bat3.png", width = 10, height = 5, dpi = 300) 
+ggsave("plots/density_faixa_bat3_PT.png", width = 10, height = 5, dpi = 300)
 ###############################################################################
-
+###versão em portugues
 
 
 
@@ -1734,7 +1739,7 @@ library(ggplot2)
  
  
  
- 
+
  library(patchwork)
  
  # Left: DPUE — put label on TOP x-axis
