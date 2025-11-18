@@ -140,7 +140,6 @@ print(df_manag_mass, n = 160)
 shp_localidades = st_read("data/localidades_shapefile.shp")
 shp_rebio = st_read("Rebio_Arvoredo_Ilhas_POL_CGS_WGS84.shp")
 
-
 ### Data processing ### 
 
 # Aggregate by locality 
@@ -516,6 +515,7 @@ plot_transec_strata_pt_nova <- df_monit_effort %>%
     legend.title = element_blank(),
     legend.key.size = unit(.8, 'cm'),
     axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 14),
     panel.spacing = unit(1, "lines"),
     strip.text.y = element_text(size = 10)
   )
@@ -543,13 +543,18 @@ df_monit_effort_dpue <- df_monit_effort %>%
     total_detections = sum(n_detection),
     dpue_standard = sum(n_detection) / (sum(effort_hours) * first(locality_100m)),
     .groups = "drop"
-  ) %>%
+  )# %>%  #
   
   # Round for readability
-  mutate(across(where(is.numeric), ~round(., 2)))
+ # mutate(across(where(is.numeric), ~round(., 2))) # avoiding roud here to keep precision in plot
 
 
 print(df_monit_effort_dpue, n= 140)
+
+
+
+
+
 
 
 ### sum faixa bat
@@ -869,90 +874,8 @@ unmatched <- df_keyed %>%
   anti_join(shp_keyed %>% st_drop_geometry() %>% select(key, nome_shape), by = "key")
 unmatched
 
-######################################### MAP PANELS (hi-res NE + robust breaks) #########################################
-suppressPackageStartupMessages({
-  library(sf)
-  library(dplyr)
-  library(tmap)
-})
 
-# 0) Ensure sf + CRS
-stopifnot(inherits(shp_joined, "sf"))
-if (is.na(st_crs(shp_joined))) st_crs(shp_joined) <- 4326 else shp_joined <- st_transform(shp_joined, 4326)
-
-# 1) Keep only finite points
-pts <- shp_joined %>%
-  filter(is.finite(dpue_standard), is.finite(raiw_standard)) %>%
-  st_make_valid()
-
-# 2) Safe bbox helpers
-make_bbox_safe <- function(xmin, ymin, xmax, ymax, crs = 4326) {
-  sf::st_bbox(c(
-    xmin = min(xmin, xmax),
-    ymin = min(ymin, ymax),
-    xmax = max(xmin, xmax),
-    ymax = max(ymin, ymax)
-  ), crs = sf::st_crs(crs))
-}
-
-pad_bbox <- function(bbx, dx = 0.0025, dy = 0.0025) {
-  stopifnot(all(!is.na(unclass(bbx))))
-  sf::st_bbox(c(
-    xmin = bbx["xmin"] - dx,
-    ymin = bbx["ymin"] - dy,
-    xmax = bbx["xmax"] + dx,
-    ymax = bbx["ymax"] + dy
-  ), crs = sf::st_crs(bbx))
-}
-
-# 3) Your boxes (safe)
-bbox_arvoredo <- make_bbox_safe(-48.34664, -27.26745, -48.40000, -27.30329)
-bbox_deserta  <- make_bbox_safe(-48.325350, -27.266767, -48.339598, -27.277903)
-bbox_gale     <- make_bbox_safe(-48.395163, -27.173507, -48.429423, -27.190714)
-
-# 4) Ultra-robust points-only panel
-panel_points <- function(bbx, title_label) {
-  # ensure no NA in bbox and add a tiny pad for framing
-  stopifnot(all(!is.na(unclass(bbx))))
-  bbx_pad  <- pad_bbox(bbx, 0.0025, 0.0025)
-  # crop points to padded bbox
-  pts_crop <- suppressWarnings(sf::st_crop(pts, bbx_pad))
-  
-  if (nrow(pts_crop) == 0) {
-    # draw an empty frame so tmap doesn't choke on empty layers
-    frame_poly <- sf::st_as_sfc(bbx_pad) |> sf::st_as_sf()
-    return(
-      tm_shape(frame_poly) + tm_borders(col = "grey85") +
-        tm_layout(
-          main.title = title_label, main.title.size = 1.2,
-          frame = TRUE, bg.color = "white",
-          inner.margins = c(0.03,0.03,0.03,0.03),
-          legend.show = FALSE
-        )
-    )
-  }
-  
-  # draw dots only; no bbox argument (avoid bbox NA pitfalls)
-  tm_shape(pts_crop) +
-    tm_dots(size = 0.06, alpha = 0.9) +
-    tm_layout(
-      main.title = title_label, main.title.size = 1.2,
-      frame = TRUE, bg.color = "white",
-      inner.margins = c(0.03,0.03,0.03,0.03),
-      legend.show = FALSE
-    )
-}
-
-# 5) Render
-options(tmap.check.and.fix = TRUE)  # ask tmap to auto-fix minor issues
-tmap_mode("plot")
-pA <- panel_points(bbox_arvoredo, "A")
-pB <- panel_points(bbox_deserta,  "B")
-pC <- panel_points(bbox_gale,     "C")
-tmap_arrange(pA, pB, pC, nrow = 1)
-
-
-############### diagnostics
+############# diagnostics
 
 # ====================== GGPlot panels: RAI-W (size) & DPUE (color) ======================
 library(sf)
@@ -1252,11 +1175,11 @@ ggplot() +
   labs(
     x = "Faixa Batimétrica",
     #y = "Number of detections"
-    y = "Numero de detectções"
+    y = "Número de detectções"
   ) +
   scale_y_continuous(limits = c(0, 100)) +
   guides(fill = guide_colorbar(barheight = unit(150, "pt"),
-                               barwidth = unit(30, "pt"))) +
+                               barwidth = unit(30, "pt"))) + 
   theme(
     panel.background = element_blank(),
     axis.ticks.length.x = unit(0.2, "cm"),
@@ -1264,19 +1187,108 @@ ggplot() +
     axis.line.x = element_line(colour = "grey", linewidth = 0.8),
     axis.line.y = element_line(colour = "grey", linewidth = 0.8),
     axis.title.x = element_blank(),
-    axis.text.y = element_text(size = 9),
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 12)
+    axis.title.y = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 15),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 15)
   )
 
 
 #ggsave("plots/density_faixa_bat3.png", width = 10, height = 5, dpi = 300) 
 ggsave("plots/density_faixa_bat3_PT.png", width = 10, height = 5, dpi = 300)
 ###############################################################################
-###versão em portugues
+###v
+
+
+# Density plot of depth interval sampled in all localities
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(patchwork)  # <- for combining plots
+
+p1 <- ggplot() +
+  geom_col(
+    data = df_depth,
+    aes(x = factor(faixa_bat_depth, levels = depth_levels), y = n_detection),
+    fill = "#db6c10",
+    linewidth = 0.3,
+    alpha = 0.85
+  ) +
+  geom_col(
+    data = df_depth,
+    aes(x = factor(faixa_bat_depth, levels = depth_levels), y = n_detection),
+    fill = "#db6c10",
+    linewidth = 0.3,
+    alpha = 0.85
+  ) +
+  labs(
+    x = NULL,
+    #y = "Número de detecções" # pt
+    y = "Number of detections" # en
+  ) +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(
+    panel.background = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"),
+    axis.ticks.x = element_line(colour = "grey", linewidth = 0.8),
+    axis.line.x = element_line(colour = "grey", linewidth = 0.8),
+    axis.line.y = element_line(colour = "grey", linewidth = 0.8),
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.text.x = element_text(size = 15)
+  )
+
+## máximo para o eixo y do gráfico 2
+max_effort <- ceiling(max(depth_density$effort_per_m))
+
+p2 <- ggplot(depth_density,
+             aes(x = z_mid, y = effort_per_m)) +
+  geom_col(width = 0.5, fill = "royalblue") +  # azul claro
+  labs(
+    #x = "Profundidade (m)", # pt
+    #y = "Transectos por profundidade (m)" #pt
+    x = "Depth (m)", # en
+    y = "Number of Transects" #depth
+    
+  ) +
+  scale_y_continuous(breaks = seq(0, max_effort, by = 10)) +  
+  scale_x_continuous(breaks = seq(0, 20, by = 2)) +
+  theme(
+    panel.background = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.ticks.length.x = unit(0.2, "cm"),
+    axis.ticks.x = element_line(colour = "grey", linewidth = 0.8),
+    axis.line.x = element_line(colour = "grey", linewidth = 0.8),
+    axis.line.y = element_line(colour = "grey", linewidth = 0.8),
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.text.x = element_text(size = 15)
+  )
+
+
+(p1 / p2) +
+  plot_layout(heights = c(1, 1)) +
+  plot_annotation(tag_levels = "A") &
+  theme(
+    plot.tag = element_text(face = "bold", size = 16),
+    plot.tag.position = c(0.98, 0.98)  # x,y in npc (0–1)
+  )
+
+
+#ggsave("plots/density_faixa_bat4_PT.png", width = 10, height = 10, dpi = 300)
+
+ggsave("plots/density_faixa_bat4_EN.png", width = 10, height = 10, dpi = 300)
 
 
 
 
+################################################################################
 ### interface mean depth
 
 library(dplyr)
@@ -1312,9 +1324,6 @@ overall <- base %>%
 
 # Combine and show
 bind_rows(by_locality, overall) %>% print(n = Inf)
-
-
-
 
 
 
@@ -1830,9 +1839,81 @@ ggsave("plots/dpue_raiw_up_and_down.png",
        combined_year, width = 12, height = 8, dpi = 300)
 
 #######         
-         
-         
-         
+ # IAR sum by locality - nova a pedido da adriana
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+
+# --- Clean and prepare ---
+dafor_localidade <- df_monit %>%
+  mutate(
+    localidade = localidade %>%
+      str_to_upper() %>%               # CAIXA ALTA
+      str_replace_all("_", " "),       # REMOVE SUBLINHADOS
+    dafor_cat = case_when(
+      dafor == 10 ~ "D",
+      dafor == 8  ~ "A",
+      dafor == 6  ~ "F",
+      dafor == 4  ~ "O",
+      dafor == 2  ~ "R",
+      TRUE        ~ NA_character_
+    )
+  ) %>%
+  filter(dafor > 0, !is.na(dafor_cat), localidade != "COSTAO DO SACO DAGUA") %>%  # keep only valid dafor > 0
+  group_by(localidade, dafor_cat) %>%
+  #group_by(localidade) %>%
+  summarise(sum_dafor = sum(dafor), .groups = "drop")
+
+
+dafor_localidade
+
+
+
+
+# --- order localities by total DAFOR ---
+loc_order <- dafor_localidade %>%
+  group_by(localidade) %>%
+  summarise(total = sum(sum_dafor), .groups = "drop") %>%
+  arrange(total) %>%
+  pull(localidade)
+
+dafor_localidade <- dafor_localidade %>%
+  mutate(
+    localidade = factor(localidade, levels = loc_order),
+    dafor_cat  = factor(dafor_cat, levels = c("D", "A", "F", "O", "R"))
+  )
+
+# --- Horizontal stacked bar plot ---
+p_dafor_soma_localidade <- ggplot(dafor_localidade,
+                             aes(x = localidade, y = sum_dafor, fill = dafor_cat)) +
+  geom_col() +
+  coord_flip() +        # horizontal bars
+  labs(
+    x = "LOCALIDADE",
+    y = "Soma dos valores de IAR",
+    fill = "Categoria "
+  ) +
+  scale_fill_viridis_d(option = "plasma", begin = 0.9, end = 0.1) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.line  = element_line(),
+    axis.text.y  = element_text(size = 16),
+    axis.text.x  = element_text(size = 16),
+    axis.title.x = element_text(size = 20),
+    axis.title.y = element_blank(),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text  = element_text(size = 14),
+    legend.key.size = unit(1.8, "cm")
+    
+  )
+
+p_dafor_soma_localidade
+
+
+ggsave("plots/p_dafor_soma_localidade.png", p_dafor_soma_localidade, width = 12, height = 9, dpi = 300)
+
          
 ################################################################################
 ## Automated solution to create all density plots by localidade
@@ -2575,6 +2656,8 @@ dpue_tmap_deserta <- generate_safe_map(bbox_deserta, "Ilha Deserta", c("left", "
 dpue_tmap_gale <- generate_safe_map(bbox_gale, "Ilha da Galé", c("left", "top"))
 
 dpue_tmap_arvoredo
+dpue_tmap_deserta
+dpue_tmap_gale
 
 
 # Save outputs
@@ -2584,7 +2667,180 @@ tmap_save(dpue_tmap_gale, "plots/maps/dpue_map_gale.png", width = 10, height = 5
 
 
 
+#################### DEBUGede maps to use the same data set dmonot_effort_dpue used in dpue calculation
+#######################################################################################################
+#######################################################################################################
+############################################################
 
+############################################################
+## 0. LIBRARIES (if not already loaded)
+############################################################
+library(dplyr)
+library(sf)
+library(tmap)
+
+############################################################
+## Helper to normalize names: remove accents, uppercase, clean spaces
+############################################################
+normalize_name <- function(x) {
+  x |>
+    iconv(from = "UTF-8", to = "ASCII//TRANSLIT") |>  # remove accents
+    toupper() |>
+    gsub("[^A-Z0-9]+", " ", x = _) |>                 # non-alphanumeric -> space
+    trimws()
+}
+
+############################################################
+## 1. DPUE aggregated per localidade (include zeros!)
+##    + create a join key that matches shapefile names
+############################################################
+
+dpue_for_map <- df_monit_effort_dpue %>% 
+  # IMPORTANT: do NOT filter total_detections > 0 here,
+  # so sampled-but-zero localities stay in with dpue_strata = 0
+  mutate(
+    key_raw = normalize_name(localidade),
+    localidade_key = dplyr::case_when(
+      key_raw == "FAROL"    ~ "BAIA DO FAROL",       # FAROL -> Baía do Farol
+      key_raw == "ENGENHO"  ~ "SACO DO ENGENHO",     # ENGENHO -> Saco do Engenho
+      key_raw == "VIDAL"    ~ "SACO DO VIDAL",       # VIDAL -> Saco do Vidal
+      key_raw == "LETREIRO" ~ "PONTA DO LETREIRO",   # LETREIRO -> Ponta do Letreiro
+      TRUE ~ key_raw        # keep others (e.g. COSTAO DO SACO DAGUA, SACO DO BATISMO, etc.)
+    )
+  ) %>% 
+  group_by(localidade_key) %>% 
+  summarise(
+    dpue_strata = sum(dpue_standard, na.rm = TRUE),  # zeros stay zero
+    .groups = "drop"
+  )
+
+dpue_for_map %>% arrange(desc(dpue_strata)) %>% print(n = 28)
+
+
+############################################################
+## 2. JOIN DPUE TO shp_localidades USING NORMALIZED KEY
+############################################################
+
+map_data_sf <- shp_localidades %>% 
+  mutate(
+    localidade_key = normalize_name(loc_mapa)
+  ) %>% 
+  left_join(
+    dpue_for_map %>% select(localidade_key, dpue_strata),
+    by = "localidade_key"
+  ) %>% 
+  mutate(mean_dpue = dpue_strata)
+
+
+############################################################
+## 3. LOAD AND REPAIR LAND POLYGON
+############################################################
+
+land_polygon <- st_read("data/Rebio_Arvoredo_Ilhas_POL_CGS_WGS84.shp") %>% 
+  st_zm(drop = TRUE) %>% 
+  st_make_valid() %>% 
+  st_transform(4326)
+
+if (!all(st_is_valid(land_polygon))) {
+  land_polygon <- land_polygon %>% st_buffer(0) %>% st_make_valid()
+}
+
+############################################################
+## 4. DEFINE BOUNDING BOXES
+############################################################
+
+create_bbox <- function(xmin, ymin, xmax, ymax) {
+  st_bbox(c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax), crs = 4326)
+}
+
+bbox_arvoredo <- create_bbox(-48.34664,  -27.26745,  -48.40000,  -27.30329)
+bbox_deserta  <- create_bbox(-48.325350, -27.266767, -48.339598, -27.277903)
+bbox_gale     <- create_bbox(-48.397000, -27.173507, -48.419423, -27.190714)
+
+############################################################
+## 5. MAP FUNCTION
+############################################################
+## Assumes `color_palette` and `breaks` are already defined
+
+create_dpue_map <- function(data, land, bbox, title, legend_pos) {
+  
+  land_cropped <- tryCatch({
+    st_crop(land, bbox)
+  }, error = function(e) land)
+  
+  tm_shape(land_cropped, bbox = bbox) +
+    tm_polygons(col = "#E0F2F7", border.col = "#3498DB", lwd = 0.8) +
+    tm_basemap("Esri.WorldImagery", alpha = 0.7) +
+    
+    tm_shape(data) +
+    tm_lines(
+      col      = "mean_dpue",
+      palette  = color_palette,
+      breaks   = breaks,
+      lwd      = 6,
+      title.col = "DPUE Detecções/H*Uni100m",
+      labels   = c("0", "0.01-0.03", "0.03-0.09",
+                   "0.09-0.38", "0.38-0.85", "0.85-94.57"),
+      textNA   = "Não amostrado",
+      colorNA  = "#111111"
+    ) +
+    tm_layout(
+      main.title      = title,
+      inner.margins   = c(0.02, 0.02, 0.02, 0.02),
+      legend.position = legend_pos,
+      frame           = TRUE
+    ) +
+    tm_scale_bar(position = c("left", "bottom"))
+}
+
+############################################################
+## 6. SAFE WRAPPER
+############################################################
+
+generate_safe_map <- function(bbox, title, legend_pos) {
+  tryCatch({
+    create_dpue_map(map_data_sf, land_polygon, bbox, title, legend_pos)
+  }, error = function(e) {
+    message("Simplified map due to error: ", e$message)
+    tm_shape(map_data_sf, bbox = bbox) +
+      tm_lines(col = "mean_dpue", palette = color_palette, lwd = 6) +
+      tm_layout(main.title = paste(title, "(simplified)"),
+                legend.position = legend_pos)
+  })
+}
+
+############################################################
+## 7. GENERATE AND SAVE MAPS
+############################################################
+
+tmap_mode("plot")
+
+dpue_tmap_arvoredo <- generate_safe_map(bbox_arvoredo, "Ilha do Arvoredo", c("left", "bottom"))
+dpue_tmap_deserta  <- generate_safe_map(bbox_deserta,  "Ilha Deserta",     c("left", "top"))
+dpue_tmap_gale     <- generate_safe_map(bbox_gale,     "Ilha da Galé",     c("left", "top"))
+
+dpue_tmap_arvoredo
+dpue_tmap_deserta
+dpue_tmap_gale
+
+tmap_save(dpue_tmap_arvoredo, "plots/maps/dpue_map_arvoredo.png", width = 10, height = 5, dpi = 300)
+tmap_save(dpue_tmap_deserta,  "plots/maps/dpue_map_deserta.png",  width = 10, height = 5, dpi = 300)
+tmap_save(dpue_tmap_gale,     "plots/maps/dpue_map_gale.png",     width = 10, height = 5, dpi = 300)
+
+
+
+# checks
+
+as.data.frame(
+  map_data_sf %>% 
+    st_drop_geometry() %>% 
+    select(localidade, loc_mapa, localidade_key, mean_dpue) %>% 
+    arrange(desc(mean_dpue))
+) |> print(row.names = FALSE)
+
+
+################################################################################
+################################################################################
 ################################################################################
 
 ################################################################################
@@ -2704,12 +2960,12 @@ create_bar_plot <- function(locality) {
       theme_minimal() +
       theme(
         plot.margin = margin(5, 5, 5, 5, "pt"),
-        axis.text.y = element_text(size = 14),
+        axis.text.y = element_text(size = 16),
         axis.title.y = element_blank(),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
-        axis.title.x = if (is_last_plot) element_text() else element_blank(),
-        axis.text.x = if (is_last_plot) element_text() else element_blank(),
+        axis.title.x = if (is_last_plot) element_text(size = 14) else element_blank(),
+        axis.text.x = if (is_last_plot) element_text(size = 16) else element_blank(),
       ) +
       labs(x = if (is_last_plot) "IAR" else NULL)
   })
@@ -2719,7 +2975,7 @@ create_bar_plot <- function(locality) {
     plot_annotation(
       title = paste(locality),
       theme = theme(
-        plot.title = element_text(hjust = 0.5, size = 14, face = "bold",
+        plot.title = element_text(hjust = 0.5, size = 20, face = "bold",
                                   margin = margin(b = 10))
       ) +
         theme(plot.background = element_rect(color = "black", size = 1, fill = "white"))
