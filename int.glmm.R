@@ -335,7 +335,7 @@ data(sleepstudy, package = "lme4")
 
 pred <- predict(intensity.glmm, type = "response")
 
-model_pred <- round(as.numeric(pred), 0.3)
+model_pred <- as.numeric(pred)
 
 # inserindo no data frame
 
@@ -351,7 +351,6 @@ print(pred_intensity, n = 38)
 
 write.csv(pred_intensity, "predict_intensity.csv", row.names = FALSE)
 
-install.packages('gt')
 library(gt)
 
 predict.table <- pred_intensity %>%
@@ -369,7 +368,9 @@ predict.table <- pred_intensity %>%
     table.border.top.color = "black"
   )
 
-library('gridExtra')
+library(gridExtra)
+install.packages('ggplot2')
+library(ggplot2)
 
 # Criando a tabela
 
@@ -399,16 +400,16 @@ ggplot(pred_intensity, aes(x = reorder(localidade, -model_pred), y = model_pred)
                               "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
                               "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
                               "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
-                              "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE")) +
+                              "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE", "macuco" = "ILHA DO MACUCO")) +
   labs(title = "Predição do IAR-GEO por localidade", x = "", y = "") +
   theme(panel.background = element_blank(), 
     plot.background = element_blank(),      
     panel.grid = element_blank(),
     axis.ticks = element_blank(),
-    plot.title = element_text(family = "TT Arial", face = "bold", size = 14),
-    axis.text.y = element_text(family = "TT Arial", face = "bold", size = 10),
-    axis.text.X = element_text(family = "TT Arial", size = 8),
-    axis.title = element_text(family = "TT Arial", size = 10))   
+    plot.title = element_text(family = "sans", face = "bold", size = 16),
+    axis.text.y = element_text(family = "sans", face = "bold", size = 14),
+    axis.text.x = element_text(family = "sans", size = 14),
+    axis.title = element_text(family = "sans", size = 12))   
 
 ggplot(pred_intensity[2:14, ], aes(x = reorder(localidade, -model_pred), y = model_pred)) +
   geom_bar(stat = "identity", fill = "orange") +
@@ -423,12 +424,12 @@ ggplot(pred_intensity[2:14, ], aes(x = reorder(localidade, -model_pred), y = mod
         plot.background = element_blank(),      
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        plot.title = element_text(family = "TT Arial", face = "bold", size = 14),
-        axis.text.y = element_text(family = "TT Arial", face = "bold", size = 10),
-        axis.text.X = element_text(family = "TT Arial", size = 8),
-        axis.title = element_text(family = "TT Arial", size = 10)) 
+        plot.title = element_text(family = "sans", face = "bold", size = 16),
+        axis.text.y = element_text(family = "sans", face = "bold", size = 14),
+        axis.text.x = element_text(family = "sans", size = 14),
+        axis.title = element_text(family = "sans", size = 12)) 
 
-ggplot(pred_intensity[15:37, ], aes(x = reorder(localidade, -model_pred), y = model_pred)) +
+ggplot(pred_intensity[15:38, ], aes(x = reorder(localidade, -model_pred), y = model_pred)) +
   geom_bar(stat = "identity", fill = "darkgreen") +
   coord_flip() +  # Inverte os eixos → barras ficam horizontais
   scale_y_continuous(limits = c(0, 0.3), breaks = seq(0, 1, by = 0.1)) +
@@ -437,16 +438,16 @@ ggplot(pred_intensity[15:37, ], aes(x = reorder(localidade, -model_pred), y = mo
                               "saco_da_mulata_norte" = "SACO DA MULATA NORTE", "estaleiro_2" = "ESTALEIRO 2", "ilha_dos_lobos" = "ILHA DOS LOBOS", "costa_do_elefante" = "COSTA DO ELEFANTE", "irma_de_fora" = "IRMÃ DE FORA", 
                               "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
                               "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
-                              "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE")) +
+                              "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE", "macuco" = "ILHA DO MACUCO")) +
   labs(title = "", x = "", y = "") +
   theme(panel.background = element_blank(), 
         plot.background = element_blank(),      
         panel.grid = element_blank(),
         axis.ticks = element_blank(),
-        plot.title = element_text(family = "TT Arial", face = "bold", size = 14),
-        axis.text.y = element_text(family = "TT Arial", face = "bold", size = 10),
-        axis.text.X = element_text(family = "TT Arial", size = 8),
-        axis.title = element_text(family = "TT Arial", size = 10)) 
+        plot.title = element_text(family = "TT Arial", face = "bold", size = 16),
+        axis.text.y = element_text(family = "TT Arial", face = "bold", size = 14),
+        axis.text.x = element_text(family = "TT Arial", size = 14),
+        axis.title = element_text(family = "TT Arial", size = 12)) 
 
 windowsFonts()
 
@@ -457,3 +458,7 @@ windowsFonts()
 "ilha_porto_belo" = "ILHA PORTO BELO", "portinho_norte" = "PORTINHO NORTE", "mata_fome" = "ILHA MATA FOME", "xavier" = "ILHA DO XAVIER", "tipitinga" = "TIPITINGA", "campeche_norte" = "CAMPECHE NORTE",
 "aranhas_oeste" = "ARANHAS OESTE", "estaleiro_1" = "ESTALEIRO 1", "saco_da_mulata_sul" = "SACO DA MULATA SUL", "ilha_do_coral" = "ILHA DO CORAL", "irma_do_meio" = "IRMÃ DO MEIO", 
 "tamboretes_norte" = "TAMBORETES NORTE", "moleques_do_sul" = "MOLEQUES DO SUL", "sepultura" = "SEPULTURA", "aranhas_leste" = "ARANHAS LESTE")
+
+names(grDevices::windowsFonts())
+
+dev.off()
