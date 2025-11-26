@@ -20,8 +20,8 @@ df_monit = read_delim("data/dados_monitoramento_cs_2025-04-30.csv",
                                        data = col_date(format = "%d/%m/%Y"),
                                        visib_horiz = col_double(),
                                        faixa_bat = col_character(),
-                                       prof_interface_min = col_double(),
-                                       prof_interface_max = col_double(),
+                                       prof_min = col_double(),
+                                       prof_max = col_double(),
                                        metodo = col_character(),
                                        observer = col_character(),
                                        n_divers = col_double(),
@@ -32,7 +32,8 @@ df_monit = read_delim("data/dados_monitoramento_cs_2025-04-30.csv",
                                        n_trans_pres = col_double(),
                                        dafor_id = col_double(),
                                        geo_id = col_character(),
-                                       obs = col_character()
+                                       obs = col_character(), 
+                                       id_horus = col_double()
                       ))
 
 
@@ -156,7 +157,7 @@ table(df_monit$prof_min)
 table(df_monit$prof_max)
 
 df_monit_effort <- df_monit  %>% 
-  group_by(localidade_rebio, localidade, data, faixa_bat) %>%
+  group_by(localidade_rebio, localidade, data, faixa_bat, dafor_id) %>%
   filter(obs != "estimado dos dados do ICMBio", faixa_bat != "Na") %>% 
   mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
          localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>%
@@ -189,7 +190,7 @@ df_monit_effort <- df_monit %>%
     TRUE ~ NA_character_
   )) %>%
   # Now proceed with your original processing but using faixa_bat_depth
-  group_by(localidade_rebio, localidade, data, faixa_bat_depth) %>%
+  group_by(localidade_rebio, localidade, data, faixa_bat_depth, dafor_id) %>%
   filter(obs != "estimado dos dados do ICMBio", faixa_bat != "Na") %>% 
   mutate(localidade = str_to_upper(str_replace_all(localidade, "_", " ")),
          localidade_rebio = str_to_upper(str_replace_all(localidade_rebio, "_", " "))) %>%
@@ -536,7 +537,7 @@ df_monit_effort_dpue <- df_monit_effort %>%
   ) %>%
   
   # Group and summarize (if needed)
-  group_by(localidade, data, faixa_bat_depth) %>%
+  group_by(localidade, data, faixa_bat_depth, dafor_id) %>%
   summarise(
     comp_m = first(comp_m),
     total_effort_hours = sum(effort_hours),
@@ -551,9 +552,30 @@ df_monit_effort_dpue <- df_monit_effort %>%
 
 print(df_monit_effort_dpue, n= 140)
 
+##############
+############# Checks dashboard
+df_monit_effort_dpue
+
+df_monit_effort_dpue %>% 
+  filter(total_detections > 0)  %>% 
+  group_by(localidade) %>% 
+  summarise(total_dpue = sum(dpue_standard)) %>% 
+  arrange(desc(total_dpue))
 
 
+max(df_monit_effort_dpue$data)
+min(df_monit_effort_dpue$data)
 
+
+df_monit_effort_dpue %>% 
+  filter(localidade == "ENGENHO") %>% 
+  arrange(data) %>% 
+  print(n=40)
+
+df_monit_effort_dpue %>% 
+  filter(localidade == "VIDAL") %>% 
+  arrange(data) %>% 
+  print(n=40)
 
 
 
@@ -588,7 +610,7 @@ plot_dpue_strata <- df_monit_effort_dpue %>%
     plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80" ),
     plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80" ),
     axis.title.y = element_blank(), 
-    legend.text = element_text(size=15, color ="#284b80" ),
+    legend.text = element_text(size=15),
     legend.title = element_blank(),
     legend.key.size = unit(.8, 'cm'),
   )
@@ -704,12 +726,14 @@ plot_raiw_strata <- df_monit_effort_raiw %>%
     axis.ticks.length.x = unit(0.2, "cm"),
     axis.ticks.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
     axis.line.x = element_line(colour = "grey", linewidth = 0.8, linetype = "solid"),
+    axis.text.y = element_text(size=14),
+    axis.text.x = element_text(size=14),
     axis.ticks.y = element_blank(),
     axis.title.x = element_blank(),
-    plot.title = element_text(hjust = 0.5, size = 18, color = "#284b80"),
-    plot.subtitle = element_text(hjust = 0.5, size = 12, color = "#284b80"),
+    plot.title = element_text(hjust = 0.5, size = 18),
+    plot.subtitle = element_text(hjust = 0.5, size = 12),
     axis.title.y = element_blank(),
-    legend.text = element_text(size = 15, color = "#284b80"),
+    legend.text = element_text(size = 15),
     legend.title = element_blank(),
     legend.key.size = unit(.8, 'cm')
   )
@@ -761,16 +785,17 @@ plot_dpue_clean <- plot_dpue_strata +
   labs(title = NULL, subtitle = NULL, x = "DPUE", y = NULL) +
   theme(
     axis.title.x        = element_blank(),                 # hide bottom title
-    axis.title.x.top    = element_text(size = 14, color = "#284b80"),
-    axis.title.y        = element_text(size = 14, color = "#284b80")
+    axis.title.x.top    = element_text(size = 14),
+    axis.title.y        = element_text(size = 14)
   )
+
 
 # Right: RAI-W — put label on TOP x-axis, no y label (to avoid duplication)
 plot_raiw_clean <- plot_raiw_strata +
   labs(title = NULL, subtitle = NULL, x = "RAI-W", y = NULL) +
   theme(
     axis.title.x        = element_blank(),
-    axis.title.x.top    = element_text(size = 14, color = "#284b80"),
+    axis.title.x.top    = element_text(size = 14),
     axis.title.y        = element_blank()
   )
 
@@ -1698,8 +1723,11 @@ library(ggplot2)
              axis.line = element_line(),       # mantém eixos visíveis
              panel.border = element_blank(),
              axis.title.x = element_blank(),
-             legend.text = element_text(size=11 ),
-             legend.key.size = unit(.8, 'cm'),
+             axis.text.x = element_blank(),
+             axis.text.y = element_text(size=16),
+             axis.title.y = element_text(size=16),
+             legend.text = element_text(size=16 ),
+             legend.key.size = unit(.9, 'cm'),
              
            )
          
@@ -1737,8 +1765,12 @@ library(ggplot2)
              panel.border = element_blank(),
              plot.title = element_text(hjust = 0.5, size = 18, color ="#284b80"),
              plot.subtitle = element_text(hjust = 0.5, size = 12, color ="#284b80"),
-             legend.text = element_text(size=11),
-             legend.key.size = unit(.8, 'cm'),
+             legend.title = element_text(size=14),
+             legend.text = element_text(size=14),
+             legend.key.size = unit(.9, 'cm'),
+             axis.text.y = element_text(size=16),
+             axis.text.x = element_text(size=16),
+             axis.title.y = element_text(size=16),
              axis.title.x = element_blank()
            )
          
@@ -1778,10 +1810,10 @@ library(ggplot2)
      text = element_text(size = 12),  
      #plot.tag = element_text(face = "bold", size = 14),
      plot.tag.position = c(0, 0),
-     axis.title.y = element_text(size = 14),
+     axis.title.y = element_text(size = 16),
      axis.title.x = element_blank(),
-     axis.text.x = element_text(size = 12),
-     axis.text.y = element_text(size = 12)
+     axis.text.x = element_text(size = 16),
+     axis.text.y = element_text(size = 16)
      
    )
  
@@ -1860,13 +1892,20 @@ dafor_localidade <- df_monit %>%
       TRUE        ~ NA_character_
     )
   ) %>%
-  filter(dafor > 0, !is.na(dafor_cat), localidade != "COSTAO DO SACO DAGUA") %>%  # keep only valid dafor > 0
+  #filter(dafor > 0, !is.na(dafor_cat), localidade != "COSTAO DO SACO DAGUA") %>%  # keep only valid dafor > 0
+  #filter(dafor > 0, !is.na(dafor_cat)) %>%
+  filter(dafor > 0, !is.na(dafor_cat), localidade != "SACO DAGUA") %>%  # keep only valid dafor > 0 data added after report
   group_by(localidade, dafor_cat) %>%
   #group_by(localidade) %>%
   summarise(sum_dafor = sum(dafor), .groups = "drop")
 
 
-dafor_localidade
+dafor_localidade %>% 
+  group_by(localidade) %>%
+  summarise(total = sum(sum_dafor), .groups = "drop") %>% 
+  arrange(-total) 
+
+  
 
 
 
@@ -1883,6 +1922,13 @@ dafor_localidade <- dafor_localidade %>%
     localidade = factor(localidade, levels = loc_order),
     dafor_cat  = factor(dafor_cat, levels = c("D", "A", "F", "O", "R"))
   )
+
+
+# Data check
+
+
+
+
 
 # --- Horizontal stacked bar plot ---
 p_dafor_soma_localidade <- ggplot(dafor_localidade,
